@@ -1,0 +1,96 @@
+<!DOCTYPE html5>
+<html>
+<head>
+    {% import "header.html" as header %}
+    <title>Channels</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/common.css">
+    <script src="/static/common.js"></script>
+
+<style>
+#content_body
+{
+    display: flex;
+    flex-direction: column;
+}
+#new_channel_textbox,
+#new_channel_button
+{
+    width: 200px;
+}
+.channel_card_downloaded,
+.channel_card_pending
+{
+    margin: 8px;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #000;
+}
+.channel_card_pending
+{
+    background-color: #ffffaa;
+}
+.channel_card_downloaded
+{
+    background-color: #aaffaa;
+}
+.refresh_button
+{
+    width: 10%;
+}
+</style>
+</head>
+
+
+<body>
+{{header.make_header()}}
+<div id="content_body">
+    <button class="refresh_button" onclick="refresh_all_channels(false, function(){location.reload()})">Refresh new videos</button>
+    <button class="refresh_button" onclick="refresh_all_channels(true, function(){location.reload()})">Refresh everything</button>
+    <div>
+        <input type="text" id="new_channel_textbox">
+        <button id="new_channel_button" onclick="_new_channel_submit()">Add new channel</button>
+    </div>
+    {% for channel in channels %}
+    {% if channel['has_pending'] %}
+    <div class="channel_card_pending">
+    {% else %}
+    <div class="channel_card_downloaded">
+    {% endif %}
+        <a href="/channel/{{channel['id']}}">{{channel['name']}}</a>
+    </div>
+    {% endfor %}
+</div>
+</body>
+
+
+<script type="text/javascript">
+var box = document.getElementById('new_channel_textbox');
+var button = document.getElementById('new_channel_button');
+bind_box_to_button(box, button);
+
+function _new_channel_submit()
+{
+    if (box.value !== "")
+    {
+        refresh_channel(box.value, false, function(){location.reload()});
+    }
+}
+
+function refresh_channel(channel_id, force, callback)
+{
+    var url = "/refresh_channel";
+    data = new FormData();
+    data.append("channel_id", channel_id);
+    data.append("force", force)
+    return post(url, data, callback);    
+}
+function refresh_all_channels(force, callback)
+{
+    var url = "/refresh_all_channels";
+    data = new FormData();
+    data.append("force", force)
+    return post(url, data, callback);
+}
+</script>
+</html>

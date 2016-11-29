@@ -1,0 +1,224 @@
+<!DOCTYPE html5>
+<html>
+<head>
+    {% import "header.html" as header %}
+    <title>{{channel['name']}}</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/common.css">
+    <script src="/static/common.js"></script>
+
+<style>
+#content_body
+{
+    display: flex;
+    flex-direction: column;
+}
+
+.video_card_downloaded,
+.video_card_ignored,
+.video_card_pending
+{
+    position: relative;
+    margin: 8px;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #000;
+}
+.video_card_pending
+{
+    background-color: #ffffaa;
+}
+.video_card_ignored
+{
+    background-color: #ffc886;
+}
+.video_card_downloaded
+{
+    background-color: #aaffaa;
+}
+
+.action_toolbox
+{
+    float: right;
+    display: inline-flex;
+    flex-direction: row;
+    position: relative;
+}
+.video_action_dropdown
+{
+    z-index: 1;
+    background-color: #fff;
+    padding: 4px;
+    border: 1px solid #000;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    display: none;
+    flex-direction: column;
+}
+.refresh_button
+{
+    width: 10%;
+}
+</style>
+</head>
+
+
+<body>
+{{header.make_header()}}
+<div id="content_body">
+    <button class="refresh_button" onclick="refresh_channel('{{channel['id']}}', false, function(){location.reload()})">Refresh new videos</button>
+    <button class="refresh_button" onclick="refresh_channel('{{channel['id']}}', true, function(){location.reload()})">Refresh everything</button>
+    <span><a href="/channel/{{channel['id']}}">All</a></span>
+    <span><a href="/channel/{{channel['id']}}/pending">Pending</a></span>
+    <span><a href="/channel/{{channel['id']}}/ignored">Ignored</a></span>
+    <span><a href="/channel/{{channel['id']}}/downloaded">Downloaded</a></span>
+    <span>{{videos|length}} items</span>
+    {% for video in videos %}
+    <div id="video_card_{{video['id']}}"
+    {% if video['download'] == "downloaded" %}
+    class="video_card video_card_downloaded"
+    {% elif video['download'] == "ignored" %}
+    class="video_card video_card_ignored"
+    {% else %}
+    class="video_card video_card_pending"
+    {% endif %}
+    >
+        <a href="https://www.youtube.com/watch?v={{video['id']}}">{{video['_published_str']}} - {{video['title']}}</a>
+        <div class="action_toolbox">
+            {% if video['download'] == "downloaded" %}
+            <button
+            class="video_action_pending"
+            onclick="mark_video_state('{{video['id']}}', 'pending', receive_action_response);"
+            >Revert to Pending</button>
+
+            {% elif video['download'] == "ignored" %}
+            <button
+            class="video_action_pending"
+            onclick="mark_video_state('{{video['id']}}', 'pending', receive_action_response);"
+            >Revert to Pending</button>
+
+            {% else %}
+            <button
+            class="video_action_download"
+            onclick="start_download('{{video['id']}}', receive_action_response);"
+            >Download</button>
+            <button
+            class="video_action_ignore"
+            onclick="mark_video_state('{{video['id']}}', 'ignored', receive_action_response);"
+            >Ignore</button>
+
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+</body>
+
+
+<script type="text/javascript">
+function give_action_buttons(video_card_div)
+{
+    var toolbox = video_card_div.getElementsByClassName("action_toolbox")[0];
+    var video_id = video_card_div.id.split("video_card_")[1];
+    while (toolbox.children.length > 0)
+    {
+        toolbox.removeChild(toolbox.firstChild);
+    }
+    if (video_card_div.classList.contains("video_card_pending"))
+    {
+        var button_download = document.createElement("button");
+        button_download.innerHTML = "Download";
+        button_download.onclick = function(){
+            start_download(video_id, receive_action_response);
+        }
+
+        var button_ignore = document.createElement("button");
+        button_ignore.innerHTML = "Ignore";
+        button_ignore.onclick = function(){
+            mark_video_state(video_id, 'ignored', receive_action_response);
+        }
+
+        toolbox.appendChild(button_download);
+        toolbox.appendChild(button_ignore);
+    }
+    else
+    {
+        var button_revert = document.createElement("button");
+        button_revert.innerHTML = "Revert to Pending";
+        button_revert.onclick = function(){
+            mark_video_state(video_id, 'pending', receive_action_response);
+        }
+
+        toolbox.appendChild(button_revert);
+    }
+}
+
+var video_cards = document.getElementsByClassName("video_card");
+for (var i = 0; i < video_cards.length; i += 1)
+{
+    give_action_buttons(video_cards[i]);
+}
+
+function receive_action_response(response)
+{
+    var video_id = response['video_id'];
+    var state = response['state'];
+    var card = document.getElementById("video_card_" + video_id);
+    if (state == 'pending')
+    {
+        card.classList = ["video_card", "video_card_pending"].join(" ");
+        card.style.backgroundColor = "#ffffaa";
+    }
+    else if (state == 'ignored')
+    {
+        card.classList = ["video_card", "video_card_ignored"].join(" ");
+        card.style.backgroundColor = "#ffc886";
+    }
+    else if (state == 'downloaded')
+    {
+        card.classList = ["video_card", "video_card_downloaded"].join(" ");
+        card.style.backgroundColor = "#aaffaa";
+    }
+    give_action_buttons(card);
+}
+
+function refresh_channel(channel_id, force, callback)
+{
+    var url = "/refresh_channel";
+    data = new FormData();
+    data.append("channel_id", channel_id);
+    data.append("force", force)
+    return post(url, data, callback);    
+}
+
+function mark_video_state(video_id, state, callback)
+{
+    var url = "/mark_video_state";
+    data = new FormData();
+    data.append("video_id", video_id);
+    data.append("state", state);
+    return post(url, data, callback);
+}
+
+function start_download(video_id, callback)
+{
+    var url = "/start_download";
+    data = new FormData();
+    data.append("video_id", video_id);
+    return post(url, data, callback);    
+}
+
+function toggle_dropdown(dropdown)
+{
+    if (dropdown.style.display != "inline-flex")
+    {
+        dropdown.style.display = "inline-flex";
+    }
+    else
+    {
+        dropdown.style.display = "none";
+    }
+}
+</script>
+</html>
