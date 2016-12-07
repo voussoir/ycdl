@@ -4,16 +4,15 @@ import sqlite3
 
 import ytapi
 
-# AVAILABLE FORMATTERS:
-# url, id
-# Note that if the channel has a value in the `directory` column, the bot will
-# chdir there before executing.
-YOUTUBE_DL_COMMAND = 'touch C:\\Incoming\\ytqueue\\{id}.ytqueue'
+def YOUTUBE_DL_COMMAND(video_id):
+    path = 'C:\\Incoming\\ytqueue\\{id}.ytqueue'.format(id=video_id)
+    open(path, 'w')
 
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
 logging.getLogger('googleapiclient.discovery').setLevel(logging.WARNING)
 logging.getLogger('requests.packages.urllib3.connectionpool').setLevel(logging.WARNING)
+logging.getLogger('requests.packages.urllib3.util.retry').setLevel(logging.WARNING)
 
 SQL_CHANNEL_COLUMNS = [
     'id',
@@ -64,6 +63,7 @@ DEFAULT_DBNAME = 'ycdl.db'
 
 ERROR_DATABASE_OUTOFDATE = 'Database is out-of-date. {current} should be {new}'
 
+
 def verify_is_abspath(path):
     '''
     TO DO: Determine whether this is actually correct.
@@ -71,8 +71,16 @@ def verify_is_abspath(path):
     if os.path.abspath(path) != path:
         raise ValueError('Not an abspath')
 
+
+class InvalidVideoState(Exception):
+    pass
+
+class NoSuchVideo(Exception):
+    pass
+
+
 class YCDL:
-    def __init__(self, youtube, database_filename=None):
+    def __init__(self, youtube, database_filename=None, youtube_dl_function=None):
         self.youtube = youtube
         if database_filename is None:
             database_filename = DEFAULT_DBNAME
@@ -89,6 +97,11 @@ class YCDL:
                 message = message.format(current=existing_version, new=DATABASE_VERSION)
                 print(message)
                 raise SystemExit
+
+        if youtube_dl_function:
+            self.youtube_dl_function = youtube_dl_function
+        else:
+            self.youtube_dl_function = YOUTUBE_DL_COMMAND
 
         statements = DB_INIT.split(';')
         for statement in statements:
@@ -134,28 +147,46 @@ class YCDL:
         return fetch[SQL_CHANNEL['directory']]
 
     def download_video(self, video, force=False):
-        if not isinstance(video, ytapi.Video):
-            video = self.youtube.get_video(video)
+        '''
+        Execute the `YOUTUBE_DL_COMMAND`, within the channel's associated
+        directory if applicable.
+        '''
+        # This logic is a little hazier than I would like, but it's all in the
+        # interest of minimizing unnecessary API calls.
+        if isinstance(video, ytapi.Video):
+            video_id = video.id
+        else:
+            video_id = video
+        self.cur.execute('SELECT * FROM videos WHERE id == ?', [video_id])
+        video_row = self.cur.fetchone()
+        if video_row is None:
+            # Since the video was not in the db, we may not know about the channel either.
+            if not isinstance(video, ytapi.Video):
+                print('get video')
+                video = self.youtube.get_video(video)
+            channel_id = video.author_id
+            self.cur.execute('SELECT * FROM channels WHERE id == ?', [channel_id])
+            if self.cur.fetchone() is None:
+                print('add channel')
+                self.add_channel(channel_id, get_videos=False, commit=False)
+            video_row = self.insert_video(video, commit=False)['row']
+        else:
+            channel_id = video_row[SQL_VIDEO['author_id']]
 
-        self.add_channel(video.author_id, get_videos=False, commit=False)
-        status = self.insert_video(video, commit=True)
-
-        if status['row'][SQL_VIDEO['download']] != 'pending' and not force:
+        if video_row[SQL_VIDEO['download']] != 'pending' and not force:
             print('That video does not need to be downloaded.')
             return
 
-        download_directory = self.channel_directory(video.author_id)
+        download_directory = self.channel_directory(channel_id)
         download_directory = download_directory or os.getcwd()
 
         current_directory = os.getcwd()
         os.makedirs(download_directory, exist_ok=True)
         os.chdir(download_directory)
-        url = 'https://www.youtube.com/watch?v={id}'.format(id=video.id)
-        command = YOUTUBE_DL_COMMAND.format(url=url, id=video.id)
-        os.system(command)
+        self.youtube_dl_function(video_id)
         os.chdir(current_directory)
 
-        self.cur.execute('UPDATE videos SET download = "downloaded" WHERE id == ?', [video.id])
+        self.cur.execute('UPDATE videos SET download = "downloaded" WHERE id == ?', [video_id])
         self.sql.commit()
 
     def get_channel(self, channel_id):
@@ -173,14 +204,29 @@ class YCDL:
         channels.sort(key=lambda x: x['name'].lower())
         return channels
 
-    def get_videos(self, channel_id=None):
+    def get_videos(self, channel_id=None, download_filter=None):
+        wheres = []
+        bindings = []
         if channel_id is not None:
-            self.cur.execute('SELECT * FROM videos WHERE author_id == ?', [channel_id])
+            wheres.append('author_id')
+            bindings.append(channel_id)
+
+        if download_filter is not None:
+            wheres.append('download')
+            bindings.append(download_filter)
+
+        if wheres:
+            wheres = [x + ' == ?' for x in wheres]
+            wheres = ' WHERE ' + ' AND '.join(wheres)
         else:
-            self.cur.execute('SELECT * FROM videos ')
+            wheres = ''
+
+        query = 'SELECT * FROM videos' + wheres
+        self.cur.execute(query, bindings)
         videos = self.cur.fetchall()
         if not videos:
             return []
+
         videos = [{key: video[SQL_VIDEO[key]] for key in SQL_VIDEO} for video in videos]
         videos.sort(key=lambda x: x['published'], reverse=True)
         return videos
@@ -214,10 +260,10 @@ class YCDL:
         Mark the video as ignored, pending, or downloaded.
         '''
         if state not in ['ignored', 'pending', 'downloaded']:
-            raise ValueError(state)
+            raise InvalidVideoState(state)
         self.cur.execute('SELECT * FROM videos WHERE id == ?', [video_id])
         if self.cur.fetchone() is None:
-            raise KeyError(video_id)
+            raise NoSuchVideo(video_id)
         self.cur.execute('UPDATE videos SET download = ? WHERE id == ?', [state, video_id])
         if commit:
             self.sql.commit()

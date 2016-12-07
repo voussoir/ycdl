@@ -11,7 +11,13 @@
 #content_body
 {
     display: flex;
+    flex-grow: 1;
+    flex-shrink: 0;
+    flex-basis: auto;
     flex-direction: column;
+    width: 1440px;
+    margin: auto;
+    max-width: 100%;
 }
 #new_channel_textbox,
 #new_channel_button
@@ -85,6 +91,7 @@ function refresh_channel(channel_id, force, callback)
     data.append("force", force)
     return post(url, data, callback);    
 }
+
 function refresh_all_channels(force, callback)
 {
     var url = "/refresh_all_channels";

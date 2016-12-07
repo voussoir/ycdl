@@ -11,9 +11,14 @@
 #content_body
 {
     display: flex;
+    flex-grow: 1;
+    flex-shrink: 0;
+    flex-basis: auto;
     flex-direction: column;
+    width: 1440px;
+    margin: auto;
+    max-width: 100%;
 }
-
 .video_card_downloaded,
 .video_card_ignored,
 .video_card_pending
@@ -67,8 +72,10 @@
 <body>
 {{header.make_header()}}
 <div id="content_body">
-    <button class="refresh_button" onclick="refresh_channel('{{channel['id']}}', false, function(){location.reload()})">Refresh new videos</button>
-    <button class="refresh_button" onclick="refresh_channel('{{channel['id']}}', true, function(){location.reload()})">Refresh everything</button>
+    <button class="refresh_button"
+    onclick="refresh_channel('{{channel['id']}}', false, function(){location.reload()})">Refresh new videos</button>
+    <button class="refresh_button"
+    onclick="refresh_channel('{{channel['id']}}', true, function(){location.reload()})">Refresh everything</button>
     <span><a href="/channel/{{channel['id']}}">All</a></span>
     <span><a href="/channel/{{channel['id']}}/pending">Pending</a></span>
     <span><a href="/channel/{{channel['id']}}/ignored">Ignored</a></span>
@@ -107,7 +114,6 @@
             class="video_action_ignore"
             onclick="mark_video_state('{{video['id']}}', 'ignored', receive_action_response);"
             >Ignore</button>
-
             {% endif %}
         </div>
     </div>
@@ -207,18 +213,6 @@ function start_download(video_id, callback)
     data = new FormData();
     data.append("video_id", video_id);
     return post(url, data, callback);    
-}
-
-function toggle_dropdown(dropdown)
-{
-    if (dropdown.style.display != "inline-flex")
-    {
-        dropdown.style.display = "inline-flex";
-    }
-    else
-    {
-        dropdown.style.display = "none";
-    }
 }
 </script>
 </html>

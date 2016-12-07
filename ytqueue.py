@@ -18,6 +18,7 @@ while True:
     for filename in queue:
         yt_id = filename.split('.')[0]
         command = YOUTUBE_DL.format(id=yt_id)
-        os.system(command)
-        os.remove(filename)
+        exit_code = os.system(command)
+        if exit_code == 0:
+            os.remove(filename)
     time.sleep(10)

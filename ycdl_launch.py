@@ -4,6 +4,7 @@ gevent.monkey.patch_all()
 import gevent.pywsgi
 import gevent.wsgi
 import sys
+
 import ycdl_site
 
 if len(sys.argv) == 2:
@@ -25,5 +26,5 @@ else:
     )
 
 
-print('Starting server')
+print('Starting server on port %d' % port)
 http.serve_forever()

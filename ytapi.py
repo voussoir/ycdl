@@ -3,6 +3,9 @@ import datetime
 
 import helpers
 
+class VideoNotFound(Exception):
+    pass
+
 class Video:
     def __init__(self, snippet):
         self.id = snippet['id']
@@ -32,6 +35,10 @@ class Youtube:
             version='v3',
         )
         self.youtube = youtube
+
+    def get_user_id(self, username):
+        user = self.youtube.channels().list(part='snippet', forUsername=username).execute()
+        return user['items'][0]['id']
 
     def get_user_name(self, uid):
         user = self.youtube.channels().list(part='snippet', id=uid).execute()
@@ -67,15 +74,18 @@ class Youtube:
             video_ids = [video_ids]
         else:
             singular = False
-        video_ids = helpers.chunk_sequence(video_ids, 50)
+
         results = []
-        for chunk in video_ids:
+        chunks = helpers.chunk_sequence(video_ids, 50)
+        for chunk in chunks:
             chunk = ','.join(chunk)
             data = self.youtube.videos().list(part='snippet', id=chunk).execute()
             items = data['items']
             results += items
-            #print('Found %d more, %d total' % (len(items), len(results)))
         results = [Video(snippet) for snippet in results]
-        if singular and len(results) == 1:
-            return results[0]
+        if singular:
+            if len(results) == 1:
+                return results[0]
+            elif len(results) == 0:
+                raise VideoNotFound(video_ids[0])
         return results

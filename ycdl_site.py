@@ -128,9 +128,8 @@ def get_channel(channel_id, download_filter=None):
     channel = youtube.get_channel(channel_id)
     if channel is None:
         flask.abort(404)
-    videos = youtube.get_videos(channel_id=channel_id)
-    if download_filter is not None:
-        videos = [video for video in videos if video['download'] == download_filter]
+    videos = youtube.get_videos(channel_id=channel_id, download_filter=download_filter)
+
     for video in videos:
         published = video['published']
         published = datetime.datetime.utcfromtimestamp(published)
@@ -153,10 +152,13 @@ def post_mark_video_state():
     state = request.form['state']
     try:
         youtube.mark_video_state(video_id, state)
-    except KeyError:
+
+    except ycdl.NoSuchVideo:
         flask.abort(404)
-    except ValueError:
+
+    except ycdl.InvalidVideoState:
         flask.abort(400)
+
     return make_json_response({'video_id': video_id, 'state': state})
 
 @site.route('/refresh_all_channels', methods=['POST'])
@@ -174,6 +176,13 @@ def post_refresh_channel():
     channel_id = channel_id.strip()
     if not channel_id:
         flask.abort(400)
+    if not (len(channel_id) == 24 and channel_id.startswith('UC')):
+        # It seems they have given us a username instead.
+        try:
+            channel_id = youtube.youtube.get_user_id(username=channel_id)
+        except IndexError:
+            flask.abort(404)
+
     force = request.form.get('force', False)
     force = helpers.truthystring(force)
     youtube.refresh_channel(channel_id, force=force)
@@ -184,11 +193,11 @@ def post_start_download():
     if 'video_id' not in request.form:
         flask.abort(400)
     video_id = request.form['video_id']
-    video_info = youtube_core.get_video([video_id])
-    if video_info == []:
+    try:
+        youtube.download_video(video_id)
+    except ytapi.VideoNotFound:
         flask.abort(404)
-    for video in video_info:
-        youtube.download_video(video)
+
     return make_json_response({'video_id': video_id, 'state': 'downloaded'})
 
 if __name__ == '__main__':
