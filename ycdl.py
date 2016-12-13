@@ -177,13 +177,15 @@ class YCDL:
             print('That video does not need to be downloaded.')
             return
 
-        download_directory = self.channel_directory(channel_id)
-        download_directory = download_directory or os.getcwd()
-
         current_directory = os.getcwd()
+        download_directory = self.channel_directory(channel_id)
+        download_directory = download_directory or current_directory
+
         os.makedirs(download_directory, exist_ok=True)
         os.chdir(download_directory)
+
         self.youtube_dl_function(video_id)
+
         os.chdir(current_directory)
 
         self.cur.execute('UPDATE videos SET download = "downloaded" WHERE id == ?', [video_id])

@@ -1,5 +1,5 @@
 '''
-Run `python -i ycdl_easy.py to get an interpreter
+Run `python -i ycdl_repl.py to get an interpreter
 session with these variables preloaded.
 '''
 
