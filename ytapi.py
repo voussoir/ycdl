@@ -26,6 +26,9 @@ class Video:
         best_thumbnail = max(thumbnails, key=lambda x: thumbnails[x]['width'] * thumbnails[x]['height'])
         self.thumbnail = thumbnails[best_thumbnail]
 
+    def __str__(self):
+        return 'Video:%s' % self.id
+
 
 class Youtube:
     def __init__(self, key):
@@ -68,6 +71,23 @@ class Youtube:
             if page_token is None or count < 50:
                 break
 
+    def get_related_videos(self, video_id, part='id,snippet', count=50):
+        if isinstance(video_id, Video):
+            video_id = video_id.id
+
+        results = self.youtube.search().list(
+            part=part,
+            relatedToVideoId=video_id,
+            type='video',
+            maxResults=count,
+        ).execute()
+        videos = []
+        for related in results['items']:
+            related['id'] = related['id']['videoId']
+            video = Video(related)
+            videos.append(video)
+        return videos
+
     def get_video(self, video_ids):
         if isinstance(video_ids, str):
             singular = True
@@ -81,7 +101,7 @@ class Youtube:
             chunk = ','.join(chunk)
             data = self.youtube.videos().list(part='snippet', id=chunk).execute()
             items = data['items']
-            results += items
+            results.extend(items)
         results = [Video(snippet) for snippet in results]
         if singular:
             if len(results) == 1:
