@@ -11,23 +11,23 @@
 #content_body
 {
     display: flex;
-    flex-grow: 1;
-    flex-shrink: 0;
-    flex-basis: auto;
     flex-direction: column;
     width: 1440px;
-    margin: auto;
+    margin-left: auto;
+    margin-right: auto;
     max-width: 100%;
 }
-.video_card_downloaded,
-.video_card_ignored,
-.video_card_pending
+.video_card
 {
     position: relative;
     margin: 8px;
     padding: 10px;
     border-radius: 4px;
     border: 1px solid #000;
+}
+.video_card:hover
+{
+    box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.25);
 }
 .video_card_pending
 {
@@ -36,6 +36,10 @@
 .video_card_ignored
 {
     background-color: #ffc886;
+}
+.video_card_selected
+{
+    background-color: #13f4ff !important;
 }
 .video_card_downloaded
 {
@@ -61,10 +65,6 @@
     display: none;
     flex-direction: column;
 }
-.refresh_button
-{
-    width: 10%;
-}
 </style>
 </head>
 
@@ -72,98 +72,200 @@
 <body>
 {{header.make_header()}}
 <div id="content_body">
-    <button class="refresh_button"
-    onclick="refresh_channel('{{channel['id']}}', false, function(){location.reload()})">Refresh new videos</button>
-    <button class="refresh_button"
-    onclick="refresh_channel('{{channel['id']}}', true, function(){location.reload()})">Refresh everything</button>
+    {% if channel is not none %}
+    <span><button class="refresh_button"
+    onclick="refresh_channel('{{channel['id']}}', false, function(){location.reload()})">Refresh new videos</button></span>
+    <span><button class="refresh_button"
+    onclick="refresh_channel('{{channel['id']}}', true, function(){location.reload()})">Refresh everything</button></span>
     <span><a href="/channel/{{channel['id']}}">All</a></span>
     <span><a href="/channel/{{channel['id']}}/pending">Pending</a></span>
     <span><a href="/channel/{{channel['id']}}/ignored">Ignored</a></span>
     <span><a href="/channel/{{channel['id']}}/downloaded">Downloaded</a></span>
-    <span>{{videos|length}} items</span>
-    {% for video in videos %}
-    <div id="video_card_{{video['id']}}"
-    {% if video['download'] == "downloaded" %}
-    class="video_card video_card_downloaded"
-    {% elif video['download'] == "ignored" %}
-    class="video_card video_card_ignored"
     {% else %}
-    class="video_card video_card_pending"
+    <span><a href="/videos">All</a></span>
+    <span><a href="/videos/pending">Pending</a></span>
+    <span><a href="/videos/ignored">Ignored</a></span>
+    <span><a href="/videos/downloaded">Downloaded</a></span>
     {% endif %}
-    >
-        <a href="https://www.youtube.com/watch?v={{video['id']}}">{{video['_published_str']}} - {{video['title']}}</a>
-        <div class="action_toolbox">
-            {% if video['download'] == "downloaded" %}
-            <button
-            class="video_action_pending"
-            onclick="mark_video_state('{{video['id']}}', 'pending', receive_action_response);"
-            >Revert to Pending</button>
-
-            {% elif video['download'] == "ignored" %}
-            <button
-            class="video_action_pending"
-            onclick="mark_video_state('{{video['id']}}', 'pending', receive_action_response);"
-            >Revert to Pending</button>
-
-            {% else %}
-            <button
-            class="video_action_download"
-            onclick="start_download('{{video['id']}}', receive_action_response);"
-            >Download</button>
-            <button
-            class="video_action_ignore"
-            onclick="mark_video_state('{{video['id']}}', 'ignored', receive_action_response);"
-            >Ignore</button>
+    <span>{{videos|length}} items</span>
+    
+    <div id="video_cards">
+        {% for video in videos %}
+        <div id="video_card_{{video['id']}}"
+        data-ytid="{{video['id']}}"
+        onclick="onclick_select(event)"
+        {% if video['download'] == "downloaded" %}
+        class="video_card video_card_downloaded"
+        {% elif video['download'] == "ignored" %}
+        class="video_card video_card_ignored"
+        {% else %}
+        class="video_card video_card_pending"
+        {% endif %}
+        >
+            <a href="https://www.youtube.com/watch?v={{video['id']}}">{{video['_published_str']}} - {{video['title']}}</a>
+            {% if channel is none %}
+            <a href="/channel/{{video['author_id']}}">(Chan)</a>
             {% endif %}
+            <div class="action_toolbox">
+                <button
+                {% if video['download'] == "pending" %}
+                class="video_action_pending hidden"
+                {% else %}
+                class="video_action_pending"
+                {% endif %}
+                onclick="action_button_passthrough(event, mark_video_state, 'pending')"
+                >Revert to Pending</button>
+
+                <button
+                {% if video['download'] == "pending" %}
+                class="video_action_download"
+                {% else %}
+                class="video_action_download hidden"
+                {% endif %}
+                onclick="action_button_passthrough(event, start_download)"
+                >Download</button>
+
+                <button
+                {% if video['download'] == "pending" %}
+                class="video_action_ignore"
+                {% else %}
+                class="video_action_ignore hidden"
+                {% endif %}
+                onclick="action_button_passthrough(event, mark_video_state, 'ignored')"
+                >Ignore</button>
+            </div>
         </div>
+        {% endfor %}
     </div>
-    {% endfor %}
+
 </div>
 </body>
 
 
 <script type="text/javascript">
-function give_action_buttons(video_card_div)
+var video_card_first_selected = null;
+var video_card_selections = [];
+var video_cards = Array.from(document.getElementById("video_cards").children);
+
+function deselect_all()
 {
-    var toolbox = video_card_div.getElementsByClassName("action_toolbox")[0];
-    var video_id = video_card_div.id.split("video_card_")[1];
-    while (toolbox.children.length > 0)
+    var video_card_first_selected = null;
+    for (var index = 0; index < video_card_selections.length; index +=1)
     {
-        toolbox.removeChild(toolbox.firstChild);
+        video_card_selections[index].classList.remove("video_card_selected");
     }
-    if (video_card_div.classList.contains("video_card_pending"))
+    video_card_selections = [];
+}
+
+function onclick_select(event)
+{
+    if (!event.target.classList.contains("video_card"))
     {
-        var button_download = document.createElement("button");
-        button_download.innerHTML = "Download";
-        button_download.onclick = function(){
-            start_download(video_id, receive_action_response);
+        return;
+    }
+    if (video_card_first_selected === null)
+    {
+        video_card_first_selected = event.target;
+    }
+
+    if (event.shiftKey === false && event.ctrlKey === false)
+    {
+        video_card_selections = [];
+        video_card_selections.push(event.target);
+        video_card_first_selected = event.target;
+    }
+    else if (event.shiftKey === true)
+    {
+        video_card_selections = [];
+        var start_index = video_cards.indexOf(video_card_first_selected);
+        var end_index = video_cards.indexOf(event.target);
+        if (end_index < start_index)
+        {
+            var temp = start_index;
+            start_index = end_index;
+            end_index = temp;
         }
 
-        var button_ignore = document.createElement("button");
-        button_ignore.innerHTML = "Ignore";
-        button_ignore.onclick = function(){
-            mark_video_state(video_id, 'ignored', receive_action_response);
+        for (var index = start_index; index <= end_index; index += 1)
+        {
+            video_card_selections.push(video_cards[index]);
         }
+    }
+    else if (event.ctrlKey === true)
+    {
+        var existing_index = video_card_selections.indexOf(event.target)
+        if (existing_index == -1)
+        {
+            video_card_first_selected = event.target;
+            video_card_selections.push(event.target);
+        }
+        else
+        {
+            video_card_selections.splice(existing_index, 1);
+        }
+    }
 
-        toolbox.appendChild(button_download);
-        toolbox.appendChild(button_ignore);
+
+    for (var index = 0; index < video_cards.length; index += 1)
+    {
+        card = video_cards[index];
+        if (video_card_selections.indexOf(card) > -1)
+        {
+            card.classList.add("video_card_selected");
+        }
+        else
+        {
+            card.classList.remove("video_card_selected");
+        }
+    }
+    return false;
+}
+
+function action_button_passthrough(event, action_function, action_argument)
+{
+    var elements;
+    var this_card = event.target.parentElement.parentElement;
+    if (video_card_selections.length > 0 && video_card_selections.indexOf(this_card) > -1)
+    {
+        elements = video_card_selections;
     }
     else
     {
-        var button_revert = document.createElement("button");
-        button_revert.innerHTML = "Revert to Pending";
-        button_revert.onclick = function(){
-            mark_video_state(video_id, 'pending', receive_action_response);
-        }
-
-        toolbox.appendChild(button_revert);
+        // Button -> button toolbox -> video card
+        elements = [this_card];
     }
+    for (var index = 0; index < elements.length; index += 1)
+    {
+        card = elements[index];
+        if (action_argument === undefined)
+        {
+            action_function(card.dataset['ytid'], receive_action_response);
+        }
+        else
+        {
+            action_function(card.dataset['ytid'], action_argument, receive_action_response);
+        }
+    }
+    deselect_all();
 }
 
-var video_cards = document.getElementsByClassName("video_card");
-for (var i = 0; i < video_cards.length; i += 1)
+function give_action_buttons(video_card_div)
 {
-    give_action_buttons(video_cards[i]);
+    var button_pending = video_card_div.getElementsByClassName("video_action_pending")[0];
+    var button_download = video_card_div.getElementsByClassName("video_action_download")[0];
+    var button_ignore = video_card_div.getElementsByClassName("video_action_ignore")[0];
+    if (video_card_div.classList.contains("video_card_pending"))
+    {
+        button_download.classList.remove("hidden");
+        button_ignore.classList.remove("hidden");
+        button_pending.classList.add("hidden");
+    }
+    else
+    {
+        button_download.classList.add("hidden");
+        button_ignore.classList.add("hidden");
+        button_pending.classList.remove("hidden");
+    }
 }
 
 function receive_action_response(response)
