@@ -106,13 +106,14 @@ class YCDL:
         statements = DB_INIT.split(';')
         for statement in statements:
             self.cur.execute(statement)
+        self.sql.commit()
 
     def add_channel(
             self,
             channel_id,
-            commit=False,
+            commit=True,
             download_directory=None,
-            get_videos=True,
+            get_videos=False,
             name=None,
         ):
         if self.get_channel(channel_id) is not None:
@@ -233,11 +234,12 @@ class YCDL:
         videos.sort(key=lambda x: x['published'], reverse=True)
         return videos
 
-    def insert_video(self, video, commit=True):
+    def insert_video(self, video, *, add_channel=True, commit=True):
         if not isinstance(video, ytapi.Video):
             video = self.youtube.get_video(video)
 
-        self.add_channel(video.author_id, get_videos=False, commit=False)
+        if add_channel:
+            self.add_channel(video.author_id, get_videos=False, commit=False)
         self.cur.execute('SELECT * FROM videos WHERE id == ?', [video.id])
         fetch = self.cur.fetchone()
         if fetch is not None:

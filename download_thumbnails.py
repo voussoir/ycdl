@@ -3,13 +3,13 @@ import os
 import traceback
 import ycdl
 import ytapi
-
+import ycdl_repl
 from voussoirkit import downloady
 
 youtube_core = ytapi.Youtube(bot.YOUTUBE_KEY)
 youtube = ycdl.YCDL(youtube_core)
 
-DIRECTORY = 'C:\\users\\owner\\youtube thumbnails'
+DIRECTORY = '.\\youtube thumbnails'
 
 videos = ycdl_repl.youtube.get_videos()
 for video in videos:
