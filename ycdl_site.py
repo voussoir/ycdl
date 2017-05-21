@@ -122,13 +122,33 @@ def get_channels():
         channel['has_pending'] = youtube.channel_has_pending(channel['id'])
     return flask.render_template('channels.html', channels=channels)
 
+@site.route('/videos')
+@site.route('/videos/<download_filter>')
 @site.route('/channel/<channel_id>')
 @site.route('/channel/<channel_id>/<download_filter>')
-def get_channel(channel_id, download_filter=None):
-    channel = youtube.get_channel(channel_id)
-    if channel is None:
-        flask.abort(404)
+def get_channel(channel_id=None, download_filter=None):
+    if channel_id is not None:
+        youtube.add_channel(channel_id)
+        channel = youtube.get_channel(channel_id)
+        if channel is None:
+            flask.abort(404)
+    else:
+        channel = None
+
     videos = youtube.get_videos(channel_id=channel_id, download_filter=download_filter)
+
+    search_term = request.args.get('q', None)
+    if search_term is not None:
+        search_term = search_term.lower()
+        videos = [v for v in videos if search_term in v['title'].lower()]
+
+    limit = request.args.get('limit', None)
+    if limit is not None:
+        try:
+            limit = int(limit)
+            videos = videos[:limit]
+        except ValueError:
+            pass
 
     for video in videos:
         published = video['published']
