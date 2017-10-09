@@ -2,10 +2,11 @@ import logging
 import os
 import sqlite3
 
-import ytapi
+from . import helpers
+from . import ytapi
 
 def YOUTUBE_DL_COMMAND(video_id):
-    path = 'C:\\Incoming\\ytqueue\\{id}.ytqueue'.format(id=video_id)
+    path = 'D:\\Incoming\\ytqueue\\{id}.ytqueue'.format(id=video_id)
     open(path, 'w')
 
 logging.basicConfig(level=logging.DEBUG)
@@ -206,6 +207,12 @@ class YCDL:
         channels = [{key: channel[SQL_CHANNEL[key]] for key in SQL_CHANNEL} for channel in channels]
         channels.sort(key=lambda x: x['name'].lower())
         return channels
+
+    def get_video(self, video_id):
+        self.cur.execute('SELECT * FROM videos WHERE id == ?', [video_id])
+        video = self.cur.fetchone()
+        video = {key: video[SQL_VIDEO[key]] for key in SQL_VIDEO}
+        return video
 
     def get_videos(self, channel_id=None, download_filter=None):
         wheres = []

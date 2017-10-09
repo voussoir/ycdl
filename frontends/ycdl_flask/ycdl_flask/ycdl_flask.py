@@ -2,22 +2,36 @@
 Do not execute this file directly.
 Use ycdl_launch.py to start the server with gevent.
 '''
+import logging
+logging.getLogger('googleapicliet.discovery_cache').setLevel(logging.ERROR)
+
 import datetime
 import flask
 from flask import request
 import json
 import mimetypes
 import os
+import traceback
 
 import bot
-import helpers
 import ycdl
-import ytapi
 
-youtube_core = ytapi.Youtube(bot.YOUTUBE_KEY)
+from voussoirkit import pathclass
+
+root_dir = pathclass.Path(__file__).parent.parent
+
+TEMPLATE_DIR = root_dir.with_child('templates')
+STATIC_DIR = root_dir.with_child('static')
+FAVICON_PATH = STATIC_DIR.with_child('favicon.png')
+
+youtube_core = ycdl.ytapi.Youtube(bot.YOUTUBE_KEY)
 youtube = ycdl.YCDL(youtube_core)
 
-site = flask.Flask(__name__)
+site = flask.Flask(
+    __name__,
+    template_folder=TEMPLATE_DIR.absolute_path,
+    static_folder=STATIC_DIR.absolute_path,
+)
 site.config.update(
     SEND_FILE_MAX_AGE_DEFAULT=180,
     TEMPLATES_AUTO_RELOAD=True,
@@ -91,7 +105,7 @@ def send_file(filepath):
     if request.method == 'HEAD':
         outgoing_data = bytes()
     else:
-        outgoing_data = helpers.read_filebytes(filepath, range_min=range_min, range_max=range_max)
+        outgoing_data = ycdl.helpers.read_filebytes(filepath, range_min=range_min, range_max=range_max)
 
     response = flask.Response(
         outgoing_data,
@@ -112,8 +126,8 @@ def root():
 @site.route('/favicon.ico')
 @site.route('/favicon.png')
 def favicon():
-    filename = os.path.join('static', 'favicon.png')
-    return flask.send_file(filename)
+    return flask.send_file(FAVICON_PATH.absolute_path)
+
 
 @site.route('/channels')
 def get_channels():
@@ -123,24 +137,30 @@ def get_channels():
     return flask.render_template('channels.html', channels=channels)
 
 @site.route('/videos')
+@site.route('/watch')
 @site.route('/videos/<download_filter>')
 @site.route('/channel/<channel_id>')
 @site.route('/channel/<channel_id>/<download_filter>')
 def get_channel(channel_id=None, download_filter=None):
     if channel_id is not None:
-        youtube.add_channel(channel_id)
+        try:
+            youtube.add_channel(channel_id)
+        except Exception:
+            traceback.print_exc()
         channel = youtube.get_channel(channel_id)
-        if channel is None:
-            flask.abort(404)
     else:
         channel = None
 
     videos = youtube.get_videos(channel_id=channel_id, download_filter=download_filter)
 
-    search_term = request.args.get('q', None)
-    if search_term is not None:
-        search_term = search_term.lower()
-        videos = [v for v in videos if search_term in v['title'].lower()]
+    search_terms = request.args.get('q', '').lower().strip().replace('+', ' ').split()
+    if search_terms:
+        videos = [v for v in videos if all(term in v['title'].lower() for term in search_terms)]
+
+    video_id = request.args.get('v', '')
+    if video_id:
+        youtube.insert_video(video_id)
+        videos = [youtube.get_video(video_id)]
 
     limit = request.args.get('limit', None)
     if limit is not None:
@@ -155,14 +175,12 @@ def get_channel(channel_id=None, download_filter=None):
         published = datetime.datetime.utcfromtimestamp(published)
         published = published.strftime('%Y %m %d')
         video['_published_str'] = published
-    return flask.render_template('channel.html', channel=channel, videos=videos)
-
-@site.route('/static/<filename>')
-def get_static(filename):
-    filename = filename.replace('\\', os.sep)
-    filename = filename.replace('/', os.sep)
-    filename = os.path.join('static', filename)
-    return flask.send_file(filename)
+    return flask.render_template(
+        'channel.html',
+        channel=channel,
+        videos=videos,
+        query_string='?' + request.query_string.decode('utf-8'),
+    )
 
 @site.route('/mark_video_state', methods=['POST'])
 def post_mark_video_state():
@@ -184,7 +202,7 @@ def post_mark_video_state():
 @site.route('/refresh_all_channels', methods=['POST'])
 def post_refresh_all_channels():
     force = request.form.get('force', False)
-    force = helpers.truthystring(force)
+    force = ycdl.helpers.truthystring(force)
     youtube.refresh_all_channels(force=force)
     return make_json_response({})
 
@@ -204,7 +222,7 @@ def post_refresh_channel():
             flask.abort(404)
 
     force = request.form.get('force', False)
-    force = helpers.truthystring(force)
+    force = ycdl.helpers.truthystring(force)
     youtube.refresh_channel(channel_id, force=force)
     return make_json_response({})
 
@@ -215,7 +233,7 @@ def post_start_download():
     video_id = request.form['video_id']
     try:
         youtube.download_video(video_id)
-    except ytapi.VideoNotFound:
+    except ycdl.ytapi.VideoNotFound:
         flask.abort(404)
 
     return make_json_response({'video_id': video_id, 'state': 'downloaded'})

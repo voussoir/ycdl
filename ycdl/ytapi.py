@@ -1,7 +1,7 @@
 import apiclient.discovery
 import datetime
 
-import helpers
+from . import helpers
 
 class VideoNotFound(Exception):
     pass

@@ -77,15 +77,15 @@
     onclick="refresh_channel('{{channel['id']}}', false, function(){location.reload()})">Refresh new videos</button></span>
     <span><button class="refresh_button"
     onclick="refresh_channel('{{channel['id']}}', true, function(){location.reload()})">Refresh everything</button></span>
-    <span><a href="/channel/{{channel['id']}}">All</a></span>
-    <span><a href="/channel/{{channel['id']}}/pending">Pending</a></span>
-    <span><a href="/channel/{{channel['id']}}/ignored">Ignored</a></span>
-    <span><a href="/channel/{{channel['id']}}/downloaded">Downloaded</a></span>
+    <span><a href="/channel/{{channel['id']}}{{query_string}}">All</a></span>
+    <span><a href="/channel/{{channel['id']}}/pending{{query_string}}">Pending</a></span>
+    <span><a href="/channel/{{channel['id']}}/ignored{{query_string}}">Ignored</a></span>
+    <span><a href="/channel/{{channel['id']}}/downloaded{{query_string}}">Downloaded</a></span>
     {% else %}
-    <span><a href="/videos">All</a></span>
-    <span><a href="/videos/pending">Pending</a></span>
-    <span><a href="/videos/ignored">Ignored</a></span>
-    <span><a href="/videos/downloaded">Downloaded</a></span>
+    <span><a href="/videos{{query_string}}">All</a></span>
+    <span><a href="/videos/pending{{query_string}}">Pending</a></span>
+    <span><a href="/videos/ignored{{query_string}}">Ignored</a></span>
+    <span><a href="/videos/downloaded{{query_string}}">Downloaded</a></span>
     {% endif %}
     <span>{{videos|length}} items</span>
     

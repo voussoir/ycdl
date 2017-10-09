@@ -1,3 +1,6 @@
+import logging
+logging.getLogger('googleapicliet.discovery_cache').setLevel(logging.ERROR)
+
 import gevent.monkey
 gevent.monkey.patch_all()
 
@@ -5,7 +8,7 @@ import gevent.pywsgi
 import gevent.wsgi
 import sys
 
-import ycdl_site
+import ycdl_flask
 
 if len(sys.argv) == 2:
     port = int(sys.argv[1])
@@ -15,14 +18,14 @@ else:
 if port == 443:
     http = gevent.pywsgi.WSGIServer(
         listener=('', port),
-        application=ycdl_site.site,
+        application=ycdl_flask.site,
         keyfile='https\\flasksite.key',
         certfile='https\\flasksite.crt',
     )
 else:
     http = gevent.pywsgi.WSGIServer(
-        listener=('', port),
-        application=ycdl_site.site,
+        listener=('0.0.0.0', port),
+        application=ycdl_flask.site,
     )
 
 
