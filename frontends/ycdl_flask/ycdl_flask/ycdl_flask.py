@@ -18,6 +18,8 @@ import ycdl
 
 from voussoirkit import pathclass
 
+from . import jinja_filters
+
 root_dir = pathclass.Path(__file__).parent.parent
 
 TEMPLATE_DIR = root_dir.with_child('templates')
@@ -37,6 +39,7 @@ site.config.update(
     TEMPLATES_AUTO_RELOAD=True,
 )
 site.jinja_env.add_extension('jinja2.ext.do')
+site.jinja_env.filters['seconds_to_hms'] = jinja_filters.seconds_to_hms
 site.debug = True
 
 ####################################################################################################
@@ -192,6 +195,7 @@ def post_mark_video_state():
         youtube.mark_video_state(video_id, state)
 
     except ycdl.NoSuchVideo:
+        traceback.print_exc()
         flask.abort(404)
 
     except ycdl.InvalidVideoState:

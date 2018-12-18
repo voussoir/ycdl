@@ -5,7 +5,6 @@ import gevent.monkey
 gevent.monkey.patch_all()
 
 import gevent.pywsgi
-import gevent.wsgi
 import sys
 
 import ycdl_flask

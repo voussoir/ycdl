@@ -1,12 +1,15 @@
-import bot
+import logging
+logging.basicConfig(level=logging.WARNING)
+
+import bot3 as bot
 import os
 import traceback
 import ycdl
-import ytapi
 import ycdl_repl
 from voussoirkit import downloady
 
-youtube_core = ytapi.Youtube(bot.YOUTUBE_KEY)
+
+youtube_core = ycdl.ytapi.Youtube(bot.YOUTUBE_KEY)
 youtube = ycdl.YCDL(youtube_core)
 
 DIRECTORY = '.\\youtube thumbnails'

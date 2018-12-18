@@ -77,15 +77,15 @@
     onclick="refresh_channel('{{channel['id']}}', false, function(){location.reload()})">Refresh new videos</button></span>
     <span><button class="refresh_button"
     onclick="refresh_channel('{{channel['id']}}', true, function(){location.reload()})">Refresh everything</button></span>
-    <span><a href="/channel/{{channel['id']}}{{query_string}}">All</a></span>
-    <span><a href="/channel/{{channel['id']}}/pending{{query_string}}">Pending</a></span>
-    <span><a href="/channel/{{channel['id']}}/ignored{{query_string}}">Ignored</a></span>
-    <span><a href="/channel/{{channel['id']}}/downloaded{{query_string}}">Downloaded</a></span>
+    <span><a href="/channel/{{channel['id']}}">All</a> <a href="/channel/{{channel['id']}}{{query_string}}">(?q)</a></span>
+    <span><a href="/channel/{{channel['id']}}/pending">Pending</a> <a href="/channel/{{channel['id']}}/pending{{query_string}}">(?q)</a></span>
+    <span><a href="/channel/{{channel['id']}}/ignored">Ignored</a> <a href="/channel/{{channel['id']}}/ignored{{query_string}}">(?q)</a></span>
+    <span><a href="/channel/{{channel['id']}}/downloaded">Downloaded</a> <a href="/channel/{{channel['id']}}/downloaded{{query_string}}">(?q)</a></span>
     {% else %}
-    <span><a href="/videos{{query_string}}">All</a></span>
-    <span><a href="/videos/pending{{query_string}}">Pending</a></span>
-    <span><a href="/videos/ignored{{query_string}}">Ignored</a></span>
-    <span><a href="/videos/downloaded{{query_string}}">Downloaded</a></span>
+    <span><a href="/videos">All</a> <a href="/videos{{query_string}}">(?q)</a></span>
+    <span><a href="/videos/pending">Pending</a> <a href="/videos/pending{{query_string}}">(?q)</a></span>
+    <span><a href="/videos/ignored">Ignored</a> <a href="/videos/ignored{{query_string}}">(?q)</a></span>
+    <span><a href="/videos/downloaded">Downloaded</a> <a href="/videos/downloaded{{query_string}}">(?q)</a></span>
     {% endif %}
     <span>{{videos|length}} items</span>
     
@@ -94,15 +94,11 @@
         <div id="video_card_{{video['id']}}"
         data-ytid="{{video['id']}}"
         onclick="onclick_select(event)"
-        {% if video['download'] == "downloaded" %}
-        class="video_card video_card_downloaded"
-        {% elif video['download'] == "ignored" %}
-        class="video_card video_card_ignored"
-        {% else %}
-        class="video_card video_card_pending"
-        {% endif %}
+        class="video_card video_card_{{video['download']}}"
         >
+            <img src="http://i3.ytimg.com/vi/{{video['id']}}/default.jpg" height="100px">
             <a href="https://www.youtube.com/watch?v={{video['id']}}">{{video['_published_str']}} - {{video['title']}}</a>
+            <span>({{video['duration'] | seconds_to_hms}})</span>
             {% if channel is none %}
             <a href="/channel/{{video['author_id']}}">(Chan)</a>
             {% endif %}
@@ -134,6 +130,10 @@
                 onclick="action_button_passthrough(event, mark_video_state, 'ignored')"
                 >Ignore</button>
             </div>
+            <br>
+            <button class="show_embed_button" onclick="toggle_embed_video('{{video.id}}');">Embed</button>
+            <button class="hide_embed_button hidden" onclick="toggle_embed_video('{{video.id}}');">Unembed</button>
+            <br>
         </div>
         {% endfor %}
     </div>
@@ -147,6 +147,28 @@ var video_card_first_selected = null;
 var video_card_selections = [];
 var video_cards = Array.from(document.getElementById("video_cards").children);
 
+function toggle_embed_video(video_id)
+{
+    var video_card = document.getElementById("video_card_" + video_id);
+    var show_button = video_card.getElementsByClassName("show_embed_button")[0];
+    var hide_button = video_card.getElementsByClassName("hide_embed_button")[0];
+    var embeds = video_card.getElementsByTagName("iframe");
+    if (embeds.length == 0)
+    {
+        var html = `<iframe width="711" height="400" src="https://www.youtube.com/embed/${video_id}" frameborder="0" allow="encrypted-media" allowfullscreen></iframe>`
+        var embed = html_to_element(html);
+        video_card.appendChild(embed);
+        show_button.classList.add("hidden");
+        hide_button.classList.remove("hidden");
+    }
+    else
+    {
+        video_card.removeChild(embeds[0]);
+        show_button.classList.remove("hidden");
+        hide_button.classList.add("hidden");
+    }
+}
+
 function deselect_all()
 {
     var video_card_first_selected = null;
@@ -155,6 +177,13 @@ function deselect_all()
         video_card_selections[index].classList.remove("video_card_selected");
     }
     video_card_selections = [];
+}
+
+function html_to_element(html)
+{
+    var template = document.createElement("template");
+    template.innerHTML = html;
+    return template.content.firstChild;
 }
 
 function onclick_select(event)
