@@ -12,10 +12,11 @@
 {
     display: flex;
     flex-direction: column;
-    width: 1440px;
+    min-width: 200px;
+    width: 100%;
+    max-width: 1440px;
     margin-left: auto;
     margin-right: auto;
-    max-width: 100%;
 }
 .video_card
 {
@@ -89,6 +90,9 @@
     {% endif %}
     <span>{{videos|length}} items</span>
     
+    <center><input type="text" id="search_filter"/></center>
+    <center><span id="search_filter_count">{{videos|length}}</span> items</center>
+
     <div id="video_cards">
         {% for video in videos %}
         <div id="video_card_{{video['id']}}"
@@ -97,7 +101,7 @@
         class="video_card video_card_{{video['download']}}"
         >
             <img src="http://i3.ytimg.com/vi/{{video['id']}}/default.jpg" height="100px">
-            <a href="https://www.youtube.com/watch?v={{video['id']}}">{{video['_published_str']}} - {{video['title']}}</a>
+            <a class="video_title" href="https://www.youtube.com/watch?v={{video['id']}}">{{video['_published_str']}} - {{video['title']}}</a>
             <span>({{video['duration'] | seconds_to_hms}})</span>
             {% if channel is none %}
             <a href="/channel/{{video['author_id']}}">(Chan)</a>
@@ -145,7 +149,38 @@
 <script type="text/javascript">
 var video_card_first_selected = null;
 var video_card_selections = [];
-var video_cards = Array.from(document.getElementById("video_cards").children);
+
+var search_filter_box = document.getElementById("search_filter");
+var search_filter_hook = function(event)
+{
+    filter_video_cards(search_filter_box.value);
+}
+search_filter_box.addEventListener("keyup", search_filter_hook);
+
+function filter_video_cards(search_term)
+{
+    var count = 0;
+    video_cards = document.getElementById("video_cards");
+    video_cards.classList.add("hidden");
+    search_term = search_term.toLocaleLowerCase();
+    var cards = video_cards.children;
+    for (var index = 0; index < cards.length; index += 1)
+    {
+        var video_card = cards[index];
+        var title = video_card.getElementsByClassName("video_title")[0].innerText.toLocaleLowerCase();
+        if (search_term !== "" && title.indexOf(search_term) == -1)
+        {
+            video_card.classList.add("hidden");
+        }
+        else
+        {
+            video_card.classList.remove("hidden");
+            count += 1;
+        }
+    }
+    video_cards.classList.remove("hidden");
+    document.getElementById("search_filter_count").innerText = count;
+}
 
 function toggle_embed_video(video_id)
 {
@@ -197,6 +232,8 @@ function onclick_select(event)
         video_card_first_selected = event.target;
     }
 
+    var video_cards = Array.from(document.getElementById("video_cards").children);
+
     if (event.shiftKey === false && event.ctrlKey === false)
     {
         video_card_selections = [];
@@ -217,6 +254,10 @@ function onclick_select(event)
 
         for (var index = start_index; index <= end_index; index += 1)
         {
+            if (video_cards[index].classList.contains("hidden"))
+            {
+                continue;
+            }
             video_card_selections.push(video_cards[index]);
         }
     }
@@ -263,17 +304,20 @@ function action_button_passthrough(event, action_function, action_argument)
         // Button -> button toolbox -> video card
         elements = [this_card];
     }
+    var video_ids = [];
     for (var index = 0; index < elements.length; index += 1)
     {
-        card = elements[index];
-        if (action_argument === undefined)
-        {
-            action_function(card.dataset['ytid'], receive_action_response);
-        }
-        else
-        {
-            action_function(card.dataset['ytid'], action_argument, receive_action_response);
-        }
+        video_ids.push(elements[index].dataset["ytid"]);
+    }
+    video_ids = video_ids.join(",");
+
+    if (action_argument === undefined)
+    {
+        action_function(video_ids, receive_action_response);
+    }
+    else
+    {
+        action_function(video_ids, action_argument, receive_action_response);
     }
     deselect_all();
 }
@@ -299,25 +343,29 @@ function give_action_buttons(video_card_div)
 
 function receive_action_response(response)
 {
-    var video_id = response['video_id'];
-    var state = response['state'];
-    var card = document.getElementById("video_card_" + video_id);
-    if (state == 'pending')
+    var video_ids = response['video_ids'];
+    for (var index = 0; index < video_ids.length; index += 1)
     {
-        card.classList = ["video_card", "video_card_pending"].join(" ");
-        card.style.backgroundColor = "#ffffaa";
+        var video_id = video_ids[index];
+        var state = response['state'];
+        var card = document.getElementById("video_card_" + video_id);
+        if (state == 'pending')
+        {
+            card.classList = ["video_card", "video_card_pending"].join(" ");
+            card.style.backgroundColor = "#ffffaa";
+        }
+        else if (state == 'ignored')
+        {
+            card.classList = ["video_card", "video_card_ignored"].join(" ");
+            card.style.backgroundColor = "#ffc886";
+        }
+        else if (state == 'downloaded')
+        {
+            card.classList = ["video_card", "video_card_downloaded"].join(" ");
+            card.style.backgroundColor = "#aaffaa";
+        }
+        give_action_buttons(card);
     }
-    else if (state == 'ignored')
-    {
-        card.classList = ["video_card", "video_card_ignored"].join(" ");
-        card.style.backgroundColor = "#ffc886";
-    }
-    else if (state == 'downloaded')
-    {
-        card.classList = ["video_card", "video_card_downloaded"].join(" ");
-        card.style.backgroundColor = "#aaffaa";
-    }
-    give_action_buttons(card);
 }
 
 function refresh_channel(channel_id, force, callback)
@@ -329,20 +377,20 @@ function refresh_channel(channel_id, force, callback)
     return post(url, data, callback);    
 }
 
-function mark_video_state(video_id, state, callback)
+function mark_video_state(video_ids, state, callback)
 {
     var url = "/mark_video_state";
     data = new FormData();
-    data.append("video_id", video_id);
+    data.append("video_ids", video_ids);
     data.append("state", state);
     return post(url, data, callback);
 }
 
-function start_download(video_id, callback)
+function start_download(video_ids, callback)
 {
     var url = "/start_download";
     data = new FormData();
-    data.append("video_id", video_id);
+    data.append("video_ids", video_ids);
     return post(url, data, callback);    
 }
 </script>

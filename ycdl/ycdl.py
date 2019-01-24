@@ -5,6 +5,9 @@ import sqlite3
 from . import helpers
 from . import ytapi
 
+from voussoirkit import sqlhelpers
+
+
 def YOUTUBE_DL_COMMAND(video_id):
     path = 'D:\\Incoming\\ytqueue\\{id}.ytqueue'.format(id=video_id)
     open(path, 'w')
@@ -151,7 +154,7 @@ class YCDL:
             return None
         return fetch[SQL_CHANNEL['directory']]
 
-    def download_video(self, video, force=False):
+    def download_video(self, video, commit=True, force=False):
         '''
         Execute the `YOUTUBE_DL_COMMAND`, within the channel's associated
         directory if applicable.
@@ -194,7 +197,8 @@ class YCDL:
         os.chdir(current_directory)
 
         self.cur.execute('UPDATE videos SET download = "downloaded" WHERE id == ?', [video_id])
-        self.sql.commit()
+        if commit:
+            self.sql.commit()
 
     def get_channel(self, channel_id):
         self.cur.execute('SELECT * FROM channels WHERE id == ?', [channel_id])
@@ -251,24 +255,36 @@ class YCDL:
         if add_channel:
             self.add_channel(video.author_id, get_videos=False, commit=False)
         self.cur.execute('SELECT * FROM videos WHERE id == ?', [video.id])
+
         fetch = self.cur.fetchone()
-        if fetch is not None:
-            return {'new': False, 'row': fetch}
+        existing = fetch is not None
 
-        data = [None] * len(SQL_VIDEO)
-        data[SQL_VIDEO['id']] = video.id
-        data[SQL_VIDEO['published']] = video.published
-        data[SQL_VIDEO['author_id']] = video.author_id
-        data[SQL_VIDEO['title']] = video.title
-        data[SQL_VIDEO['description']] = video.description
-        data[SQL_VIDEO['duration']] = video.duration
-        data[SQL_VIDEO['thumbnail']] = video.thumbnail['url']
-        data[SQL_VIDEO['download']] = 'pending'
+        download_status = 'pending' if not existing else fetch[SQL_VIDEO['download']]
 
-        self.cur.execute('INSERT INTO videos VALUES(?, ?, ?, ?, ?, ?, ?, ?)', data)
+        data = {
+            'id': video.id,
+            'published': video.published,
+            'author_id': video.author_id,
+            'title': video.title,
+            'description': video.description,
+            'duration': video.duration,
+            'thumbnail': video.thumbnail['url'],
+            'download': download_status,
+        }
+
+        if existing:
+            (qmarks, bindings) = sqlhelpers.update_filler(data, where_key='id')
+            query = f'UPDATE videos {qmarks}'
+        else:
+            (qmarks, bindings) = sqlhelpers.insert_filler(SQL_VIDEO_COLUMNS, data)
+            query = f'INSERT INTO videos VALUES({qmarks})'
+
+        self.cur.execute(query, bindings)
+
         if commit:
             self.sql.commit()
-        return {'new': True, 'row': data}
+
+        return {'new': not existing, 'row': data}
 
     def mark_video_state(self, video_id, state, commit=True):
         '''

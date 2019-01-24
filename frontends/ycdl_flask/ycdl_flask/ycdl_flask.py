@@ -187,21 +187,26 @@ def get_channel(channel_id=None, download_filter=None):
 
 @site.route('/mark_video_state', methods=['POST'])
 def post_mark_video_state():
-    if 'video_id' not in request.form or 'state' not in request.form:
+    if 'video_ids' not in request.form or 'state' not in request.form:
         flask.abort(400)
-    video_id = request.form['video_id']
+    video_ids = request.form['video_ids']
     state = request.form['state']
     try:
-        youtube.mark_video_state(video_id, state)
+        video_ids = video_ids.split(',')
+        for video_id in video_ids:
+            youtube.mark_video_state(video_id, state, commit=False)
+        youtube.sql.commit()
 
     except ycdl.NoSuchVideo:
+        youtube.rollback()
         traceback.print_exc()
         flask.abort(404)
 
     except ycdl.InvalidVideoState:
+        youtube.rollback()
         flask.abort(400)
 
-    return make_json_response({'video_id': video_id, 'state': state})
+    return make_json_response({'video_ids': video_ids, 'state': state})
 
 @site.route('/refresh_all_channels', methods=['POST'])
 def post_refresh_all_channels():
@@ -232,15 +237,20 @@ def post_refresh_channel():
 
 @site.route('/start_download', methods=['POST'])
 def post_start_download():
-    if 'video_id' not in request.form:
+    if 'video_ids' not in request.form:
         flask.abort(400)
-    video_id = request.form['video_id']
+    video_ids = request.form['video_ids']
     try:
-        youtube.download_video(video_id)
+        video_ids = video_ids.split(',')
+        for video_id in video_ids:
+            youtube.download_video(video_id, commit=False)
+        youtube.sql.commit()
+
     except ycdl.ytapi.VideoNotFound:
+        youtube.rollback()
         flask.abort(404)
 
-    return make_json_response({'video_id': video_id, 'state': 'downloaded'})
+    return make_json_response({'video_ids': video_ids, 'state': 'downloaded'})
 
 if __name__ == '__main__':
     pass
