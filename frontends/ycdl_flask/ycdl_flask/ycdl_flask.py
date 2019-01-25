@@ -181,6 +181,7 @@ def get_channel(channel_id=None, download_filter=None):
     return flask.render_template(
         'channel.html',
         channel=channel,
+        download_filter=download_filter,
         videos=videos,
         query_string='?' + request.query_string.decode('utf-8'),
     )

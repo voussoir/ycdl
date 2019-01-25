@@ -88,7 +88,6 @@
     <span><a href="/videos/ignored">Ignored</a> <a href="/videos/ignored{{query_string}}">(?q)</a></span>
     <span><a href="/videos/downloaded">Downloaded</a> <a href="/videos/downloaded{{query_string}}">(?q)</a></span>
     {% endif %}
-    <span>{{videos|length}} items</span>
     
     <center><input type="text" id="search_filter"/></center>
     <center><span id="search_filter_count">{{videos|length}}</span> items</center>
@@ -147,6 +146,7 @@
 
 
 <script type="text/javascript">
+var DOWNLOAD_FILTER = "{{download_filter if download_filter else ""}}";
 var video_card_first_selected = null;
 var video_card_selections = [];
 
@@ -159,16 +159,27 @@ search_filter_box.addEventListener("keyup", search_filter_hook);
 
 function filter_video_cards(search_term)
 {
+    /*
+    Apply the current download filter (pending, ignored, downloaded) by removing
+    mismatched cards from the dom.
+    Apply the search filter textbox by hiding the mismatched cards.
+    */
     var count = 0;
     video_cards = document.getElementById("video_cards");
     video_cards.classList.add("hidden");
     search_term = search_term.toLocaleLowerCase();
     var cards = video_cards.children;
-    for (var index = 0; index < cards.length; index += 1)
+    var download_filter_class = "video_card_" + DOWNLOAD_FILTER;
+    for (var index = 0; index < video_cards.children.length; index += 1)
     {
-        var video_card = cards[index];
+        var video_card = video_cards.children[index];
         var title = video_card.getElementsByClassName("video_title")[0].innerText.toLocaleLowerCase();
-        if (search_term !== "" && title.indexOf(search_term) == -1)
+        if (DOWNLOAD_FILTER && !video_card.classList.contains(download_filter_class))
+        {
+            video_cards.removeChild(video_card);
+            index -= 1;
+        }
+        else if (search_term !== "" && title.indexOf(search_term) == -1)
         {
             video_card.classList.add("hidden");
         }
