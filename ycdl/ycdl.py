@@ -61,6 +61,7 @@ CREATE TABLE IF NOT EXISTS videos(
 
 CREATE INDEX IF NOT EXISTS index_channel_id on channels(id);
 CREATE INDEX IF NOT EXISTS index_video_author on videos(author_id);
+CREATE INDEX IF NOT EXISTS index_video_author_download on videos(author_id, download);
 CREATE INDEX IF NOT EXISTS index_video_id on videos(id);
 CREATE INDEX IF NOT EXISTS index_video_published on videos(published);
 CREATE INDEX IF NOT EXISTS index_video_download on videos(download);
