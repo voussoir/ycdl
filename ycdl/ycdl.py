@@ -18,27 +18,7 @@ logging.getLogger('googleapiclient.discovery').setLevel(logging.WARNING)
 logging.getLogger('requests.packages.urllib3.connectionpool').setLevel(logging.WARNING)
 logging.getLogger('requests.packages.urllib3.util.retry').setLevel(logging.WARNING)
 
-SQL_CHANNEL_COLUMNS = [
-    'id',
-    'name',
-    'directory',
-]
-
-SQL_VIDEO_COLUMNS = [
-    'id',
-    'published',
-    'author_id',
-    'title',
-    'description',
-    'duration',
-    'thumbnail',
-    'download',
-]
-
-SQL_CHANNEL = {key:index for (index, key) in enumerate(SQL_CHANNEL_COLUMNS)}
-SQL_VIDEO = {key:index for (index, key) in enumerate(SQL_VIDEO_COLUMNS)}
-
-DATABASE_VERSION = 2
+DATABASE_VERSION = 4
 DB_INIT = '''
 PRAGMA count_changes = OFF;
 PRAGMA cache_size = 10000;
@@ -46,7 +26,8 @@ PRAGMA user_version = {user_version};
 CREATE TABLE IF NOT EXISTS channels(
     id TEXT,
     name TEXT,
-    directory TEXT COLLATE NOCASE
+    directory TEXT COLLATE NOCASE,
+    automark TEXT
 );
 CREATE TABLE IF NOT EXISTS videos(
     id TEXT,
@@ -55,6 +36,7 @@ CREATE TABLE IF NOT EXISTS videos(
     title TEXT,
     description TEXT,
     duration INT,
+    views INT,
     thumbnail TEXT,
     download TEXT
 );
@@ -67,12 +49,34 @@ CREATE INDEX IF NOT EXISTS index_video_published on videos(published);
 CREATE INDEX IF NOT EXISTS index_video_download on videos(download);
 '''.format(user_version=DATABASE_VERSION)
 
+SQL_CHANNEL_COLUMNS = [
+    'id',
+    'name',
+    'directory',
+    'automark',
+]
+
+SQL_VIDEO_COLUMNS = [
+    'id',
+    'published',
+    'author_id',
+    'title',
+    'description',
+    'duration',
+    'views',
+    'thumbnail',
+    'download',
+]
+
+SQL_CHANNEL = {key:index for (index, key) in enumerate(SQL_CHANNEL_COLUMNS)}
+SQL_VIDEO = {key:index for (index, key) in enumerate(SQL_VIDEO_COLUMNS)}
+
 DEFAULT_DBNAME = 'ycdl.db'
 
-ERROR_DATABASE_OUTOFDATE = 'Database is out-of-date. {current} should be {new}'
+ERROR_DATABASE_OUTOFDATE = 'Database is out-of-date. {current} should be {new}.'
 
 
-def verify_is_abspath(path):
+def assert_is_abspath(path):
     '''
     TO DO: Determine whether this is actually correct.
     '''
@@ -85,7 +89,6 @@ class InvalidVideoState(Exception):
 
 class NoSuchVideo(Exception):
     pass
-
 
 class YCDL:
     def __init__(self, youtube, database_filename=None, youtube_dl_function=None):
@@ -119,6 +122,7 @@ class YCDL:
     def add_channel(
             self,
             channel_id,
+            *,
             commit=True,
             download_directory=None,
             get_videos=False,
@@ -134,26 +138,23 @@ class YCDL:
         data[SQL_CHANNEL['id']] = channel_id
         data[SQL_CHANNEL['name']] = name
         if download_directory is not None:
-            verify_is_abspath(download_directory)
+            assert_is_abspath(download_directory)
         data[SQL_CHANNEL['directory']] = download_directory
 
-        self.cur.execute('INSERT INTO channels VALUES(?, ?, ?)', data)
+        self.cur.execute('INSERT INTO channels VALUES(?, ?, ?, ?)', data)
+
         if get_videos:
             self.refresh_channel(channel_id, commit=False)
+
         if commit:
             self.sql.commit()
 
+        return data
+
     def channel_has_pending(self, channel_id):
-        query = 'SELECT * FROM videos WHERE author_id == ? AND download == "pending"'
+        query = 'SELECT 1 FROM videos WHERE author_id == ? AND download == "pending" LIMIT 1'
         self.cur.execute(query, [channel_id])
         return self.cur.fetchone() is not None
-
-    def channel_directory(self, channel_id):
-        self.cur.execute('SELECT * FROM channels WHERE id == ?', [channel_id])
-        fetch = self.cur.fetchone()
-        if fetch is None:
-            return None
-        return fetch[SQL_CHANNEL['directory']]
 
     def download_video(self, video, commit=True, force=False):
         '''
@@ -187,7 +188,7 @@ class YCDL:
             return
 
         current_directory = os.getcwd()
-        download_directory = self.channel_directory(channel_id)
+        download_directory = self.get_channel(channel_id)['directory']
         download_directory = download_directory or current_directory
 
         os.makedirs(download_directory, exist_ok=True)
@@ -269,6 +270,7 @@ class YCDL:
             'title': video.title,
             'description': video.description,
             'duration': video.duration,
+            'views': video.views,
             'thumbnail': video.thumbnail['url'],
             'download': download_status,
         }
@@ -302,16 +304,35 @@ class YCDL:
 
     def refresh_all_channels(self, force=False, commit=True):
         for channel in self.get_channels():
-            self.refresh_channel(channel['id'], force=force, commit=commit)
+            self.refresh_channel(channel, force=force, commit=commit)
         if commit:
             self.sql.commit()
 
-    def refresh_channel(self, channel_id, force=False, commit=True):
-        video_generator = self.youtube.get_user_videos(uid=channel_id)
-        log.debug('Refreshing channel: %s', channel_id)
+    def refresh_channel(self, channel, force=False, commit=True):
+        if isinstance(channel, str):
+            channel = self.get_channel(channel)
+
+        seen_ids = set()
+        video_generator = self.youtube.get_user_videos(uid=channel['id'])
+        log.debug('Refreshing channel: %s', channel['id'])
         for video in video_generator:
+            seen_ids.add(video.id)
             status = self.insert_video(video, commit=False)
+
+            if status['new'] and channel['automark'] is not None:
+                self.mark_video_state(video.id, channel['automark'], commit=False)
+                if channel['automark'] == 'downloaded':
+                    self.download_video(video.id, commit=False)
+
             if not force and not status['new']:
                 break
+
+        if force:
+            known_videos = self.get_videos(channel_id=channel['id'])
+            known_ids = {v['id'] for v in known_videos}
+            refresh_ids = list(known_ids.difference(seen_ids))
+            for video in self.youtube.get_video(refresh_ids):
+                self.insert_video(video, commit=False)
+
         if commit:
             self.sql.commit()

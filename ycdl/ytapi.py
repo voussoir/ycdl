@@ -21,6 +21,7 @@ class Video:
 
         snippet = data['snippet']
         content_details = data['contentDetails']
+        statistics = data['statistics']
 
         self.title = snippet['title'] or '[untitled]'
         self.description = snippet['description']
@@ -33,6 +34,7 @@ class Video:
         self.published = published.timestamp()
 
         self.duration = isodate.parse_duration(content_details['duration']).seconds
+        self.views = statistics['viewCount']
 
         thumbnails = snippet['thumbnails']
         best_thumbnail = max(thumbnails, key=lambda x: thumbnails[x]['width'] * thumbnails[x]['height'])
@@ -66,7 +68,6 @@ class Youtube:
             user = self.youtube.channels().list(part='contentDetails', id=uid).execute()
         upload_playlist = user['items'][0]['contentDetails']['relatedPlaylists']['uploads']
         page_token = None
-        total = 0
         while True:
             response = self.youtube.playlistItems().list(
                 maxResults=50,
@@ -78,12 +79,11 @@ class Youtube:
             video_ids = [item['contentDetails']['videoId'] for item in response['items']]
             videos = self.get_video(video_ids)
             videos.sort(key=lambda x: x.published, reverse=True)
-            yield from videos
 
-            count = len(videos)
-            total += count
-            print(f'Found {count} more, {total} total')
-            if page_token is None or count < 50:
+            for video in videos:
+                yield video
+
+            if page_token is None:
                 break
 
     def get_related_videos(self, video_id, count=50):
@@ -108,17 +108,25 @@ class Youtube:
         else:
             singular = False
 
-        results = []
+        snippets = []
         chunks = helpers.chunk_sequence(video_ids, 50)
         for chunk in chunks:
             chunk = ','.join(chunk)
-            data = self.youtube.videos().list(part='id,contentDetails,snippet', id=chunk).execute()
+            data = self.youtube.videos().list(part='id,contentDetails,snippet,statistics', id=chunk).execute()
             items = data['items']
-            results.extend(items)
-        results = [Video(snippet) for snippet in results]
+            snippets.extend(items)
+        videos = []
+        broken = []
+        for snippet in snippets:
+            try:
+                videos.append(Video(snippet))
+            except KeyError:
+                broken.append(snippet)
+        if broken:
+            print('broken:', broken)
         if singular:
-            if len(results) == 1:
-                return results[0]
-            elif len(results) == 0:
+            if len(videos) == 1:
+                return videos[0]
+            elif len(videos) == 0:
                 raise VideoNotFound(video_ids[0])
-        return results
+        return videos

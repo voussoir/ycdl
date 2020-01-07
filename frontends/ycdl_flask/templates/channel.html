@@ -103,6 +103,7 @@
             <img src="http://i3.ytimg.com/vi/{{video['id']}}/default.jpg" height="100px">
             <a class="video_title" href="https://www.youtube.com/watch?v={{video['id']}}">{{video['_published_str']}} - {{video['title']}}</a>
             <span>({{video['duration'] | seconds_to_hms}})</span>
+            <span>({{video['views']}})</span>
             {% if channel is none %}
             <a href="/channel/{{video['author_id']}}">(Chan)</a>
             {% endif %}

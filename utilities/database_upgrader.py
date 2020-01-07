@@ -5,10 +5,49 @@ import sys
 
 import ycdl
 
+def upgrade_3_to_4(sql):
+    '''
+    In this version, the views column was added.
+    '''
+    cur = sql.cursor()
+    cur.executescript('''
+        ALTER TABLE videos RENAME TO videos_old;
+        CREATE TABLE videos(
+            id TEXT,
+            published INT,
+            author_id TEXT,
+            title TEXT,
+            description TEXT,
+            duration INT,
+            views INT,
+            thumbnail TEXT,
+            download TEXT
+        );
+        INSERT INTO videos SELECT
+            id,
+            published,
+            author_id,
+            title,
+            description,
+            duration,
+            NULL,
+            thumbnail,
+            download
+        FROM videos_old;
+        DROP TABLE videos_old;
+    ''')
+
+def upgrade_2_to_3(sql):
+    '''
+    In this version, a column `automark` was added to the channels table, where
+    you can set channels to automatically mark videos as ignored or downloaded.
+    '''
+    cur = sql.cursor()
+    cur.execute('ALTER TABLE channels ADD COLUMN automark TEXT')
+
 def upgrade_1_to_2(sql):
     '''
-    In this version, a column `tagged_at` was added to the Photos table, to keep
-    track of the last time the photo's tags were edited (added or removed).
+    In this version, the duration column was added.
     '''
     cur = sql.cursor()
     cur.executescript('''
