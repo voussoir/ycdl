@@ -1,8 +1,16 @@
 import apiclient.discovery
 import datetime
+import logging
 import isodate
 
 from . import helpers
+
+logging.basicConfig(level=logging.DEBUG)
+log = logging.getLogger(__name__)
+logging.getLogger('googleapiclient.discovery').setLevel(logging.WARNING)
+logging.getLogger('requests.packages.urllib3.connectionpool').setLevel(logging.WARNING)
+logging.getLogger('requests.packages.urllib3.util.retry').setLevel(logging.WARNING)
+
 
 class VideoNotFound(Exception):
     pass
