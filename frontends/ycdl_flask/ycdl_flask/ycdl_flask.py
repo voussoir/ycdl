@@ -11,6 +11,8 @@ from flask import request
 import json
 import mimetypes
 import os
+import time
+import threading
 import traceback
 
 import bot
@@ -233,6 +235,7 @@ def post_refresh_channel():
 
     force = request.form.get('force', False)
     force = ycdl.helpers.truthystring(force)
+    youtube.add_channel(channel_id, commit=False)
     youtube.refresh_channel(channel_id, force=force)
     return make_json_response({})
 
@@ -252,6 +255,21 @@ def post_start_download():
         flask.abort(404)
 
     return make_json_response({'video_ids': video_ids, 'state': 'downloaded'})
+
+####################################################################################################
+####################################################################################################
+####################################################################################################
+####################################################################################################
+
+def refresher_thread():
+    while True:
+        time.sleep(60 * 60 * 6)
+        print('Starting refresh job.')
+        refresh_job = threading.Thread(target=youtube.refresh_all_channels, kwargs={'force': False}, daemon=True)
+        refresh_job.start()
+
+refresher = threading.Thread(target=refresher_thread, daemon=True)
+refresher.start()
 
 if __name__ == '__main__':
     pass
