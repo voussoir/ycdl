@@ -64,7 +64,7 @@
     {% else %}
     <div class="channel_card_downloaded">
     {% endif %}
-        <a href="/channel/{{channel['id']}}">{{channel['name']}}</a>
+        <a href="/channel/{{channel['id']}}">{{channel['name']}}</a> <a href="/channel/{{channel['id']}}/pending">(p)</a>
     </div>
     {% endfor %}
 </div>
