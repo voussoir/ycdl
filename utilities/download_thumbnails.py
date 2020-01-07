@@ -9,12 +9,12 @@ import ycdl_repl
 from voussoirkit import downloady
 
 
-youtube_core = ycdl.ytapi.Youtube(bot.YOUTUBE_KEY)
+youtube_core = ycdl.ytapi.Youtube(bot.get_youtube_key())
 youtube = ycdl.YCDL(youtube_core)
 
 DIRECTORY = '.\\youtube thumbnails'
 
-videos = ycdl_repl.youtube.get_videos()
+videos = ycdl_repl.ydl.get_videos()
 for video in videos:
     try:
         thumbnail_path = os.path.join(DIRECTORY, video['id']) + '.jpg'

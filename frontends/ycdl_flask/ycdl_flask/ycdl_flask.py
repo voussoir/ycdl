@@ -26,7 +26,7 @@ TEMPLATE_DIR = root_dir.with_child('templates')
 STATIC_DIR = root_dir.with_child('static')
 FAVICON_PATH = STATIC_DIR.with_child('favicon.png')
 
-youtube_core = ycdl.ytapi.Youtube(bot.YOUTUBE_KEY)
+youtube_core = ycdl.ytapi.Youtube(bot.get_youtube_key())
 youtube = ycdl.YCDL(youtube_core)
 
 site = flask.Flask(

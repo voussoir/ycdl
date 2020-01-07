@@ -6,5 +6,5 @@ session with these variables preloaded.
 import bot
 import ycdl
 
-youtube_core = ycdl.ytapi.Youtube(bot.YOUTUBE_KEY)
-youtube = ycdl.YCDL(youtube_core)
+youtube = ycdl.ytapi.Youtube(bot.get_youtube_key())
+ydl = ycdl.YCDL(youtube)
