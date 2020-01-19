@@ -1,6 +1,7 @@
 import logging
 import os
 import sqlite3
+import traceback
 
 from . import helpers
 from . import ytapi
@@ -302,11 +303,20 @@ class YCDL:
         if commit:
             self.sql.commit()
 
-    def refresh_all_channels(self, force=False, commit=True):
+    def refresh_all_channels(self, force=False, skip_failures=False, commit=True):
+        exceptions = []
         for channel in self.get_channels():
-            self.refresh_channel(channel, force=force, commit=commit)
+            try:
+                self.refresh_channel(channel, force=force, commit=commit)
+            except Exception as exc:
+                if skip_failures:
+                    traceback.print_exc()
+                    exceptions.append(exc)
+                else:
+                    raise
         if commit:
             self.sql.commit()
+        return exceptions
 
     def refresh_channel(self, channel, force=False, commit=True):
         if isinstance(channel, str):

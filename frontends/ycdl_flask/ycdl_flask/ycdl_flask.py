@@ -265,7 +265,8 @@ def refresher_thread():
     while True:
         time.sleep(60 * 60 * 6)
         print('Starting refresh job.')
-        refresh_job = threading.Thread(target=youtube.refresh_all_channels, kwargs={'force': False}, daemon=True)
+        thread_kwargs = {'force': False, 'skip_failures': True}
+        refresh_job = threading.Thread(target=youtube.refresh_all_channels, kwargs=thread_kwargs, daemon=True)
         refresh_job.start()
 
 refresher = threading.Thread(target=refresher_thread, daemon=True)
