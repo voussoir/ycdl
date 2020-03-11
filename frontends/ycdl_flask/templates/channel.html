@@ -301,6 +301,8 @@ function onclick_select(event)
             card.classList.remove("video_card_selected");
         }
     }
+    document.getSelection().removeAllRanges();
+
     return false;
 }
 
