@@ -29,7 +29,7 @@ STATIC_DIR = root_dir.with_child('static')
 FAVICON_PATH = STATIC_DIR.with_child('favicon.png')
 
 youtube_core = ycdl.ytapi.Youtube(bot.get_youtube_key())
-youtube = ycdl.YCDL(youtube_core)
+ycdldb = ycdl.ycdldb.YCDLDB(youtube_core)
 
 site = flask.Flask(
     __name__,
@@ -136,9 +136,9 @@ def favicon():
 
 @site.route('/channels')
 def get_channels():
-    channels = youtube.get_channels()
+    channels = ycdldb.get_channels()
     for channel in channels:
-        channel['has_pending'] = youtube.channel_has_pending(channel['id'])
+        channel['has_pending'] = ycdldb.channel_has_pending(channel['id'])
     return flask.render_template('channels.html', channels=channels)
 
 @site.route('/videos')
@@ -149,14 +149,14 @@ def get_channels():
 def get_channel(channel_id=None, download_filter=None):
     if channel_id is not None:
         try:
-            youtube.add_channel(channel_id)
+            ycdldb.add_channel(channel_id)
         except Exception:
             traceback.print_exc()
-        channel = youtube.get_channel(channel_id)
+        channel = ycdldb.get_channel(channel_id)
     else:
         channel = None
 
-    videos = youtube.get_videos(channel_id=channel_id, download_filter=download_filter)
+    videos = ycdldb.get_videos(channel_id=channel_id, download_filter=download_filter)
 
     search_terms = request.args.get('q', '').lower().strip().replace('+', ' ').split()
     if search_terms:
@@ -164,8 +164,8 @@ def get_channel(channel_id=None, download_filter=None):
 
     video_id = request.args.get('v', '')
     if video_id:
-        youtube.insert_video(video_id)
-        videos = [youtube.get_video(video_id)]
+        ycdldb.insert_video(video_id)
+        videos = [ycdldb.get_video(video_id)]
 
     limit = request.args.get('limit', None)
     if limit is not None:
@@ -184,8 +184,8 @@ def get_channel(channel_id=None, download_filter=None):
         'channel.html',
         channel=channel,
         download_filter=download_filter,
-        videos=videos,
         query_string='?' + request.query_string.decode('utf-8'),
+        videos=videos,
     )
 
 @site.route('/mark_video_state', methods=['POST'])
@@ -197,16 +197,16 @@ def post_mark_video_state():
     try:
         video_ids = video_ids.split(',')
         for video_id in video_ids:
-            youtube.mark_video_state(video_id, state, commit=False)
-        youtube.sql.commit()
+            ycdldb.mark_video_state(video_id, state, commit=False)
+        ycdldb.sql.commit()
 
-    except ycdl.NoSuchVideo:
-        youtube.rollback()
+    except ycdl.exceptions.NoSuchVideo:
+        ycdldb.rollback()
         traceback.print_exc()
         flask.abort(404)
 
-    except ycdl.InvalidVideoState:
-        youtube.rollback()
+    except ycdl.exceptions.InvalidVideoState:
+        ycdldb.rollback()
         flask.abort(400)
 
     return make_json_response({'video_ids': video_ids, 'state': state})
@@ -215,7 +215,7 @@ def post_mark_video_state():
 def post_refresh_all_channels():
     force = request.form.get('force', False)
     force = ycdl.helpers.truthystring(force)
-    youtube.refresh_all_channels(force=force)
+    ycdldb.refresh_all_channels(force=force)
     return make_json_response({})
 
 @site.route('/refresh_channel', methods=['POST'])
@@ -229,14 +229,14 @@ def post_refresh_channel():
     if not (len(channel_id) == 24 and channel_id.startswith('UC')):
         # It seems they have given us a username instead.
         try:
-            channel_id = youtube.youtube.get_user_id(username=channel_id)
+            channel_id = ycdldb.youtube.get_user_id(username=channel_id)
         except IndexError:
             flask.abort(404)
 
     force = request.form.get('force', False)
     force = ycdl.helpers.truthystring(force)
-    youtube.add_channel(channel_id, commit=False)
-    youtube.refresh_channel(channel_id, force=force)
+    ycdldb.add_channel(channel_id, commit=False)
+    ycdldb.refresh_channel(channel_id, force=force)
     return make_json_response({})
 
 @site.route('/start_download', methods=['POST'])
@@ -247,11 +247,11 @@ def post_start_download():
     try:
         video_ids = video_ids.split(',')
         for video_id in video_ids:
-            youtube.download_video(video_id, commit=False)
-        youtube.sql.commit()
+            ycdldb.download_video(video_id, commit=False)
+        ycdldb.sql.commit()
 
     except ycdl.ytapi.VideoNotFound:
-        youtube.rollback()
+        ycdldb.rollback()
         flask.abort(404)
 
     return make_json_response({'video_ids': video_ids, 'state': 'downloaded'})
@@ -266,7 +266,7 @@ def refresher_thread():
         time.sleep(60 * 60 * 6)
         print('Starting refresh job.')
         thread_kwargs = {'force': False, 'skip_failures': True}
-        refresh_job = threading.Thread(target=youtube.refresh_all_channels, kwargs=thread_kwargs, daemon=True)
+        refresh_job = threading.Thread(target=ycdldb.refresh_all_channels, kwargs=thread_kwargs, daemon=True)
         refresh_job.start()
 
 refresher = threading.Thread(target=refresher_thread, daemon=True)

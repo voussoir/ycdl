@@ -3,6 +3,7 @@ import os
 import sqlite3
 import traceback
 
+from . import exceptions
 from . import helpers
 from . import ytapi
 
@@ -10,7 +11,7 @@ from voussoirkit import sqlhelpers
 
 
 def YOUTUBE_DL_COMMAND(video_id):
-    path = 'D:\\Incoming\\ytqueue\\{id}.ytqueue'.format(id=video_id)
+    path = f'D:\\Incoming\\ytqueue\\{video_id}.ytqueue'
     open(path, 'w')
 
 logging.basicConfig(level=logging.DEBUG)
@@ -74,9 +75,6 @@ SQL_VIDEO = {key:index for (index, key) in enumerate(SQL_VIDEO_COLUMNS)}
 
 DEFAULT_DBNAME = 'ycdl.db'
 
-ERROR_DATABASE_OUTOFDATE = 'Database is out-of-date. {current} should be {new}.'
-
-
 def assert_is_abspath(path):
     '''
     TO DO: Determine whether this is actually correct.
@@ -85,13 +83,7 @@ def assert_is_abspath(path):
         raise ValueError('Not an abspath')
 
 
-class InvalidVideoState(Exception):
-    pass
-
-class NoSuchVideo(Exception):
-    pass
-
-class YCDL:
+class YCDLDB:
     def __init__(self, youtube, database_filename=None, youtube_dl_function=None):
         self.youtube = youtube
         if database_filename is None:
@@ -105,10 +97,7 @@ class YCDL:
             self.cur.execute('PRAGMA user_version')
             existing_version = self.cur.fetchone()[0]
             if existing_version != DATABASE_VERSION:
-                message = ERROR_DATABASE_OUTOFDATE
-                message = message.format(current=existing_version, new=DATABASE_VERSION)
-                print(message)
-                raise SystemExit
+                raise exceptions.DatabaseOutOfDate(current=existing_version, new=DATABASE_VERSION)
 
         if youtube_dl_function:
             self.youtube_dl_function = youtube_dl_function
@@ -203,6 +192,15 @@ class YCDL:
         if commit:
             self.sql.commit()
 
+    def get_all_states(self):
+        query = 'SELECT DISTINCT download FROM videos'
+        self.cur.execute(query)
+        states = self.cur.fetchall()
+        if states is None:
+            return []
+        states = [row[0] for row in states]
+        return sorted(states)
+
     def get_channel(self, channel_id):
         self.cur.execute('SELECT * FROM channels WHERE id == ?', [channel_id])
         fetch = self.cur.fetchone()
@@ -294,11 +292,11 @@ class YCDL:
         '''
         Mark the video as ignored, pending, or downloaded.
         '''
-        if state not in ['ignored', 'pending', 'downloaded']:
-            raise InvalidVideoState(state)
+        if state not in ['ignored', 'pending', 'downloaded', 'coldstorage']:
+            raise exceptions.InvalidVideoState(state)
         self.cur.execute('SELECT * FROM videos WHERE id == ?', [video_id])
         if self.cur.fetchone() is None:
-            raise NoSuchVideo(video_id)
+            raise exceptions.NoSuchVideo(video_id)
         self.cur.execute('UPDATE videos SET download = ? WHERE id == ?', [state, video_id])
         if commit:
             self.sql.commit()
