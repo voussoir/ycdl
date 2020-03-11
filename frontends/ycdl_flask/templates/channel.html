@@ -80,15 +80,17 @@
     <span><button class="refresh_button"
     onclick="refresh_channel('{{channel['id']}}', true, function(){location.reload()})">Refresh everything</button></span>
     <span><a href="/channel/{{channel['id']}}">All</a> <a href="/channel/{{channel['id']}}{{query_string}}">(?q)</a></span>
-    <span><a href="/channel/{{channel['id']}}/pending">Pending</a> <a href="/channel/{{channel['id']}}/pending{{query_string}}">(?q)</a></span>
-    <span><a href="/channel/{{channel['id']}}/ignored">Ignored</a> <a href="/channel/{{channel['id']}}/ignored{{query_string}}">(?q)</a></span>
-    <span><a href="/channel/{{channel['id']}}/downloaded">Downloaded</a> <a href="/channel/{{channel['id']}}/downloaded{{query_string}}">(?q)</a></span>
     {% else %}
     <span><a href="/videos">All</a> <a href="/videos{{query_string}}">(?q)</a></span>
-    <span><a href="/videos/pending">Pending</a> <a href="/videos/pending{{query_string}}">(?q)</a></span>
-    <span><a href="/videos/ignored">Ignored</a> <a href="/videos/ignored{{query_string}}">(?q)</a></span>
-    <span><a href="/videos/downloaded">Downloaded</a> <a href="/videos/downloaded{{query_string}}">(?q)</a></span>
     {% endif %}
+
+    {% for statename in all_states %}
+    {% if channel is not none %}
+    <span><a href="/channel/{{channel['id']}}/{{statename}}">{{statename}}</a> <a href="/channel/{{channel['id']}}/{{statename}}{{query_string}}">(?q)</a></span>
+    {% else %}
+    <span><a href="/videos/{{statename}}">{{statename}}</a> <a href="/videos/{{statename}}{{query_string}}">(?q)</a></span>
+    {% endif %}
+    {% endfor %}
     
     <center><input type="text" id="search_filter"/></center>
     <center><span id="search_filter_count">{{videos|length}}</span> items</center>
@@ -288,7 +290,6 @@ function onclick_select(event)
         }
     }
 
-
     for (var index = 0; index < video_cards.length; index += 1)
     {
         card = video_cards[index];
@@ -339,21 +340,22 @@ function action_button_passthrough(event, action_function, action_argument)
 
 function give_action_buttons(video_card_div)
 {
+    var toolbox = video_card_div.getElementsByClassName("action_toolbox")[0]
+    var buttons = Array.from(toolbox.getElementsByTagName("button"));
+    var is_pending = video_card_div.classList.contains("video_card_pending");
+    buttons.forEach(function(button)
+    {
+        if (is_pending)
+            { button.classList.remove("hidden"); }
+        else
+            { button.classList.add("hidden"); }
+    });
+
     var button_pending = video_card_div.getElementsByClassName("video_action_pending")[0];
-    var button_download = video_card_div.getElementsByClassName("video_action_download")[0];
-    var button_ignore = video_card_div.getElementsByClassName("video_action_ignore")[0];
-    if (video_card_div.classList.contains("video_card_pending"))
-    {
-        button_download.classList.remove("hidden");
-        button_ignore.classList.remove("hidden");
-        button_pending.classList.add("hidden");
-    }
+    if (is_pending)
+        { button_pending.classList.add("hidden"); }
     else
-    {
-        button_download.classList.add("hidden");
-        button_ignore.classList.add("hidden");
-        button_pending.classList.remove("hidden");
-    }
+        { button_pending.classList.remove("hidden"); }
 }
 
 function receive_action_response(response)
@@ -364,21 +366,10 @@ function receive_action_response(response)
         var video_id = video_ids[index];
         var state = response['state'];
         var card = document.getElementById("video_card_" + video_id);
-        if (state == 'pending')
-        {
-            card.classList = ["video_card", "video_card_pending"].join(" ");
-            card.style.backgroundColor = "#ffffaa";
-        }
-        else if (state == 'ignored')
-        {
-            card.classList = ["video_card", "video_card_ignored"].join(" ");
-            card.style.backgroundColor = "#ffc886";
-        }
-        else if (state == 'downloaded')
-        {
-            card.classList = ["video_card", "video_card_downloaded"].join(" ");
-            card.style.backgroundColor = "#aaffaa";
-        }
+        {% for statename in all_states %}
+        card.classList.remove("video_card_{{statename}}");
+        {% endfor %}
+        card.classList.add("video_card_" + state);
         give_action_buttons(card);
     }
 }

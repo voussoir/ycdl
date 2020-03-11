@@ -180,8 +180,12 @@ def get_channel(channel_id=None, download_filter=None):
         published = datetime.datetime.utcfromtimestamp(published)
         published = published.strftime('%Y %m %d')
         video['_published_str'] = published
+
+    all_states = ycdldb.get_all_states()
+
     return flask.render_template(
         'channel.html',
+        all_states=all_states,
         channel=channel,
         download_filter=download_filter,
         query_string='?' + request.query_string.decode('utf-8'),
