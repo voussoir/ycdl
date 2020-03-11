@@ -335,7 +335,10 @@ function action_button_passthrough(event, action_function, action_argument)
     {
         action_function(video_ids, action_argument, receive_action_response);
     }
-    deselect_all();
+    if (! event.shiftKey)
+    {
+        deselect_all();
+    }
 }
 
 function give_action_buttons(video_card_div)
