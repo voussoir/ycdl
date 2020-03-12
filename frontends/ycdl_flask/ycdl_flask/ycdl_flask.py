@@ -156,16 +156,22 @@ def get_channel(channel_id=None, download_filter=None):
     else:
         channel = None
 
-    videos = ycdldb.get_videos(channel_id=channel_id, download_filter=download_filter)
-
-    search_terms = request.args.get('q', '').lower().strip().replace('+', ' ').split()
-    if search_terms:
-        videos = [v for v in videos if all(term in v['title'].lower() for term in search_terms)]
+    orderby = request.args.get('orderby', None)
 
     video_id = request.args.get('v', '')
     if video_id:
         ycdldb.insert_video(video_id)
         videos = [ycdldb.get_video(video_id)]
+    else:
+        videos = ycdldb.get_videos(
+            channel_id=channel_id,
+            download_filter=download_filter,
+            orderby=orderby,
+        )
+
+    search_terms = request.args.get('q', '').lower().strip().replace('+', ' ').split()
+    if search_terms:
+        videos = [v for v in videos if all(term in v['title'].lower() for term in search_terms)]
 
     limit = request.args.get('limit', None)
     if limit is not None:

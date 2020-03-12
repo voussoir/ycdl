@@ -222,8 +222,10 @@ class YCDLDB:
         video = {key: video[SQL_VIDEO[key]] for key in SQL_VIDEO}
         return video
 
-    def get_videos(self, channel_id=None, download_filter=None):
+    def get_videos(self, channel_id=None, *, download_filter=None, orderby=None):
         wheres = []
+        orderbys = []
+
         bindings = []
         if channel_id is not None:
             wheres.append('author_id')
@@ -235,18 +237,30 @@ class YCDLDB:
 
         if wheres:
             wheres = [x + ' == ?' for x in wheres]
-            wheres = ' WHERE ' + ' AND '.join(wheres)
+            wheres = ' AND '.join(wheres)
+            wheres = ' WHERE ' + wheres
         else:
             wheres = ''
 
-        query = 'SELECT * FROM videos' + wheres
+        if orderby is not None:
+            orderby = orderby.lower()
+            if orderby == 'random':
+                orderby = 'random()'
+            if orderby in ['views', 'duration', 'random()']:
+                orderbys.append(f'{orderby} DESC')
+        orderbys.append('published DESC')
+
+        if orderbys:
+            orderbys = ', '.join(orderbys)
+            orderbys = ' ORDER BY ' + orderbys
+
+        query = 'SELECT * FROM videos' + wheres + orderbys
         self.cur.execute(query, bindings)
         videos = self.cur.fetchall()
         if not videos:
             return []
 
         videos = [{key: video[SQL_VIDEO[key]] for key in SQL_VIDEO} for video in videos]
-        videos.sort(key=lambda x: x['published'], reverse=True)
         return videos
 
     def insert_video(self, video, *, add_channel=True, commit=True):
