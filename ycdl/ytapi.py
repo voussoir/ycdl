@@ -61,19 +61,14 @@ class Youtube:
         user = self.youtube.channels().list(part='snippet', id=uid).execute()
         return user['items'][0]['snippet']['title']
 
-    def get_user_videos(self, username=None, uid=None):
-        if username:
-            user = self.youtube.channels().list(part='contentDetails', forUsername=username).execute()
-        else:
-            user = self.youtube.channels().list(part='contentDetails', id=uid).execute()
-        upload_playlist = user['items'][0]['contentDetails']['relatedPlaylists']['uploads']
+    def _iter_playlist(self, playlist_id):
         page_token = None
         while True:
             response = self.youtube.playlistItems().list(
                 maxResults=50,
                 pageToken=page_token,
                 part='contentDetails',
-                playlistId=upload_playlist,
+                playlistId=playlist_id,
             ).execute()
             page_token = response.get('nextPageToken', None)
             video_ids = [item['contentDetails']['videoId'] for item in response['items']]
@@ -85,6 +80,17 @@ class Youtube:
 
             if page_token is None:
                 break
+
+    def get_playlist_videos(self, playlist_id):
+        yield from self._iter_playlist(playlist_id)
+
+    def get_user_videos(self, username=None, uid=None):
+        if username:
+            user = self.youtube.channels().list(part='contentDetails', forUsername=username).execute()
+        else:
+            user = self.youtube.channels().list(part='contentDetails', id=uid).execute()
+        upload_playlist_id = user['items'][0]['contentDetails']['relatedPlaylists']['uploads']
+        yield from self._iter_playlist(upload_playlist_id)
 
     def get_related_videos(self, video_id, count=50):
         if isinstance(video_id, Video):
