@@ -7,4 +7,4 @@ import bot
 import ycdl
 
 youtube = ycdl.ytapi.Youtube(bot.get_youtube_key())
-ydl = ycdl.YCDL(youtube)
+Y = ycdl.ycdldb.YCDLDB(youtube)
