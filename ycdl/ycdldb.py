@@ -263,6 +263,15 @@ class YCDLDB:
         videos = [{key: video[SQL_VIDEO[key]] for key in SQL_VIDEO} for video in videos]
         return videos
 
+    def insert_playlist(self, playlist_id, commit=True):
+        video_generator = self.youtube.get_playlist_videos(playlist_id)
+        results = [self.insert_video(video, commit=False) for video in video_generator]
+
+        if commit:
+            self.sql.commit()
+
+        return results
+
     def insert_video(self, video, *, add_channel=True, commit=True):
         if not isinstance(video, ytapi.Video):
             video = self.youtube.get_video(video)
