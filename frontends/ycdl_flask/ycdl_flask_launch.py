@@ -8,24 +8,24 @@ import argparse
 import gevent.pywsgi
 import sys
 
-import ycdl_flask
+import backend
 
 def ycdl_flask_launch(port, refresh_rate):
     if port == 443:
         http = gevent.pywsgi.WSGIServer(
             listener=('', port),
-            application=ycdl_flask.site,
+            application=backend.site,
             keyfile='https\\flasksite.key',
             certfile='https\\flasksite.crt',
         )
     else:
         http = gevent.pywsgi.WSGIServer(
             listener=('0.0.0.0', port),
-            application=ycdl_flask.site,
+            application=backend.site,
         )
 
     if refresh_rate is not None:
-        ycdl_flask.ycdl_flask.start_refresher_thread(refresh_rate)
+        backend.ycdl_flask.start_refresher_thread(refresh_rate)
 
     print(f'Starting server on port {port}')
     http.serve_forever()
