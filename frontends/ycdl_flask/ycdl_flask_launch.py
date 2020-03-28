@@ -4,29 +4,53 @@ logging.getLogger('googleapicliet.discovery_cache').setLevel(logging.ERROR)
 import gevent.monkey
 gevent.monkey.patch_all()
 
+import argparse
 import gevent.pywsgi
 import sys
 
 import ycdl_flask
 
-if len(sys.argv) == 2:
-    port = int(sys.argv[1])
-else:
-    port = 5000
+def ycdl_flask_launch(port, refresh_rate):
+    if port == 443:
+        http = gevent.pywsgi.WSGIServer(
+            listener=('', port),
+            application=ycdl_flask.site,
+            keyfile='https\\flasksite.key',
+            certfile='https\\flasksite.crt',
+        )
+    else:
+        http = gevent.pywsgi.WSGIServer(
+            listener=('0.0.0.0', port),
+            application=ycdl_flask.site,
+        )
 
-if port == 443:
-    http = gevent.pywsgi.WSGIServer(
-        listener=('', port),
-        application=ycdl_flask.site,
-        keyfile='https\\flasksite.key',
-        certfile='https\\flasksite.crt',
+    if refresh_rate is not None:
+        ycdl_flask.ycdl_flask.start_refresher_thread(refresh_rate)
+
+    print(f'Starting server on port {port}')
+    http.serve_forever()
+
+def ycdl_flask_launch_argparse(args):
+    if args.do_refresh:
+        refresh_rate = args.refresh_rate
+    else:
+        refresh_rate = None
+
+    return ycdl_flask_launch(
+        port=args.port,
+        refresh_rate=refresh_rate,
     )
-else:
-    http = gevent.pywsgi.WSGIServer(
-        listener=('0.0.0.0', port),
-        application=ycdl_flask.site,
-    )
 
+def main(argv):
+    parser = argparse.ArgumentParser(description=__doc__)
 
-print('Starting server on port %d' % port)
-http.serve_forever()
+    parser.add_argument('port', nargs='?', type=int, default=5000)
+    parser.add_argument('--no_refresh', dest='do_refresh', action='store_false', default=True)
+    parser.add_argument('--refresh_rate', dest='refresh_rate', type=int, default=60 * 60 * 6)
+    parser.set_defaults(func=ycdl_flask_launch_argparse)
+
+    args = parser.parse_args(argv)
+    return args.func(args)
+
+if __name__ == '__main__':
+    raise SystemExit(main(sys.argv[1:]))
