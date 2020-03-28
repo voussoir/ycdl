@@ -25,7 +25,7 @@ def ycdl_flask_launch(port, refresh_rate):
         )
 
     if refresh_rate is not None:
-        backend.ycdl_flask.start_refresher_thread(refresh_rate)
+        backend.common.start_refresher_thread(refresh_rate)
 
     print(f'Starting server on port {port}')
     http.serve_forever()

@@ -1,3 +1,3 @@
-from . import ycdl_flask
+from . import common
 
-site = ycdl_flask.site
+site = common.site
