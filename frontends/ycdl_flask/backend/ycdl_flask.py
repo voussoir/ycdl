@@ -277,6 +277,3 @@ def start_refresher_thread(rate):
     print(f'Starting refresher thread, once per {rate} seconds.')
     refresher = threading.Thread(target=refresher_thread, args=[rate], daemon=True)
     refresher.start()
-
-if __name__ == '__main__':
-    pass
