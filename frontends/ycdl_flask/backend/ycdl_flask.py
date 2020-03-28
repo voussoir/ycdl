@@ -20,6 +20,7 @@ import ycdl
 from voussoirkit import pathclass
 
 from . import jinja_filters
+from . import jsonify
 
 root_dir = pathclass.Path(__file__).parent.parent
 
@@ -47,12 +48,6 @@ site.debug = True
 ####################################################################################################
 ####################################################################################################
 ####################################################################################################
-
-def make_json_response(j, *args, **kwargs):
-    dumped = json.dumps(j)
-    response = flask.Response(dumped, *args, **kwargs)
-    response.headers['Content-Type'] = 'application/json;charset=utf-8'
-    return response
 
 def send_file(filepath):
     '''
@@ -218,14 +213,14 @@ def post_mark_video_state():
         ycdldb.rollback()
         flask.abort(400)
 
-    return make_json_response({'video_ids': video_ids, 'state': state})
+    return jsonify.make_json_response({'video_ids': video_ids, 'state': state})
 
 @site.route('/refresh_all_channels', methods=['POST'])
 def post_refresh_all_channels():
     force = request.form.get('force', False)
     force = ycdl.helpers.truthystring(force)
     ycdldb.refresh_all_channels(force=force)
-    return make_json_response({})
+    return jsonify.make_json_response({})
 
 @site.route('/refresh_channel', methods=['POST'])
 def post_refresh_channel():
@@ -246,7 +241,7 @@ def post_refresh_channel():
     force = ycdl.helpers.truthystring(force)
     ycdldb.add_channel(channel_id, commit=False)
     ycdldb.refresh_channel(channel_id, force=force)
-    return make_json_response({})
+    return jsonify.make_json_response({})
 
 @site.route('/start_download', methods=['POST'])
 def post_start_download():
@@ -263,7 +258,7 @@ def post_start_download():
         ycdldb.rollback()
         flask.abort(404)
 
-    return make_json_response({'video_ids': video_ids, 'state': 'downloaded'})
+    return jsonify.make_json_response({'video_ids': video_ids, 'state': 'downloaded'})
 
 ####################################################################################################
 ####################################################################################################
