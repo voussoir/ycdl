@@ -6,13 +6,12 @@ import logging
 logging.getLogger('googleapicliet.discovery_cache').setLevel(logging.ERROR)
 
 import datetime
-import flask
-from flask import request
+import flask; from flask import request
 import json
 import mimetypes
 import os
-import time
 import threading
+import time
 import traceback
 
 import bot
