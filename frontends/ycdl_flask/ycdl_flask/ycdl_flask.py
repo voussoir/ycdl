@@ -271,16 +271,18 @@ def post_start_download():
 ####################################################################################################
 ####################################################################################################
 
-def refresher_thread():
+def refresher_thread(rate):
     while True:
-        time.sleep(60 * 60 * 6)
+        time.sleep(rate)
         print('Starting refresh job.')
         thread_kwargs = {'force': False, 'skip_failures': True}
         refresh_job = threading.Thread(target=ycdldb.refresh_all_channels, kwargs=thread_kwargs, daemon=True)
         refresh_job.start()
 
-refresher = threading.Thread(target=refresher_thread, daemon=True)
-refresher.start()
+def start_refresher_thread(rate):
+    print(f'Starting refresher thread, once per {rate} seconds.')
+    refresher = threading.Thread(target=refresher_thread, args=[rate], daemon=True)
+    refresher.start()
 
 if __name__ == '__main__':
     pass
