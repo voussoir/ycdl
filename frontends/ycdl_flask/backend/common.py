@@ -3,7 +3,7 @@ Do not execute this file directly.
 Use ycdl_launch.py to start the server with gevent.
 '''
 import logging
-logging.getLogger('googleapicliet.discovery_cache').setLevel(logging.ERROR)
+logging.getLogger('googleapiclient.discovery_cache').setLevel(logging.ERROR)
 
 import flask; from flask import request
 import mimetypes
