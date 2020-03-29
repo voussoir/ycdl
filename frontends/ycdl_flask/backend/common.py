@@ -5,22 +5,18 @@ Use ycdl_launch.py to start the server with gevent.
 import logging
 logging.getLogger('googleapicliet.discovery_cache').setLevel(logging.ERROR)
 
-import datetime
 import flask; from flask import request
-import json
 import mimetypes
 import os
 import threading
 import time
-import traceback
+
+from voussoirkit import pathclass
 
 import bot
 import ycdl
 
-from voussoirkit import pathclass
-
 from . import jinja_filters
-from . import jsonify
 
 root_dir = pathclass.Path(__file__).parent.parent
 
@@ -112,153 +108,6 @@ def send_file(filepath):
         headers=outgoing_headers,
     )
     return response
-
-####################################################################################################
-####################################################################################################
-####################################################################################################
-####################################################################################################
-
-@site.route('/')
-def root():
-    return flask.render_template('root.html')
-
-@site.route('/favicon.ico')
-@site.route('/favicon.png')
-def favicon():
-    return flask.send_file(FAVICON_PATH.absolute_path)
-
-
-@site.route('/channels')
-def get_channels():
-    channels = ycdldb.get_channels()
-    for channel in channels:
-        channel['has_pending'] = ycdldb.channel_has_pending(channel['id'])
-    return flask.render_template('channels.html', channels=channels)
-
-@site.route('/videos')
-@site.route('/watch')
-@site.route('/videos/<download_filter>')
-@site.route('/channel/<channel_id>')
-@site.route('/channel/<channel_id>/<download_filter>')
-def get_channel(channel_id=None, download_filter=None):
-    if channel_id is not None:
-        try:
-            ycdldb.add_channel(channel_id)
-        except Exception:
-            traceback.print_exc()
-        channel = ycdldb.get_channel(channel_id)
-    else:
-        channel = None
-
-    orderby = request.args.get('orderby', None)
-
-    video_id = request.args.get('v', '')
-    if video_id:
-        ycdldb.insert_video(video_id)
-        videos = [ycdldb.get_video(video_id)]
-    else:
-        videos = ycdldb.get_videos(
-            channel_id=channel_id,
-            download_filter=download_filter,
-            orderby=orderby,
-        )
-
-    search_terms = request.args.get('q', '').lower().strip().replace('+', ' ').split()
-    if search_terms:
-        videos = [v for v in videos if all(term in v['title'].lower() for term in search_terms)]
-
-    limit = request.args.get('limit', None)
-    if limit is not None:
-        try:
-            limit = int(limit)
-            videos = videos[:limit]
-        except ValueError:
-            pass
-
-    for video in videos:
-        published = video['published']
-        published = datetime.datetime.utcfromtimestamp(published)
-        published = published.strftime('%Y %m %d')
-        video['_published_str'] = published
-
-    all_states = ycdldb.get_all_states()
-
-    return flask.render_template(
-        'channel.html',
-        all_states=all_states,
-        channel=channel,
-        download_filter=download_filter,
-        query_string='?' + request.query_string.decode('utf-8'),
-        videos=videos,
-    )
-
-@site.route('/mark_video_state', methods=['POST'])
-def post_mark_video_state():
-    if 'video_ids' not in request.form or 'state' not in request.form:
-        flask.abort(400)
-    video_ids = request.form['video_ids']
-    state = request.form['state']
-    try:
-        video_ids = video_ids.split(',')
-        for video_id in video_ids:
-            ycdldb.mark_video_state(video_id, state, commit=False)
-        ycdldb.sql.commit()
-
-    except ycdl.exceptions.NoSuchVideo:
-        ycdldb.rollback()
-        traceback.print_exc()
-        flask.abort(404)
-
-    except ycdl.exceptions.InvalidVideoState:
-        ycdldb.rollback()
-        flask.abort(400)
-
-    return jsonify.make_json_response({'video_ids': video_ids, 'state': state})
-
-@site.route('/refresh_all_channels', methods=['POST'])
-def post_refresh_all_channels():
-    force = request.form.get('force', False)
-    force = ycdl.helpers.truthystring(force)
-    ycdldb.refresh_all_channels(force=force)
-    return jsonify.make_json_response({})
-
-@site.route('/refresh_channel', methods=['POST'])
-def post_refresh_channel():
-    if 'channel_id' not in request.form:
-        flask.abort(400)
-    channel_id = request.form['channel_id']
-    channel_id = channel_id.strip()
-    if not channel_id:
-        flask.abort(400)
-    if not (len(channel_id) == 24 and channel_id.startswith('UC')):
-        # It seems they have given us a username instead.
-        try:
-            channel_id = ycdldb.youtube.get_user_id(username=channel_id)
-        except IndexError:
-            flask.abort(404)
-
-    force = request.form.get('force', False)
-    force = ycdl.helpers.truthystring(force)
-    ycdldb.add_channel(channel_id, commit=False)
-    ycdldb.refresh_channel(channel_id, force=force)
-    return jsonify.make_json_response({})
-
-@site.route('/start_download', methods=['POST'])
-def post_start_download():
-    if 'video_ids' not in request.form:
-        flask.abort(400)
-    video_ids = request.form['video_ids']
-    try:
-        video_ids = video_ids.split(',')
-        for video_id in video_ids:
-            ycdldb.download_video(video_id, commit=False)
-        ycdldb.sql.commit()
-
-    except ycdl.ytapi.VideoNotFound:
-        ycdldb.rollback()
-        flask.abort(404)
-
-    return jsonify.make_json_response({'video_ids': video_ids, 'state': 'downloaded'})
 
 ####################################################################################################
 ####################################################################################################
