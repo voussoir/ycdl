@@ -127,7 +127,7 @@ https://stackoverflow.com/a/35153397
             <span>({{video['duration'] | seconds_to_hms}})</span>
             <span>({{video['views']}})</span>
             {% if channel is none %}
-            <a href="/channel/{{video['author_id']}}">(Chan)</a>
+            <a href="/channel/{{video['author_id']}}">({{video.get('author_name', 'Chan')}})</a>
             {% endif %}
             <div class="action_toolbox">
                 <button

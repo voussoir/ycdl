@@ -256,11 +256,22 @@ class YCDLDB:
 
         query = 'SELECT * FROM videos' + wheres + orderbys
         self.cur.execute(query, bindings)
-        videos = self.cur.fetchall()
-        if not videos:
+        rows = self.cur.fetchall()
+        if not rows:
             return []
 
-        videos = [{key: video[SQL_VIDEO[key]] for key in SQL_VIDEO} for video in videos]
+        videos = []
+        channels = {}
+        for row in rows:
+            video = {key: row[SQL_VIDEO[key]] for key in SQL_VIDEO}
+            author_id = video['author_id']
+            if author_id in channels:
+                video['author_name'] = channels[author_id]
+            author = self.get_channel(author_id)
+            if author:
+                channels[author_id] = author['name']
+                video['author_name'] = author['name']
+            videos.append(video)
         return videos
 
     def insert_playlist(self, playlist_id, commit=True):
