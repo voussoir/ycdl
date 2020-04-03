@@ -111,6 +111,15 @@ https://stackoverflow.com/a/35153397
     <span><a href="/videos/{{statename}}">{{statename}}</a> <a href="/videos/{{statename}}{{query_string}}">(?q)</a></span>
     {% endif %}
     {% endfor %}
+
+    <p><!-- spacer --></p>
+
+    <span>Sort by
+    <a href="?orderby=published">Date</a>,
+    <a href="?orderby=duration">Duration</a>,
+    <a href="?orderby=views">Views</a>,
+    <a href="?orderby=random">Random</a>
+    </span>
     
     <center><input type="text" id="search_filter"/></center>
     <center><span id="search_filter_count">{{videos|length}}</span> items</center>
