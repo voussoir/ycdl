@@ -124,14 +124,18 @@ class YCDLDB:
         if name is None:
             name = self.youtube.get_user_name(channel_id)
 
-        data = [None] * len(SQL_CHANNEL)
-        data[SQL_CHANNEL['id']] = channel_id
-        data[SQL_CHANNEL['name']] = name
         if download_directory is not None:
             assert_is_abspath(download_directory)
-        data[SQL_CHANNEL['directory']] = download_directory
 
-        self.cur.execute('INSERT INTO channels VALUES(?, ?, ?, ?)', data)
+        data = {
+            'id': channel_id,
+            'name': name,
+            'directory': download_directory,
+        }
+
+        (qmarks, bindings) = sqlhelpers.insert_filler(SQL_CHANNEL, data)
+        query = f'INSERT INTO channels VALUES({qmarks})'
+        self.cur.execute(query)
 
         if get_videos:
             self.refresh_channel(channel_id, commit=False)
