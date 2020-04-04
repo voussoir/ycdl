@@ -75,6 +75,8 @@ class Youtube:
             videos = self.get_video(video_ids)
             videos.sort(key=lambda x: x.published, reverse=True)
 
+            log.debug('Got %d more videos.', len(videos))
+
             for video in videos:
                 yield video
 
@@ -118,7 +120,10 @@ class Youtube:
         chunks = helpers.chunk_sequence(video_ids, 50)
         for chunk in chunks:
             chunk = ','.join(chunk)
-            data = self.youtube.videos().list(part='id,contentDetails,snippet,statistics', id=chunk).execute()
+            data = self.youtube.videos().list(
+                part='id,contentDetails,snippet,statistics',
+                id=chunk,
+            ).execute()
             items = data['items']
             snippets.extend(items)
         videos = []

@@ -2,7 +2,7 @@
 <html>
 <head>
     {% import "header.html" as header %}
-    <title>{{channel['name']}}</title>
+    <title>{{channel.name}}</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel="stylesheet" href="/static/common.css">
@@ -22,8 +22,16 @@
 .video_card
 {
     position: relative;
+    display: grid;
+    grid-template:
+        "thumbnail details toolbox" auto
+        "embed embed embed" auto
+        /auto 1fr auto;
+    grid-gap: 4px;
+
     margin: 8px;
-    padding: 10px;
+    padding: 8px;
+
     border-radius: 4px;
     border: 1px solid #000;
 }
@@ -48,13 +56,51 @@
     background-color: #aaffaa;
 }
 
+.video_thumbnail
+{
+    grid-area: thumbnail;
+    justify-self: center;
+}
+
+.video_details
+{
+    grid-area: details;
+    align-self: center;
+    /*
+    margin-right prevents the empty space of the <a> tag from swallowing
+    click events meant for the video card.
+    */
+    margin-right: auto;
+}
+
+.embed_toolbox
+{
+    grid-area: embed;
+    /*
+    disabling pointer events on the toolbox prevents it from swallowing click
+    events meant for the video card. Then we must re-enable them for child
+    elements so the embed button is still clickable.
+    This one uses pointer-events instead of margin because margin makes the
+    whole embed too small.
+    */
+    pointer-events: none;
+}
+.embed_toolbox *
+{
+    pointer-events: auto;
+}
+
 .action_toolbox
 {
-    float: right;
+    grid-area: toolbox;
+    justify-self: right;
     display: inline-flex;
     flex-direction: row;
     position: relative;
+    margin-top: auto;
+    margin-bottom: auto;
 }
+
 .video_action_dropdown
 {
     z-index: 1;
@@ -87,6 +133,19 @@ https://stackoverflow.com/a/35153397
     left: 0;
     top: 0;
 }
+
+@media screen and (max-width: 600px)
+{
+    .video_card
+    {
+        grid-template:
+            "thumbnail"
+            "details"
+            "toolbox"
+            "embed"
+            /1fr;
+    }
+}
 </style>
 </head>
 
@@ -95,30 +154,29 @@ https://stackoverflow.com/a/35153397
 {{header.make_header()}}
 <div id="content_body">
     {% if channel is not none %}
-    <span><button class="refresh_button"
-    onclick="refresh_channel('{{channel['id']}}', false, function(){location.reload()})">Refresh new videos</button></span>
-    <span><button class="refresh_button"
-    onclick="refresh_channel('{{channel['id']}}', true, function(){location.reload()})">Refresh everything</button></span>
-    <span><a href="/channel/{{channel['id']}}">All</a> <a href="/channel/{{channel['id']}}{{query_string}}">(?q)</a></span>
+    <span><button class="refresh_button" onclick="refresh_channel('{{channel.id}}', false, function(){location.reload()})">Refresh new videos</button></span>
+    <span><button class="refresh_button" onclick="refresh_channel('{{channel.id}}', true, function(){location.reload()})">Refresh everything</button></span>
+
+    <span><a class="merge_params" href="/channel/{{channel.id}}">All</a></span>
     {% else %}
-    <span><a href="/videos">All</a> <a href="/videos{{query_string}}">(?q)</a></span>
+    <span><a class="merge_params" href="/videos">All</a></span>
     {% endif %}
 
     {% for statename in all_states %}
     {% if channel is not none %}
-    <span><a href="/channel/{{channel['id']}}/{{statename}}">{{statename}}</a> <a href="/channel/{{channel['id']}}/{{statename}}{{query_string}}">(?q)</a></span>
+    <span><a class="merge_params" href="/channel/{{channel.id}}/{{statename}}">{{statename}}</a></span>
     {% else %}
-    <span><a href="/videos/{{statename}}">{{statename}}</a> <a href="/videos/{{statename}}{{query_string}}">(?q)</a></span>
+    <span><a class="merge_params" href="/videos/{{statename}}">{{statename}}</a></span>
     {% endif %}
     {% endfor %}
 
     <p><!-- spacer --></p>
 
     <span>Sort by
-    <a href="?orderby=published">Date</a>,
-    <a href="?orderby=duration">Duration</a>,
-    <a href="?orderby=views">Views</a>,
-    <a href="?orderby=random">Random</a>
+    <a class="merge_params" href="?orderby=published">Date</a>,
+    <a class="merge_params" href="?orderby=duration">Duration</a>,
+    <a class="merge_params" href="?orderby=views">Views</a>,
+    <a class="merge_params" href="?orderby=random">Random</a>
     </span>
     
     <center><input type="text" id="search_filter"/></center>
@@ -126,21 +184,24 @@ https://stackoverflow.com/a/35153397
 
     <div id="video_cards">
         {% for video in videos %}
-        <div id="video_card_{{video['id']}}"
-        data-ytid="{{video['id']}}"
+        <div id="video_card_{{video.id}}"
+        data-ytid="{{video.id}}"
         onclick="onclick_select(event)"
-        class="video_card video_card_{{video['download']}}"
+        class="video_card video_card_{{video.download}}"
         >
-            <img src="http://i3.ytimg.com/vi/{{video['id']}}/default.jpg" height="100px">
-            <a class="video_title" href="https://www.youtube.com/watch?v={{video['id']}}">{{video['_published_str']}} - {{video['title']}}</a>
-            <span>({{video['duration'] | seconds_to_hms}})</span>
-            <span>({{video['views']}})</span>
+            <img class="video_thumbnail" src="http://i3.ytimg.com/vi/{{video.id}}/default.jpg" height="100px">
+            <div class="video_details">
+            <a class="video_title" href="https://www.youtube.com/watch?v={{video.id}}">{{video._published_str}} - {{video.title}}</a>
+            <span>({{video.duration | seconds_to_hms}})</span>
+            <span>({{video.views}})</span>
             {% if channel is none %}
-            <a href="/channel/{{video['author_id']}}">({{video.get('author_name', 'Chan')}})</a>
+            <a href="/channel/{{video.author_id}}">({{video.author.name if video.author else video.author_id}})</a>
             {% endif %}
+            </div>
+
             <div class="action_toolbox">
                 <button
-                {% if video['download'] == "pending" %}
+                {% if video.download == "pending" %}
                 class="video_action_pending hidden"
                 {% else %}
                 class="video_action_pending"
@@ -149,7 +210,7 @@ https://stackoverflow.com/a/35153397
                 >Revert to Pending</button>
 
                 <button
-                {% if video['download'] == "pending" %}
+                {% if video.download == "pending" %}
                 class="video_action_download"
                 {% else %}
                 class="video_action_download hidden"
@@ -158,7 +219,7 @@ https://stackoverflow.com/a/35153397
                 >Download</button>
 
                 <button
-                {% if video['download'] == "pending" %}
+                {% if video.download == "pending" %}
                 class="video_action_ignore"
                 {% else %}
                 class="video_action_ignore hidden"
@@ -166,10 +227,10 @@ https://stackoverflow.com/a/35153397
                 onclick="action_button_passthrough(event, mark_video_state, 'ignored')"
                 >Ignore</button>
             </div>
-            <br>
+            <div class="embed_toolbox">
             <button class="show_embed_button" onclick="toggle_embed_video('{{video.id}}');">Embed</button>
             <button class="hide_embed_button hidden" onclick="toggle_embed_video('{{video.id}}');">Unembed</button>
-            <br>
+            </div>
         </div>
         {% endfor %}
     </div>
@@ -231,18 +292,19 @@ function toggle_embed_video(video_id)
     var video_card = document.getElementById("video_card_" + video_id);
     var show_button = video_card.getElementsByClassName("show_embed_button")[0];
     var hide_button = video_card.getElementsByClassName("hide_embed_button")[0];
+    var embed_toolbox = video_card.getElementsByClassName("embed_toolbox")[0];
     var embeds = video_card.getElementsByClassName("video_iframe_holder");
     if (embeds.length == 0)
     {
         var html = `<div class="video_iframe_holder"><iframe width="711" height="400" src="https://www.youtube.com/embed/${video_id}" frameborder="0" allow="encrypted-media" allowfullscreen></iframe></div>`
         var embed = html_to_element(html);
-        video_card.appendChild(embed);
+        embed_toolbox.appendChild(embed);
         show_button.classList.add("hidden");
         hide_button.classList.remove("hidden");
     }
     else
     {
-        video_card.removeChild(embeds[0]);
+        embeds[0].parentElement.removeChild(embeds[0]);
         show_button.classList.remove("hidden");
         hide_button.classList.add("hidden");
     }
@@ -412,7 +474,7 @@ function refresh_channel(channel_id, force, callback)
     data = new FormData();
     data.append("channel_id", channel_id);
     data.append("force", force)
-    return post(url, data, callback);    
+    return common.post(url, data, callback);
 }
 
 function mark_video_state(video_ids, state, callback)
@@ -421,7 +483,7 @@ function mark_video_state(video_ids, state, callback)
     data = new FormData();
     data.append("video_ids", video_ids);
     data.append("state", state);
-    return post(url, data, callback);
+    return common.post(url, data, callback);
 }
 
 function start_download(video_ids, callback)
@@ -429,7 +491,7 @@ function start_download(video_ids, callback)
     var url = "/start_download";
     data = new FormData();
     data.append("video_ids", video_ids);
-    return post(url, data, callback);    
+    return common.post(url, data, callback);
 }
 </script>
 </html>

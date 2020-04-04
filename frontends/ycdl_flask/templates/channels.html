@@ -55,12 +55,12 @@
         <button id="new_channel_button" onclick="_new_channel_submit()">Add new channel</button>
     </div>
     {% for channel in channels %}
-    {% if channel['has_pending'] %}
+    {% if channel.has_pending() %}
     <div class="channel_card_pending">
     {% else %}
     <div class="channel_card_downloaded">
     {% endif %}
-        <a href="/channel/{{channel['id']}}">{{channel['name']}}</a> <a href="/channel/{{channel['id']}}/pending">(p)</a>
+        <a href="/channel/{{channel.id}}">{{channel.name}}</a> <a href="/channel/{{channel.id}}/pending">(p)</a>
     </div>
     {% endfor %}
 </div>
@@ -70,7 +70,7 @@
 <script type="text/javascript">
 var box = document.getElementById('new_channel_textbox');
 var button = document.getElementById('new_channel_button');
-bind_box_to_button(box, button);
+common.bind_box_to_button(box, button);
 
 function _new_channel_submit()
 {
@@ -86,7 +86,7 @@ function refresh_channel(channel_id, force, callback)
     data = new FormData();
     data.append("channel_id", channel_id);
     data.append("force", force)
-    return post(url, data, callback);    
+    return common.post(url, data, callback);
 }
 
 function refresh_all_channels(force, callback)
@@ -94,7 +94,7 @@ function refresh_all_channels(force, callback)
     var url = "/refresh_all_channels";
     data = new FormData();
     data.append("force", force)
-    return post(url, data, callback);
+    return common.post(url, data, callback);
 }
 </script>
 </html>

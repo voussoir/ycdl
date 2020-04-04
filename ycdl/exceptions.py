@@ -46,8 +46,23 @@ class YCDLException(Exception, metaclass=ErrorTypeAdder):
 class InvalidVideoState(YCDLException):
     error_message = '{} is not a valid state.'
 
+
+# NO SUCH
+class NoSuchChannel(YCDLException):
+    error_message = 'Channel {} does not exist.'
+
 class NoSuchVideo(YCDLException):
     error_message = 'Video {} does not exist.'
 
+
+# SQL ERRORS
+class BadSQL(YCDLException):
+    pass
+
+class BadTable(BadSQL):
+    error_message = 'Table "{}" does not exist.'
+
+
+# GENERAL ERRORS
 class DatabaseOutOfDate(YCDLException):
     error_message = 'Database is out-of-date. {current} should be {new}.'

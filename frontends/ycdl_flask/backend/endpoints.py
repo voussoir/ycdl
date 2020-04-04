@@ -21,8 +21,6 @@ def favicon():
 @site.route('/channels')
 def get_channels():
     channels = common.ycdldb.get_channels()
-    for channel in channels:
-        channel['has_pending'] = common.ycdldb.channel_has_pending(channel['id'])
     return flask.render_template('channels.html', channels=channels)
 
 @site.route('/videos')
@@ -55,7 +53,7 @@ def get_channel(channel_id=None, download_filter=None):
 
     search_terms = request.args.get('q', '').lower().strip().replace('+', ' ').split()
     if search_terms:
-        videos = [v for v in videos if all(term in v['title'].lower() for term in search_terms)]
+        videos = [v for v in videos if all(term in v.title.lower() for term in search_terms)]
 
     limit = request.args.get('limit', None)
     if limit is not None:
@@ -66,10 +64,10 @@ def get_channel(channel_id=None, download_filter=None):
             pass
 
     for video in videos:
-        published = video['published']
+        published = video.published
         published = datetime.datetime.utcfromtimestamp(published)
         published = published.strftime('%Y %m %d')
-        video['_published_str'] = published
+        video._published_str = published
 
     all_states = common.ycdldb.get_all_states()
 
@@ -91,7 +89,8 @@ def post_mark_video_state():
     try:
         video_ids = video_ids.split(',')
         for video_id in video_ids:
-            common.ycdldb.mark_video_state(video_id, state, commit=False)
+            video = common.ycdldb.get_video(video_id)
+            video.mark_state(state, commit=False)
         common.ycdldb.sql.commit()
 
     except ycdl.exceptions.NoSuchVideo:
@@ -129,8 +128,8 @@ def post_refresh_channel():
 
     force = request.form.get('force', False)
     force = ycdl.helpers.truthystring(force)
-    common.ycdldb.add_channel(channel_id, commit=False)
-    common.ycdldb.refresh_channel(channel_id, force=force)
+    channel = common.ycdldb.add_channel(channel_id, commit=False)
+    channel.refresh(force=force)
     return jsonify.make_json_response({})
 
 @site.route('/start_download', methods=['POST'])

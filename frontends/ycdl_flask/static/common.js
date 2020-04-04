@@ -1,3 +1,6 @@
+var common = {};
+
+common.post_example =
 function post_example(key, value, callback)
 {
     var url = "/postexample";
@@ -6,11 +9,13 @@ function post_example(key, value, callback)
     return post(url, data, callback);    
 }
 
+common.null_callback =
 function null_callback()
 {
     return;
 }
 
+common.post =
 function post(url, data, callback)
 {
     var request = new XMLHttpRequest();
@@ -32,6 +37,7 @@ function post(url, data, callback)
     request.send(data);
 }
 
+common.bind_box_to_button =
 function bind_box_to_button(box, button)
 {
     box.onkeydown=function()
@@ -42,6 +48,7 @@ function bind_box_to_button(box, button)
         }
     };
 }
+common.entry_with_history_hook =
 function entry_with_history_hook(box, button)
 {
     //console.log(event.keyCode);
@@ -81,3 +88,25 @@ function entry_with_history_hook(box, button)
         box.entry_history_pos = -1;
     }
 }
+
+common.init_atag_merge_params =
+function init_atag_merge_params()
+{
+    var as = Array.from(document.getElementsByClassName("merge_params"));
+    page_params = new URLSearchParams(window.location.search);
+    as.forEach(function(a){
+        var a_params = new URLSearchParams(a.search);
+        var new_params = new URLSearchParams();
+        page_params.forEach(function(value, key) {new_params.set(key, value); });
+        a_params.forEach(function(value, key) {new_params.set(key, value); });
+        a.search = new_params.toString();
+        a.classList.remove("merge_params");
+    });
+}
+
+common.on_pageload =
+function on_pageload()
+{
+    common.init_atag_merge_params();
+}
+document.addEventListener("DOMContentLoaded", common.on_pageload);

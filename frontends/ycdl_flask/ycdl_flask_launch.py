@@ -1,5 +1,5 @@
 import logging
-logging.getLogger('googleapicliet.discovery_cache').setLevel(logging.ERROR)
+logging.getLogger('googleapiclient.discovery_cache').setLevel(logging.ERROR)
 
 import gevent.monkey
 gevent.monkey.patch_all()
