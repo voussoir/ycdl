@@ -269,11 +269,7 @@ class YCDLDBVideoMixin:
         self.youtube_dl_function(video_id)
         os.chdir(current_directory)
 
-        pairs = {
-            'id': video_id,
-            'download': 'downloaded',
-        }
-        self.sql_update(table='videos', pairs=pairs, where_key='id')
+        video.mark_state('downloaded', commit=False)
 
         if commit:
             self.commit()
