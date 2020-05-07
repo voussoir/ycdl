@@ -30,6 +30,7 @@ class Video:
         # Something like '2016-10-01T21:00:01'
         self.published_string = snippet['publishedAt']
         published = snippet['publishedAt'].split('.')[0]
+        published = published.rstrip('Z')
         published = datetime.datetime.strptime(published, '%Y-%m-%dT%H:%M:%S')
         self.published = published.timestamp()
 
