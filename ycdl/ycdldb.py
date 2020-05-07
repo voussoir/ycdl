@@ -151,7 +151,7 @@ class YCDLDBChannelMixin:
         query = 'SELECT * FROM channels'
         rows = self.sql_select(query)
         channels = [self.get_cached_instance('channel', row) for row in rows]
-        channels.sort(key=lambda c: c.name)
+        channels.sort(key=lambda c: c.name.lower())
         return channels
 
     def refresh_all_channels(self, force=False, skip_failures=False, commit=True):
