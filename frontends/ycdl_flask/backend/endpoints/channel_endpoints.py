@@ -4,19 +4,10 @@ import traceback
 
 import ycdl
 
-from . import common
-from . import jsonify
+from .. import common
+from .. import jsonify
 
 site = common.site
-
-@site.route('/')
-def root():
-    return flask.render_template('root.html')
-
-@site.route('/favicon.ico')
-@site.route('/favicon.png')
-def favicon():
-    return flask.send_file(common.FAVICON_PATH.absolute_path)
 
 @site.route('/channels')
 def get_channels():
@@ -80,37 +71,6 @@ def get_channel(channel_id=None, download_filter=None):
         videos=videos,
     )
 
-@site.route('/mark_video_state', methods=['POST'])
-def post_mark_video_state():
-    if 'video_ids' not in request.form or 'state' not in request.form:
-        flask.abort(400)
-    video_ids = request.form['video_ids']
-    state = request.form['state']
-    try:
-        video_ids = video_ids.split(',')
-        for video_id in video_ids:
-            video = common.ycdldb.get_video(video_id)
-            video.mark_state(state, commit=False)
-        common.ycdldb.sql.commit()
-
-    except ycdl.exceptions.NoSuchVideo:
-        common.ycdldb.rollback()
-        traceback.print_exc()
-        flask.abort(404)
-
-    except ycdl.exceptions.InvalidVideoState:
-        common.ycdldb.rollback()
-        flask.abort(400)
-
-    return jsonify.make_json_response({'video_ids': video_ids, 'state': state})
-
-@site.route('/refresh_all_channels', methods=['POST'])
-def post_refresh_all_channels():
-    force = request.form.get('force', False)
-    force = ycdl.helpers.truthystring(force)
-    common.ycdldb.refresh_all_channels(force=force)
-    return jsonify.make_json_response({})
-
 @site.route('/refresh_channel', methods=['POST'])
 def post_refresh_channel():
     if 'channel_id' not in request.form:
@@ -132,6 +92,13 @@ def post_refresh_channel():
     channel.refresh(force=force)
     return jsonify.make_json_response({})
 
+@site.route('/refresh_all_channels', methods=['POST'])
+def post_refresh_all_channels():
+    force = request.form.get('force', False)
+    force = ycdl.helpers.truthystring(force)
+    common.ycdldb.refresh_all_channels(force=force)
+    return jsonify.make_json_response({})
+
 @site.route('/channel/<channel_id>/set_automark', methods=['POST'])
 def post_set_automark(channel_id):
     state = request.form['state']
@@ -139,24 +106,7 @@ def post_set_automark(channel_id):
 
     try:
         channel.set_automark(state)
-    except exceptions.InvalidVideoState:
+    except ycdl.exceptions.InvalidVideoState:
         flask.abort(400)
 
     return jsonify.make_json_response({})
-
-@site.route('/start_download', methods=['POST'])
-def post_start_download():
-    if 'video_ids' not in request.form:
-        flask.abort(400)
-    video_ids = request.form['video_ids']
-    try:
-        video_ids = video_ids.split(',')
-        for video_id in video_ids:
-            common.ycdldb.download_video(video_id, commit=False)
-        common.ycdldb.sql.commit()
-
-    except ycdl.ytapi.VideoNotFound:
-        common.ycdldb.rollback()
-        flask.abort(404)
-
-    return jsonify.make_json_response({'video_ids': video_ids, 'state': 'downloaded'})
