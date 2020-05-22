@@ -15,25 +15,42 @@ function null_callback()
     return;
 }
 
-common.post =
-function post(url, data, callback)
+common._request =
+function _request(method, url, callback)
 {
     var request = new XMLHttpRequest();
-    request.answer = null;
     request.onreadystatechange = function()
     {
         if (request.readyState == 4)
         {
-            var text = request.responseText;
             if (callback != null)
             {
-                console.log(text);
-                callback(JSON.parse(text));
+                var response = {
+                    "data": JSON.parse(request.responseText),
+                    "meta": {}
+                };
+                response["meta"]["request_url"] = url;
+                response["meta"]["status"] = request.status;
+                callback(response);
             }
         }
     };
     var asynchronous = true;
-    request.open("POST", url, asynchronous);
+    request.open(method, url, asynchronous);
+    return request;
+}
+
+common.get =
+function get(url, callback)
+{
+    request = common._request("GET", url, callback);
+    request.send();
+}
+
+common.post =
+function post(url, data, callback)
+{
+    request = common._request("POST", url, callback);
     request.send(data);
 }
 
