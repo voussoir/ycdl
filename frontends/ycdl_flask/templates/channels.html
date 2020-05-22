@@ -25,7 +25,7 @@
 {
     width: 200px;
 }
-.channel_card_downloaded,
+.channel_card_no_pending,
 .channel_card_pending
 {
     margin: 8px;
@@ -37,7 +37,7 @@
 {
     background-color: #ffffaa;
 }
-.channel_card_downloaded
+.channel_card_no_pending
 {
     background-color: #aaffaa;
 }
@@ -58,7 +58,7 @@
     {% if channel.has_pending() %}
     <div class="channel_card_pending">
     {% else %}
-    <div class="channel_card_downloaded">
+    <div class="channel_card_no_pending">
     {% endif %}
         <a href="/channel/{{channel.id}}">{{channel.name}}</a> <a href="/channel/{{channel.id}}/pending">(p)</a>
     </div>
