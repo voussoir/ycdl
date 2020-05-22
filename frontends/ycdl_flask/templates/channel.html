@@ -172,6 +172,19 @@ https://stackoverflow.com/a/35153397
 
     <p><!-- spacer --></p>
 
+    {% if channel is not none %}
+    <span>
+        New videos are:
+    <select onchange="set_automark_hook(event)">
+        <option value="pending" {{"selected" if channel.automark == "pending" else ""}}  >pending</option>
+        <option value="downloaded" {{"selected" if channel.automark == "downloaded" else ""}}  >downloaded</option>
+        <option value="ignored" {{"selected" if channel.automark == "ignored" else ""}}  >ignored</option>
+    </select>
+    </span>
+    {% endif %}
+
+    <p><!-- spacer --></p>
+
     <span>Sort by
     <a class="merge_params" href="?orderby=published">Date</a>,
     <a class="merge_params" href="?orderby=duration">Duration</a>,
@@ -475,6 +488,15 @@ function refresh_channel(channel_id, force, callback)
     data.append("channel_id", channel_id);
     data.append("force", force)
     return common.post(url, data, callback);
+}
+
+function set_automark_hook(event)
+{
+    console.log("What");
+    var url = "/channel/{{channel.id}}/set_automark";
+    data = new FormData();
+    data.append("state", event.target.value);
+    return common.post(url, data);
 }
 
 function mark_video_state(video_ids, state, callback)

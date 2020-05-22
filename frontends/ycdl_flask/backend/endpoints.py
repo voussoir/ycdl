@@ -132,6 +132,18 @@ def post_refresh_channel():
     channel.refresh(force=force)
     return jsonify.make_json_response({})
 
+@site.route('/channel/<channel_id>/set_automark', methods=['POST'])
+def post_set_automark(channel_id):
+    state = request.form['state']
+    channel = common.ycdldb.get_channel(channel_id)
+
+    try:
+        channel.set_automark(state)
+    except exceptions.InvalidVideoState:
+        flask.abort(400)
+
+    return jsonify.make_json_response({})
+
 @site.route('/start_download', methods=['POST'])
 def post_start_download():
     if 'video_ids' not in request.form:

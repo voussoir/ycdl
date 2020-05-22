@@ -55,6 +55,20 @@ class Channel(Base):
         if commit:
             self.ycdldb.commit()
 
+    def set_automark(self, state, commit=True):
+        if state not in constants.VIDEO_STATES:
+            raise exceptions.InvalidVideoState(state)
+
+        pairs = {
+            'id': self.id,
+            'automark': state,
+        }
+        self.ycdldb.sql_update(table='channels', pairs=pairs, where_key='id')
+        self.automark = state
+
+        if commit:
+            self.ycdldb.commit()
+
 class Video(Base):
     table = 'videos'
 
@@ -83,7 +97,7 @@ class Video(Base):
         '''
         Mark the video as ignored, pending, or downloaded.
         '''
-        if state not in ['ignored', 'pending', 'downloaded']:
+        if state not in constants.VIDEO_STATES:
             raise exceptions.InvalidVideoState(state)
 
         pairs = {

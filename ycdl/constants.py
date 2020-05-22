@@ -50,6 +50,8 @@ DEFAULT_DATADIR = '.'
 DEFAULT_DBNAME = 'ycdl.db'
 DEFAULT_CONFIGNAME = 'ycdl.json'
 
+VIDEO_STATES = ['ignored', 'pending', 'downloaded']
+
 DEFAULT_CONFIGURATION = {
     'download_directory': '.',
 }
