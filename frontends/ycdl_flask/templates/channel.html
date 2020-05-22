@@ -483,16 +483,14 @@ function receive_action_response(response)
 
 function refresh_channel(channel_id, force, callback)
 {
-    var url = "/refresh_channel";
+    var url = `/channel/${channel_id}/refresh`;
     data = new FormData();
-    data.append("channel_id", channel_id);
     data.append("force", force)
     return common.post(url, data, callback);
 }
 
 function set_automark_hook(event)
 {
-    console.log("What");
     var url = "/channel/{{channel.id}}/set_automark";
     data = new FormData();
     data.append("state", event.target.value);

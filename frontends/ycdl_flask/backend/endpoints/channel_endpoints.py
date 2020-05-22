@@ -71,11 +71,9 @@ def get_channel(channel_id=None, download_filter=None):
         videos=videos,
     )
 
-@site.route('/refresh_channel', methods=['POST'])
-def post_refresh_channel():
-    if 'channel_id' not in request.form:
-        flask.abort(400)
-    channel_id = request.form['channel_id']
+@site.route('/add_channel', methods=['POST'])
+def post_add_channel():
+    channel_id = request.form.get('channel_id', '')
     channel_id = channel_id.strip()
     if not channel_id:
         flask.abort(400)
@@ -86,11 +84,20 @@ def post_refresh_channel():
         except IndexError:
             flask.abort(404)
 
+    channel = common.ycdldb.add_channel(channel_id, get_videos=True)
+    return jsonify.make_json_response(ycdl.jsonify.channel(channel))
+
+@site.route('/channel/<channel_id>/refresh', methods=['POST'])
+def post_refresh_channel(channel_id):
     force = request.form.get('force', False)
     force = ycdl.helpers.truthystring(force)
-    channel = common.ycdldb.add_channel(channel_id, commit=False)
+    try:
+        channel = common.ycdldb.get_channel(channel_id)
+    except ycdl.exceptions.NoSuchChannel as exc:
+        return jsonify.make_json_response(ycdl.jsonify.exception(exc), status=404)
+
     channel.refresh(force=force)
-    return jsonify.make_json_response({})
+    return jsonify.make_json_response(ycdl.jsonify.channel(channel))
 
 @site.route('/refresh_all_channels', methods=['POST'])
 def post_refresh_all_channels():
