@@ -61,6 +61,9 @@
     <div class="channel_card_no_pending">
     {% endif %}
         <a href="/channel/{{channel.id}}">{{channel.name}}</a> <a href="/channel/{{channel.id}}/pending">(p)</a>
+        {% if channel.automark not in [none, "pending"] %}
+        <span>automark: {{channel.automark}}</span>
+        {% endif %}
     </div>
     {% endfor %}
 </div>
