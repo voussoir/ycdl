@@ -131,7 +131,7 @@ class YCDLDBChannelMixin:
             'id': channel_id,
             'name': name,
             'directory': download_directory,
-            'automark': None,
+            'automark': "pending",
         }
         self.sql_insert(table='channels', data=data)
 

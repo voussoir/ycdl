@@ -21,7 +21,7 @@ class Channel(Base):
         self.id = db_row['id']
         self.name = db_row['name']
         self.directory = db_row['directory']
-        self.automark = db_row['automark']
+        self.automark = db_row['automark'] or "pending"
 
     def has_pending(self):
         query = 'SELECT 1 FROM videos WHERE author_id == ? AND download == "pending" LIMIT 1'
@@ -37,7 +37,7 @@ class Channel(Base):
             status = self.ycdldb.insert_video(video, commit=False)
 
             video = status['video']
-            if status['new'] and self.automark is not None:
+            if status['new'] and self.automark not in [None, "pending"]:
                 video.mark_state(self.automark, commit=False)
                 if self.automark == 'downloaded':
                     self.ycdldb.download_video(video.id, commit=False)
