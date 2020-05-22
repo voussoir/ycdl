@@ -467,11 +467,11 @@ function give_action_buttons(video_card_div)
 
 function receive_action_response(response)
 {
-    var video_ids = response['video_ids'];
+    var video_ids = response["data"]["video_ids"];
     for (var index = 0; index < video_ids.length; index += 1)
     {
         var video_id = video_ids[index];
-        var state = response['state'];
+        var state = response["data"]["state"];
         var card = document.getElementById("video_card_" + video_id);
         {% for statename in all_states %}
         card.classList.remove("video_card_{{statename}}");
