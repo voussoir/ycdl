@@ -54,4 +54,5 @@ VIDEO_STATES = ['ignored', 'pending', 'downloaded']
 
 DEFAULT_CONFIGURATION = {
     'download_directory': '.',
+    'queuefile_extension': 'ytqueue',
 }

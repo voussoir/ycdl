@@ -15,10 +15,6 @@ from voussoirkit import pathclass
 from voussoirkit import sqlhelpers
 
 
-def YOUTUBE_DL_COMMAND(video_id):
-    path = f'{video_id}.ytqueue'
-    open(path, 'w')
-
 logging.basicConfig()
 logging.getLogger('googleapiclient.discovery').setLevel(logging.WARNING)
 logging.getLogger('requests.packages.urllib3.connectionpool').setLevel(logging.WARNING)
@@ -242,8 +238,8 @@ class YCDLDBVideoMixin:
 
     def download_video(self, video, commit=True, force=False):
         '''
-        Execute the `YOUTUBE_DL_COMMAND`, within the channel's associated
-        directory if applicable.
+        Create the queuefile within the channel's associated directory, or
+        the default directory from the config file.
         '''
         if isinstance(video, ytapi.Video):
             video_id = video.id
@@ -262,12 +258,12 @@ class YCDLDBVideoMixin:
         except exceptions.NoSuchChannel:
             download_directory = self.config['download_directory']
 
-        os.makedirs(download_directory, exist_ok=True)
+        download_directory = pathclass.Path(download_directory)
+        os.makedirs(download_directory.absolute_path, exist_ok=True)
 
-        current_directory = os.getcwd()
-        os.chdir(download_directory)
-        self.youtube_dl_function(video_id)
-        os.chdir(current_directory)
+        extension = self.config['queuefile_extension']
+        queuefile = download_directory.with_child(video_id).replace_extension(extension)
+        open(queuefile.absolute_path, 'a').close()
 
         video.mark_state('downloaded', commit=False)
 
@@ -371,7 +367,6 @@ class YCDLDB(
             self,
             youtube,
             data_directory=None,
-            youtube_dl_function=None,
             skip_version_check=False,
         ):
         super().__init__()
@@ -398,12 +393,6 @@ class YCDLDB(
             self._load_pragmas()
         else:
             self._first_time_setup()
-
-        # DOWNLOAD COMMAND
-        if youtube_dl_function:
-            self.youtube_dl_function = youtube_dl_function
-        else:
-            self.youtube_dl_function = YOUTUBE_DL_COMMAND
 
         # CONFIG
         self.config_filepath = self.data_directory.with_child(constants.DEFAULT_CONFIGNAME)
