@@ -33,9 +33,13 @@ class Video:
         published = published.rstrip('Z')
         published = datetime.datetime.strptime(published, '%Y-%m-%dT%H:%M:%S')
         self.published = published.timestamp()
+        self.tags = snippet['tags']
 
         self.duration = isodate.parse_duration(content_details['duration']).seconds
-        self.views = statistics['viewCount']
+        self.views = int(statistics['viewCount'])
+        self.likes = int(statistics['likeCount'])
+        self.dislikes = int(statistics['dislikeCount'])
+        self.comment_count = int(statistics['commentCount'])
 
         thumbnails = snippet['thumbnails']
         best_thumbnail = max(thumbnails, key=lambda x: thumbnails[x]['width'] * thumbnails[x]['height'])
