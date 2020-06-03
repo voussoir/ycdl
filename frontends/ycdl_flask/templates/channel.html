@@ -220,7 +220,7 @@ https://stackoverflow.com/a/35153397
                 {% else %}
                 class="video_action_pending"
                 {% endif %}
-                onclick="action_button_passthrough(event, mark_video_state, 'pending')"
+                onclick="action_button_passthrough(event, api.videos.mark_state, 'pending')"
                 >Revert to Pending</button>
 
                 <button
@@ -229,7 +229,7 @@ https://stackoverflow.com/a/35153397
                 {% else %}
                 class="video_action_download hidden"
                 {% endif %}
-                onclick="action_button_passthrough(event, start_download)"
+                onclick="action_button_passthrough(event, api.videos.start_download)"
                 >Download</button>
 
                 <button
@@ -238,7 +238,7 @@ https://stackoverflow.com/a/35153397
                 {% else %}
                 class="video_action_ignore hidden"
                 {% endif %}
-                onclick="action_button_passthrough(event, mark_video_state, 'ignored')"
+                onclick="action_button_passthrough(event, api.videos.mark_state, 'ignored')"
                 >Ignore</button>
             </div>
             <div class="embed_toolbox">
@@ -482,23 +482,6 @@ function receive_action_response(response)
 function set_automark_hook(event)
 {
     api.channels.set_automark(CHANNEL_ID, event.target.value);
-}
-
-function mark_video_state(video_ids, state, callback)
-{
-    var url = "/mark_video_state";
-    data = new FormData();
-    data.append("video_ids", video_ids);
-    data.append("state", state);
-    return common.post(url, data, callback);
-}
-
-function start_download(video_ids, callback)
-{
-    var url = "/start_download";
-    data = new FormData();
-    data.append("video_ids", video_ids);
-    return common.post(url, data, callback);
 }
 </script>
 </html>
