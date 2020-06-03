@@ -154,8 +154,8 @@ https://stackoverflow.com/a/35153397
 {{header.make_header()}}
 <div id="content_body">
     {% if channel is not none %}
-    <span><button class="refresh_button" onclick="refresh_channel('{{channel.id}}', false, function(){location.reload()})">Refresh new videos</button></span>
-    <span><button class="refresh_button" onclick="refresh_channel('{{channel.id}}', true, function(){location.reload()})">Refresh everything</button></span>
+    <span><button class="refresh_button" onclick="refresh_channel('{{channel.id}}', false, common.refresh)">Refresh new videos</button></span>
+    <span><button class="refresh_button" onclick="refresh_channel('{{channel.id}}', true, common.refresh)">Refresh everything</button></span>
 
     <span><a class="merge_params" href="/channel/{{channel.id}}">All</a></span>
     {% else %}

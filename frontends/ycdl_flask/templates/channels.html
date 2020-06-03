@@ -48,8 +48,8 @@
 <body>
 {{header.make_header()}}
 <div id="content_body">
-    <span><button class="refresh_button" onclick="refresh_all_channels(false, function(){location.reload()})">Refresh new videos</button></span>
-    <span><button class="refresh_button" onclick="refresh_all_channels(true, function(){location.reload()})">Refresh everything</button></span>
+    <span><button class="refresh_button" onclick="refresh_all_channels(false, common.refresh)">Refresh new videos</button></span>
+    <span><button class="refresh_button" onclick="refresh_all_channels(true, common.refresh)">Refresh everything</button></span>
     <div>
         <input type="text" id="new_channel_textbox">
         <button id="new_channel_button" onclick="add_channel_form(event)">Add new channel</button>

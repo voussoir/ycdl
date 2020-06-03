@@ -140,6 +140,12 @@ function init_atag_merge_params()
     });
 }
 
+common.refresh =
+function refresh()
+{
+    window.location.reload();
+}
+
 common.on_pageload =
 function on_pageload()
 {
