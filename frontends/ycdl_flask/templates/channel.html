@@ -254,6 +254,10 @@ https://stackoverflow.com/a/35153397
 
 
 <script type="text/javascript">
+{% if channel is not none %}
+var CHANNEL_ID = "{{channel.id}}";
+{% endif %}
+
 var DOWNLOAD_FILTER = "{{download_filter if download_filter else ""}}";
 var video_card_first_selected = null;
 var video_card_selections = [];
