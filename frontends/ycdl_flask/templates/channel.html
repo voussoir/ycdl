@@ -155,8 +155,8 @@ https://stackoverflow.com/a/35153397
 {{header.make_header()}}
 <div id="content_body">
     {% if channel is not none %}
-    <span><button class="refresh_button" onclick="refresh_channel('{{channel.id}}', false, common.refresh)">Refresh new videos</button></span>
-    <span><button class="refresh_button" onclick="refresh_channel('{{channel.id}}', true, common.refresh)">Refresh everything</button></span>
+    <span><button class="refresh_button" onclick="api.channels.refresh_channel(CHANNEL_ID, false, common.refresh)">Refresh new videos</button></span>
+    <span><button class="refresh_button" onclick="api.channels.refresh_channel(CHANNEL_ID, true, common.refresh)">Refresh everything</button></span>
 
     <span><a class="merge_params" href="/channel/{{channel.id}}">All</a></span>
     {% else %}
@@ -477,14 +477,6 @@ function receive_action_response(response)
         card.classList.add("video_card_" + state);
         give_action_buttons(card);
     }
-}
-
-function refresh_channel(channel_id, force, callback)
-{
-    var url = `/channel/${channel_id}/refresh`;
-    data = new FormData();
-    data.append("force", force)
-    return common.post(url, data, callback);
 }
 
 function set_automark_hook(event)
