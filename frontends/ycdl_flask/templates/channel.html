@@ -481,10 +481,7 @@ function receive_action_response(response)
 
 function set_automark_hook(event)
 {
-    var url = "/channel/{{channel.id}}/set_automark";
-    data = new FormData();
-    data.append("state", event.target.value);
-    return common.post(url, data);
+    api.channels.set_automark(CHANNEL_ID, event.target.value);
 }
 
 function mark_video_state(video_ids, state, callback)

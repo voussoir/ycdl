@@ -30,5 +30,14 @@ function refresh_all_channels(force, callback)
     return common.post(url, data, callback);
 }
 
+api.channels.set_automark =
+function set_automark(channel_id, state, callback)
+{
+    var url = `/channel/${channel_id}/set_automark`;
+    data = new FormData();
+    data.append("state", state);
+    return common.post(url, data, callback);
+}
+
 /**************************************************************************************************/
 api.videos = {};
