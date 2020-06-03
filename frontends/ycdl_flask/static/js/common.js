@@ -106,6 +106,14 @@ function entry_with_history_hook(box, button)
     }
 }
 
+common.html_to_element =
+function html_to_element(html)
+{
+    var template = document.createElement("template");
+    template.innerHTML = html;
+    return template.content.firstChild;
+}
+
 common.init_atag_merge_params =
 function init_atag_merge_params()
 {

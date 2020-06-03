@@ -310,7 +310,7 @@ function toggle_embed_video(video_id)
     if (embeds.length == 0)
     {
         var html = `<div class="video_iframe_holder"><iframe width="711" height="400" src="https://www.youtube.com/embed/${video_id}" frameborder="0" allow="encrypted-media" allowfullscreen></iframe></div>`
-        var embed = html_to_element(html);
+        var embed = common.html_to_element(html);
         embed_toolbox.appendChild(embed);
         show_button.classList.add("hidden");
         hide_button.classList.remove("hidden");
@@ -331,13 +331,6 @@ function deselect_all()
         video_card_selections[index].classList.remove("video_card_selected");
     }
     video_card_selections = [];
-}
-
-function html_to_element(html)
-{
-    var template = document.createElement("template");
-    template.innerHTML = html;
-    return template.content.firstChild;
 }
 
 function onclick_select(event)
