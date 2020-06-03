@@ -12,5 +12,14 @@ function refresh_channel(channel_id, force, callback)
     return common.post(url, data, callback);
 }
 
+api.channels.refresh_all_channels =
+function refresh_all_channels(force, callback)
+{
+    var url = "/refresh_all_channels";
+    data = new FormData();
+    data.append("force", force)
+    return common.post(url, data, callback);
+}
+
 /**************************************************************************************************/
 api.videos = {};
