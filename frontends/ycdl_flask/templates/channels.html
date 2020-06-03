@@ -80,7 +80,7 @@ function add_channel_form(event)
 {
     if (box.value !== "")
     {
-        add_channel(box.value, add_channel_callback);
+        api.channels.add_channel(box.value, add_channel_callback);
     }
 }
 
@@ -90,14 +90,6 @@ function add_channel_callback(response)
     {
         window.location.href = "/channel/" + response["data"]["id"];
     }
-}
-
-function add_channel(channel_id, callback)
-{
-    var url = "/add_channel";
-    data = new FormData();
-    data.append("channel_id", channel_id);
-    return common.post(url, data, callback);
 }
 </script>
 </html>
