@@ -109,6 +109,17 @@ function entry_with_history_hook(box, button)
 common.init_atag_merge_params =
 function init_atag_merge_params()
 {
+    /*
+    To create an <a> tag where the ?parameters written on the href are merged
+    with the parameters of the current page URL, give it the class
+    "merge_params". If the URL and href contain the same parameter, the href
+    takes priority.
+
+    Example:
+        URL: ?filter=hello&orderby=score
+        href: "?orderby=date"
+        Result: "?filter=hello&orderby=date"
+    */
     var as = Array.from(document.getElementsByClassName("merge_params"));
     page_params = new URLSearchParams(window.location.search);
     as.forEach(function(a){
