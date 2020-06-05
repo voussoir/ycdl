@@ -1,20 +1,5 @@
 var common = {};
 
-common.post_example =
-function post_example(key, value, callback)
-{
-    var url = "/postexample";
-    data = new FormData();
-    data.append(key, value);
-    return post(url, data, callback);    
-}
-
-common.null_callback =
-function null_callback()
-{
-    return;
-}
-
 common._request =
 function _request(method, url, callback)
 {
@@ -65,6 +50,7 @@ function bind_box_to_button(box, button)
         }
     };
 }
+
 common.entry_with_history_hook =
 function entry_with_history_hook(box, button)
 {
