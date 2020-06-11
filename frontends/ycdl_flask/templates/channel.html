@@ -157,23 +157,28 @@ https://stackoverflow.com/a/35153397
     {% if channel is not none %}
     <span><button class="refresh_button" onclick="api.channels.refresh_channel(CHANNEL_ID, false, common.refresh)">Refresh new videos</button></span>
     <span><button class="refresh_button" onclick="api.channels.refresh_channel(CHANNEL_ID, true, common.refresh)">Refresh everything</button></span>
-
-    <span><a class="merge_params" href="/channel/{{channel.id}}">All</a></span>
-    {% else %}
-    <span><a class="merge_params" href="/videos">All</a></span>
     {% endif %}
-
-    {% for statename in all_states %}
-    {% if channel is not none %}
-    <span><a class="merge_params" href="/channel/{{channel.id}}/{{statename}}">{{statename}}</a></span>
-    {% else %}
-    <span><a class="merge_params" href="/videos/{{statename}}">{{statename}}</a></span>
-    {% endif %}
-    {% endfor %}
 
     <p><!-- spacer --></p>
 
+    <span>View
     {% if channel is not none %}
+    <a class="merge_params" href="/channel/{{channel.id}}">All</a>
+    {% else %}
+    <a class="merge_params" href="/videos">All</a>
+    {% endif %}
+    {% for statename in all_states %}
+    {% if channel is not none %}
+    <a class="merge_params" href="/channel/{{channel.id}}/{{statename}}">{{statename}}</a>
+    {% else %}
+    <a class="merge_params" href="/videos/{{statename}}">{{statename}}</a>
+    {% endif %}
+    {% endfor %}
+    </span>
+
+    {% if channel is not none %}
+    <p><!-- spacer --></p>
+
     <span>
         New videos are:
     <select onchange="set_automark_hook(event)">
