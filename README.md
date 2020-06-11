@@ -37,6 +37,14 @@ YCDL does not perform the downloading of videos itself. When you click on the do
 
 You are responsible for your own `bot.py` file, with a function `get_youtube_key`, called with no arguments, that returns a Youtube API key.
 
+1. Go to https://console.developers.google.com/.
+2. Create a project using the menu in the upper left.
+3. From the project's dashboard, click "Enable APIs and Services".
+4. Search for and choose the latest YouTube Data API.
+5. On the left bar, click "Credentials".
+6. Click "Create credentials" and choose "API key". In my experience they all start with "AIzaSy".
+7. Return this value from `get_youtube_key` however you deem fit.
+
 ## Screenshots
 
 ![2020-04-04_15-27-15](https://user-images.githubusercontent.com/7299570/78462830-ca4f9900-768a-11ea-98c9-a4e622d3da62.png)
