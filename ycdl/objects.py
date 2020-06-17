@@ -38,9 +38,9 @@ class Channel(Base):
 
             video = status['video']
             if status['new'] and self.automark not in [None, "pending"]:
-                video.mark_state(self.automark, commit=False)
                 if self.automark == 'downloaded':
                     self.ycdldb.download_video(video.id, commit=False)
+                video.mark_state(self.automark, commit=False)
 
             if not force and not status['new']:
                 break
