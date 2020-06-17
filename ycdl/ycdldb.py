@@ -248,7 +248,7 @@ class YCDLDBVideoMixin:
 
         video = self.get_video(video_id)
         if video.download != 'pending' and not force:
-            print('That video does not need to be downloaded.')
+            print(f'{video.id} does not need to be downloaded.')
             return
 
         try:
