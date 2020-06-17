@@ -12,6 +12,11 @@ logging.getLogger('requests.packages.urllib3.connectionpool').setLevel(logging.W
 logging.getLogger('requests.packages.urllib3.util.retry').setLevel(logging.WARNING)
 
 
+def int_none(x):
+    if x is None:
+        return None
+    return int(x)
+
 class VideoNotFound(Exception):
     pass
 
@@ -23,23 +28,23 @@ class Video:
         content_details = data['contentDetails']
         statistics = data['statistics']
 
-        self.title = snippet['title'] or '[untitled]'
-        self.description = snippet['description']
+        self.title = snippet.get('title', '[untitled]')
+        self.description = snippet.get('description', '')
         self.author_id = snippet['channelId']
-        self.author_name = snippet['channelTitle']
+        self.author_name = snippet.get('channelTitle', self.author_id)
         # Something like '2016-10-01T21:00:01'
         self.published_string = snippet['publishedAt']
         published = snippet['publishedAt'].split('.')[0]
         published = published.rstrip('Z')
         published = datetime.datetime.strptime(published, '%Y-%m-%dT%H:%M:%S')
         self.published = published.timestamp()
-        self.tags = snippet['tags']
+        self.tags = snippet.get('tags', [])
 
         self.duration = isodate.parse_duration(content_details['duration']).seconds
-        self.views = int(statistics['viewCount'])
-        self.likes = int(statistics['likeCount'])
-        self.dislikes = int(statistics['dislikeCount'])
-        self.comment_count = int(statistics['commentCount'])
+        self.views = int_none(statistics.get('viewCount', None))
+        self.likes = int_none(statistics.get('likeCount', 0))
+        self.dislikes = int_none(statistics.get('dislikeCount'))
+        self.comment_count = int_none(statistics.get('commentCount'))
 
         thumbnails = snippet['thumbnails']
         best_thumbnail = max(thumbnails, key=lambda x: thumbnails[x]['width'] * thumbnails[x]['height'])
@@ -136,10 +141,12 @@ class Youtube:
         for snippet in snippets:
             try:
                 videos.append(Video(snippet))
-            except KeyError:
+            except KeyError as exc:
+                print(f'KEYERROR: {exc} not in {snippet}')
                 broken.append(snippet)
         if broken:
-            print('broken:', broken)
+            # print('broken:', broken)
+            pass
         if singular:
             if len(videos) == 1:
                 return videos[0]
