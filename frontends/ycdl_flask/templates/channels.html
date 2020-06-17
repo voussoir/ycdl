@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/static/css/common.css">
     <script src="/static/js/common.js"></script>
     <script src="/static/js/api.js"></script>
+    <script src="/static/js/spinner.js"></script>
 
 <style>
 #content_body
@@ -49,8 +50,8 @@
 <body>
 {{header.make_header()}}
 <div id="content_body">
-    <span><button class="refresh_button" onclick="api.channels.refresh_all_channels(false, common.refresh)">Refresh new videos</button></span>
-    <span><button class="refresh_button" onclick="api.channels.refresh_all_channels(true, common.refresh)">Refresh everything</button></span>
+    <span><button class="refresh_button button_with_spinner" onclick="refresh_all_channels_form(false)">Refresh new videos</button></span>
+    <span><button class="refresh_button button_with_spinner" onclick="refresh_all_channels_form(true)">Refresh everything</button></span>
     <div>
         <input type="text" id="new_channel_textbox">
         <button id="new_channel_button" onclick="add_channel_form(event)">Add new channel</button>
@@ -83,12 +84,32 @@ function add_channel_form(event)
         api.channels.add_channel(box.value, add_channel_callback);
     }
 }
-
 function add_channel_callback(response)
 {
     if (response["meta"]["status"] == 200)
     {
         window.location.href = "/channel/" + response["data"]["id"];
+    }
+    else
+    {
+        alert(JSON.stringify(response));
+    }
+}
+
+function refresh_all_channels_form(force)
+{
+    console.log(`Refreshing all channels, force=${force}.`);
+    api.channels.refresh_all_channels(force, refresh_all_channels_callback)
+}
+function refresh_all_channels_callback(response)
+{
+    if (response["meta"]["status"] == 200)
+    {
+        common.refresh();
+    }
+    else
+    {
+        alert(JSON.stringify(response));
     }
 }
 </script>

@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/static/css/common.css">
     <script src="/static/js/common.js"></script>
     <script src="/static/js/api.js"></script>
+    <script src="/static/js/spinner.js"></script>
 
 <style>
 #content_body
@@ -155,8 +156,8 @@ https://stackoverflow.com/a/35153397
 {{header.make_header()}}
 <div id="content_body">
     {% if channel is not none %}
-    <span><button class="refresh_button" onclick="api.channels.refresh_channel(CHANNEL_ID, false, common.refresh)">Refresh new videos</button></span>
-    <span><button class="refresh_button" onclick="api.channels.refresh_channel(CHANNEL_ID, true, common.refresh)">Refresh everything</button></span>
+    <span><button class="refresh_button button_with_spinner" onclick="refresh_channel_form(false)">Refresh new videos</button></span>
+    <span><button class="refresh_button button_with_spinner" onclick="refresh_channel_form(true)">Refresh everything</button></span>
     {% endif %}
 
     <p><!-- spacer --></p>
@@ -266,6 +267,23 @@ var CHANNEL_ID = "{{channel.id}}";
 var DOWNLOAD_FILTER = "{{download_filter if download_filter else ""}}";
 var video_card_first_selected = null;
 var video_card_selections = [];
+
+function refresh_channel_form(force)
+{
+    console.log(`Refreshing channel ${CHANNEL_ID}, force=${force}.`);
+    api.channels.refresh_channel(CHANNEL_ID, force, refresh_channel_callback)
+}
+function refresh_channel_callback(response)
+{
+    if (response["meta"]["status"] == 200)
+    {
+        common.refresh();
+    }
+    else
+    {
+        alert(JSON.stringify(response));
+    }
+}
 
 var search_filter_box = document.getElementById("search_filter");
 var search_filter_hook = function(event)
