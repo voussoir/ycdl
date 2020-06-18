@@ -23,6 +23,13 @@ class Channel(Base):
         self.directory = db_row['directory']
         self.automark = db_row['automark'] or "pending"
 
+    def delete(self, commit=True):
+        self.ycdldb.sql_delete(table='videos', pairs={'author_id': self.id})
+        self.ycdldb.sql_delete(table='channels', pairs={'id': self.id})
+
+        if commit:
+            self.ycdldb.commit()
+
     def has_pending(self):
         query = 'SELECT 1 FROM videos WHERE author_id == ? AND download == "pending" LIMIT 1'
         bindings = [self.id]
@@ -92,6 +99,12 @@ class Video(Base):
             return self.ycdldb.get_channel(self.author_id)
         except exceptions.NoSuchChannel:
             return None
+
+    def delete(self, commit=True):
+        self.ycdldb.sql_delete(table='videos', pairs={'id': self.id})
+
+        if commit:
+            self.ycdldb.commit()
 
     def mark_state(self, state, commit=True):
         '''
