@@ -39,6 +39,7 @@ CREATE INDEX IF NOT EXISTS index_video_author_download on videos(author_id, down
 CREATE INDEX IF NOT EXISTS index_video_id on videos(id);
 CREATE INDEX IF NOT EXISTS index_video_published on videos(published);
 CREATE INDEX IF NOT EXISTS index_video_download on videos(download);
+CREATE INDEX IF NOT EXISTS index_video_download_published on videos(download, published);
 ----------------------------------------------------------------------------------------------------
 COMMIT;
 '''
