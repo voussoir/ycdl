@@ -187,6 +187,7 @@ https://stackoverflow.com/a/35153397
         <option value="downloaded" {{"selected" if channel.automark == "downloaded" else ""}}  >downloaded</option>
         <option value="ignored" {{"selected" if channel.automark == "ignored" else ""}}  >ignored</option>
     </select>
+    <span id="set_automark_spinner" class="hidden">Working...</span>
     </span>
     {% endif %}
 
@@ -502,9 +503,20 @@ function receive_action_response(response)
     }
 }
 
+var set_automark_spinner = document.getElementById("set_automark_spinner");
+set_automark_spinner = new spinner.Spinner(set_automark_spinner);
 function set_automark_hook(event)
 {
-    api.channels.set_automark(CHANNEL_ID, event.target.value);
+
+    set_automark_spinner.show();
+    api.channels.set_automark(CHANNEL_ID, event.target.value, set_automark_callback);
+}
+function set_automark_callback(response)
+{
+    if (response["meta"]["status"] == 200)
+    {
+        set_automark_spinner.hide();
+    }
 }
 </script>
 </html>
