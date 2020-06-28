@@ -86,9 +86,9 @@ function add_channel_form(event)
 }
 function add_channel_callback(response)
 {
-    if (response["meta"]["status"] == 200)
+    if (response.meta.status == 200)
     {
-        window.location.href = "/channel/" + response["data"]["id"];
+        window.location.href = "/channel/" + response.data.id;
     }
     else
     {
@@ -103,7 +103,7 @@ function refresh_all_channels_form(force)
 }
 function refresh_all_channels_callback(response)
 {
-    if (response["meta"]["status"] == 200)
+    if (response.meta.status == 200)
     {
         common.refresh();
     }
