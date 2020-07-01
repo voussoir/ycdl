@@ -8,7 +8,7 @@ import ycdl
 
 def upgrade_1_to_2(ycdldb):
     '''
-    In this version, the duration column was added.
+    In this version, the `duration` column was added to the videos table.
     '''
     ycdldb.sql.executescript('''
         ALTER TABLE videos RENAME TO videos_old;
@@ -37,14 +37,14 @@ def upgrade_1_to_2(ycdldb):
 
 def upgrade_2_to_3(ycdldb):
     '''
-    In this version, a column `automark` was added to the channels table, where
+    In this version, the `automark` column was added to the channels table, where
     you can set channels to automatically mark videos as ignored or downloaded.
     '''
     ycdldb.sql.execute('ALTER TABLE channels ADD COLUMN automark TEXT')
 
 def upgrade_3_to_4(ycdldb):
     '''
-    In this version, the views column was added.
+    In this version, the `views` column was added to the videos table.
     '''
     ycdldb.sql.executescript('''
         ALTER TABLE videos RENAME TO videos_old;
