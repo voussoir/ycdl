@@ -71,7 +71,7 @@ class Youtube:
         user = self.youtube.channels().list(part='snippet', id=uid).execute()
         return user['items'][0]['snippet']['title']
 
-    def _iter_playlist(self, playlist_id):
+    def get_playlist_videos(self, playlist_id):
         page_token = None
         while True:
             response = self.youtube.playlistItems().list(
@@ -93,8 +93,6 @@ class Youtube:
             if page_token is None:
                 break
 
-    def get_playlist_videos(self, playlist_id):
-        yield from self._iter_playlist(playlist_id)
 
     def get_user_videos(self, username=None, uid=None):
         if username:
@@ -102,7 +100,7 @@ class Youtube:
         else:
             user = self.youtube.channels().list(part='contentDetails', id=uid).execute()
         upload_playlist_id = user['items'][0]['contentDetails']['relatedPlaylists']['uploads']
-        yield from self._iter_playlist(upload_playlist_id)
+        yield from self.get_playlist_videos(upload_playlist_id)
 
     def get_related_videos(self, video_id, count=50):
         if isinstance(video_id, Video):
