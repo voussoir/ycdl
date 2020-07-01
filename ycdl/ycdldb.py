@@ -126,6 +126,7 @@ class YCDLDBChannelMixin:
         data = {
             'id': channel_id,
             'name': name,
+            'uploads_playlist': self.youtube.get_user_uploads_playlist_id(channel_id),
             'directory': download_directory,
             'automark': "pending",
         }

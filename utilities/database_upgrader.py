@@ -73,6 +73,38 @@ def upgrade_3_to_4(ycdldb):
         DROP TABLE videos_old;
     ''')
 
+def upgrade_4_to_5(ycdldb):
+    '''
+    In this version, the `uploads_playlist` column was added to the channels table.
+    '''
+    ycdldb.sql.executescript('''
+        ALTER TABLE channels RENAME TO channels_old;
+        CREATE TABLE channels(
+            id TEXT,
+            name TEXT,
+            uploads_playlist TEXT,
+            directory TEXT COLLATE NOCASE,
+            automark TEXT
+        );
+        INSERT INTO channels SELECT
+            id,
+            name,
+            NULL,
+            directory,
+            automark
+        FROM channels_old;
+        DROP TABLE channels_old;
+    ''')
+    rows = ycdldb.sql.execute('SELECT id FROM channels').fetchall()
+    channels = [row[0] for row in rows]
+    for channel in channels:
+        uploads_playlist = ycdldb.youtube.get_user_uploads_playlist_id(channel)
+        print(f'{channel} has playlist {uploads_playlist}.')
+        ycdldb.sql.execute(
+            'UPDATE channels SET uploads_playlist = ? WHERE id = ?',
+            [uploads_playlist, channel]
+        )
+
 
 def upgrade_all(data_directory):
     '''

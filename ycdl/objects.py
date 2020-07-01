@@ -20,6 +20,7 @@ class Channel(Base):
 
         self.id = db_row['id']
         self.name = db_row['name']
+        self.uploads_playlist = db_row['uploads_playlist']
         self.directory = db_row['directory']
         self.automark = db_row['automark'] or "pending"
 
@@ -37,7 +38,7 @@ class Channel(Base):
 
     def refresh(self, force=False, commit=True):
         seen_ids = set()
-        video_generator = self.ycdldb.youtube.get_user_videos(uid=self.id)
+        video_generator = self.ycdldb.youtube.get_playlist_videos(self.uploads_playlist)
         self.ycdldb.log.debug('Refreshing channel: %s', self.id)
         for video in video_generator:
             seen_ids.add(video.id)
