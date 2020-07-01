@@ -97,13 +97,8 @@ class Youtube:
         user = self.youtube.channels().list(part='contentDetails', id=uid).execute()
         return user['items'][0]['contentDetails']['relatedPlaylists']['uploads']
 
-    def get_user_videos(self, username=None, uid=None):
-        if username:
-            user = self.youtube.channels().list(part='contentDetails', forUsername=username).execute()
-        else:
-            user = self.youtube.channels().list(part='contentDetails', id=uid).execute()
-        upload_playlist_id = user['items'][0]['contentDetails']['relatedPlaylists']['uploads']
-        yield from self.get_playlist_videos(upload_playlist_id)
+    def get_user_videos(self, uid):
+        yield from self.get_playlist_videos(self.get_user_uploads_playlist_id(uid))
 
     def get_related_videos(self, video_id, count=50):
         if isinstance(video_id, Video):
