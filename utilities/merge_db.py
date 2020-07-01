@@ -25,6 +25,12 @@ def merge_db(from_db_path, to_db_path, channel):
     to_db = sqlite3.connect(to_db_path)
     from_db = sqlite3.connect(from_db_path)
 
+    to_version = to_db.execute('PRAGMA user_version').fetchone()[0]
+    from_version = from_db.execute('PRAGMA user_version').fetchone()[0]
+
+    if to_version != from_version:
+        raise Exception(f'Databases have different versions: to={to_version}, from={from_version}.')
+
     to_db.execute('ATTACH DATABASE "%s" AS other' % from_db_path)
     if channel == '*':
         _migrate_helper(to_db, 'channels')
