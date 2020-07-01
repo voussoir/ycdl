@@ -93,6 +93,9 @@ class Youtube:
             if page_token is None:
                 break
 
+    def get_user_uploads_playlist_id(self, uid):
+        user = self.youtube.channels().list(part='contentDetails', id=uid).execute()
+        return user['items'][0]['contentDetails']['relatedPlaylists']['uploads']
 
     def get_user_videos(self, username=None, uid=None):
         if username:
