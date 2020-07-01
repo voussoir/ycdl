@@ -413,7 +413,7 @@ class YCDLDB(
             raise exceptions.DatabaseOutOfDate(
                 existing=existing,
                 new=constants.DATABASE_VERSION,
-                filepath=self.database_filepath,
+                filepath=self.data_directory,
             )
 
     def _first_time_setup(self):
