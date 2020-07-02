@@ -1,5 +1,6 @@
 import datetime
 import flask; from flask import request
+import itertools
 import traceback
 
 import ycdl
@@ -50,9 +51,11 @@ def get_channel(channel_id=None, download_filter=None):
     if limit is not None:
         try:
             limit = int(limit)
-            videos = videos[:limit]
+            videos = itertools.islice(videos, limit)
         except ValueError:
             pass
+
+    videos = list(videos)
 
     for video in videos:
         published = video.published

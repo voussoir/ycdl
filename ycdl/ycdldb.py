@@ -307,9 +307,14 @@ class YCDLDBVideoMixin:
             orderbys = ' ORDER BY ' + orderbys
 
         query = 'SELECT * FROM videos' + wheres + orderbys
+
+        print(query, bindings)
+        explain = self.sql_execute('EXPLAIN QUERY PLAN ' + query, bindings)
+        print('\n'.join(str(x) for x in explain.fetchall()))
+
         rows = self.sql_select(query, bindings)
-        videos = [self.get_cached_instance('video', row) for row in rows]
-        return videos
+        for row in rows:
+            yield self.get_cached_instance('video', row)
 
     def insert_playlist(self, playlist_id, commit=True):
         video_generator = self.youtube.get_playlist_videos(playlist_id)
