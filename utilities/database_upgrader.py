@@ -98,7 +98,10 @@ def upgrade_4_to_5(ycdldb):
     rows = ycdldb.sql.execute('SELECT id FROM channels').fetchall()
     channels = [row[0] for row in rows]
     for channel in channels:
-        uploads_playlist = ycdldb.youtube.get_user_uploads_playlist_id(channel)
+        try:
+            uploads_playlist = ycdldb.youtube.get_user_uploads_playlist_id(channel)
+        except ycdl.ytapi.ChannelNotFound:
+            continue
         print(f'{channel} has playlist {uploads_playlist}.')
         ycdldb.sql.execute(
             'UPDATE channels SET uploads_playlist = ? WHERE id = ?',
