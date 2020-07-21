@@ -17,6 +17,9 @@ def int_none(x):
         return None
     return int(x)
 
+class ChannelNotFound(Exception):
+    pass
+
 class VideoNotFound(Exception):
     pass
 
@@ -102,14 +105,20 @@ class Youtube:
 
     def get_user_id(self, username):
         user = self.youtube.channels().list(part='snippet', forUsername=username).execute()
+        if not user.get('items'):
+            raise ChannelNotFound(f'username: {username}')
         return user['items'][0]['id']
 
     def get_user_name(self, uid):
         user = self.youtube.channels().list(part='snippet', id=uid).execute()
+        if not user.get('items'):
+            raise ChannelNotFound(f'uid: {uid}')
         return user['items'][0]['snippet']['title']
 
     def get_user_uploads_playlist_id(self, uid):
         user = self.youtube.channels().list(part='contentDetails', id=uid).execute()
+        if not user.get('items'):
+            raise ChannelNotFound(f'uid: {uid}')
         return user['items'][0]['contentDetails']['relatedPlaylists']['uploads']
 
     def get_user_videos(self, uid):
