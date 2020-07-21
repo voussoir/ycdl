@@ -38,6 +38,9 @@ class Channel(Base):
 
     def refresh(self, force=False, commit=True):
         seen_ids = set()
+        if not self.uploads_playlist:
+            self.uploads_playlist = self.ycdldb.youtube.get_user_uploads_playlist_id(self.id)
+            self.set_uploads_playlist_id(self.uploads_playlist)
         video_generator = self.ycdldb.youtube.get_playlist_videos(self.uploads_playlist)
         self.ycdldb.log.debug('Refreshing channel: %s', self.id)
         for video in video_generator:
@@ -73,6 +76,20 @@ class Channel(Base):
         }
         self.ycdldb.sql_update(table='channels', pairs=pairs, where_key='id')
         self.automark = state
+
+        if commit:
+            self.ycdldb.commit()
+
+    def set_uploads_playlist_id(self, playlist_id, commit=True):
+        if not isinstance(playlist_id, str):
+            raise TypeError(f'Playlist id must be a string, not {type(playlist_id)}.')
+
+        pairs = {
+            'id': self.id,
+            'uploads_playlist': playlist_id,
+        }
+        self.ycdldb.sql_update(table='channels', pairs=pairs, where_key='id')
+        self.uploads_playlist = playlist_id
 
         if commit:
             self.ycdldb.commit()
