@@ -10,8 +10,8 @@ def upgrade_1_to_2(ycdldb):
     '''
     In this version, the `duration` column was added to the videos table.
     '''
-    ycdldb.sql.executescript('''
-        ALTER TABLE videos RENAME TO videos_old;
+    ycdldb.sql.execute('ALTER TABLE videos RENAME TO videos_old')
+    ycdldb.sql.execute('''
         CREATE TABLE videos(
             id TEXT,
             published INT,
@@ -21,7 +21,9 @@ def upgrade_1_to_2(ycdldb):
             duration INT,
             thumbnail TEXT,
             download TEXT
-        );
+        )
+    ''')
+    ycdldb.sql.execute('''
         INSERT INTO videos SELECT
             id,
             published,
@@ -31,9 +33,9 @@ def upgrade_1_to_2(ycdldb):
             NULL,
             thumbnail,
             download
-        FROM videos_old;
-        DROP TABLE videos_old;
+        FROM videos_old
     ''')
+    ycdldb.sql.execute('DROP TABLE videos_old')
 
 def upgrade_2_to_3(ycdldb):
     '''
@@ -46,8 +48,8 @@ def upgrade_3_to_4(ycdldb):
     '''
     In this version, the `views` column was added to the videos table.
     '''
-    ycdldb.sql.executescript('''
-        ALTER TABLE videos RENAME TO videos_old;
+    ycdldb.sql.execute('ALTER TABLE videos RENAME TO videos_old')
+    ycdldb.sql.execute('''
         CREATE TABLE videos(
             id TEXT,
             published INT,
@@ -58,7 +60,9 @@ def upgrade_3_to_4(ycdldb):
             views INT,
             thumbnail TEXT,
             download TEXT
-        );
+        )
+    ''')
+    ycdldb.sql.execute('''
         INSERT INTO videos SELECT
             id,
             published,
@@ -69,32 +73,35 @@ def upgrade_3_to_4(ycdldb):
             NULL,
             thumbnail,
             download
-        FROM videos_old;
-        DROP TABLE videos_old;
+        FROM videos_old
     ''')
+    ycdldb.sql.execute('DROP TABLE videos_old')
 
 def upgrade_4_to_5(ycdldb):
     '''
     In this version, the `uploads_playlist` column was added to the channels table.
     '''
-    ycdldb.sql.executescript('''
-        ALTER TABLE channels RENAME TO channels_old;
+    ycdldb.sql.execute('ALTER TABLE channels RENAME TO channels_old')
+    ycdldb.sql.execute('''
         CREATE TABLE channels(
             id TEXT,
             name TEXT,
             uploads_playlist TEXT,
             directory TEXT COLLATE NOCASE,
             automark TEXT
-        );
+        )
+    ''')
+    ycdldb.sql.execute('''
         INSERT INTO channels SELECT
             id,
             name,
             NULL,
             directory,
             automark
-        FROM channels_old;
-        DROP TABLE channels_old;
+        FROM channels_old
     ''')
+    ycdldb.sql.execute('DROP TABLE channels_old')
+
     rows = ycdldb.sql.execute('SELECT id FROM channels').fetchall()
     channels = [row[0] for row in rows]
     for channel in channels:
@@ -131,9 +138,17 @@ def upgrade_all(data_directory):
         print('Upgrading from %d to %d.' % (current_version, version_number))
         upgrade_function = 'upgrade_%d_to_%d' % (current_version, version_number)
         upgrade_function = eval(upgrade_function)
-        upgrade_function(ycdldb)
-        ycdldb.sql.cursor().execute('PRAGMA user_version = %d' % version_number)
-        ycdldb.commit()
+
+        try:
+            ycdldb.sql.execute('BEGIN')
+            upgrade_function(ycdldb)
+        except Exception as exc:
+            ycdldb.rollback()
+            raise
+        else:
+            ycdldb.sql.cursor().execute('PRAGMA user_version = %d' % version_number)
+            ycdldb.commit()
+
         current_version = version_number
     print('Upgrades finished.')
 
