@@ -45,8 +45,8 @@ def main(argv):
     parser = argparse.ArgumentParser(description=__doc__)
 
     parser.add_argument('port', nargs='?', type=int, default=5000)
-    parser.add_argument('--no_refresh', dest='do_refresh', action='store_false', default=True)
-    parser.add_argument('--refresh_rate', dest='refresh_rate', type=int, default=60 * 60 * 6)
+    parser.add_argument('--no_refresh', '--no-refresh', dest='do_refresh', action='store_false', default=True)
+    parser.add_argument('--refresh_rate', '--refresh-rate', dest='refresh_rate', type=int, default=60 * 60 * 6)
     parser.set_defaults(func=ycdl_flask_launch_argparse)
 
     args = parser.parse_args(argv)
