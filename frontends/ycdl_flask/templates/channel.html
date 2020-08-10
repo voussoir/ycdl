@@ -170,9 +170,9 @@ https://stackoverflow.com/a/35153397
     {% endif %}
     {% for statename in all_states %}
     {% if channel is not none %}
-    <a class="merge_params" href="/channel/{{channel.id}}/{{statename}}">{{statename}}</a>
+    <a class="merge_params" href="/channel/{{channel.id}}/{{statename}}">{{statename.capitalize()}}</a>
     {% else %}
-    <a class="merge_params" href="/videos/{{statename}}">{{statename}}</a>
+    <a class="merge_params" href="/videos/{{statename}}">{{statename.capitalize()}}</a>
     {% endif %}
     {% endfor %}
     </span>
@@ -194,9 +194,9 @@ https://stackoverflow.com/a/35153397
     <p><!-- spacer --></p>
 
     <span>Sort by
-    <a class="merge_params" href="?orderby=published">Date</a>,
-    <a class="merge_params" href="?orderby=duration">Duration</a>,
-    <a class="merge_params" href="?orderby=views">Views</a>,
+    <a class="merge_params" href="?orderby=published">Date</a>
+    <a class="merge_params" href="?orderby=duration">Duration</a>
+    <a class="merge_params" href="?orderby=views">Views</a>
     <a class="merge_params" href="?orderby=random">Random</a>
     </span>
     
