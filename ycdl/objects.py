@@ -21,7 +21,8 @@ class Channel(Base):
         self.id = db_row['id']
         self.name = db_row['name']
         self.uploads_playlist = db_row['uploads_playlist']
-        self.directory = db_row['directory']
+        self.download_directory = db_row['download_directory']
+        self.queuefile_extension = db_row['queuefile_extension']
         self.automark = db_row['automark'] or "pending"
 
     def delete(self, commit=True):

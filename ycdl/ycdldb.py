@@ -109,6 +109,7 @@ class YCDLDBChannelMixin:
             *,
             commit=True,
             download_directory=None,
+            queuefile_extension=None,
             get_videos=False,
             name=None,
         ):
@@ -127,7 +128,8 @@ class YCDLDBChannelMixin:
             'id': channel_id,
             'name': name,
             'uploads_playlist': self.youtube.get_user_uploads_playlist_id(channel_id),
-            'directory': download_directory,
+            'download_directory': download_directory,
+            'queuefile_extension': queuefile_extension,
             'automark': "pending",
         }
         self.sql_insert(table='channels', data=data)
@@ -254,15 +256,14 @@ class YCDLDBVideoMixin:
 
         try:
             channel = self.get_channel(video.author_id)
-            download_directory = channel.directory
-            download_directory = download_directory or self.config['download_directory']
+            download_directory = channel.download_directory or self.config['download_directory']
         except exceptions.NoSuchChannel:
             download_directory = self.config['download_directory']
 
         download_directory = pathclass.Path(download_directory)
         os.makedirs(download_directory.absolute_path, exist_ok=True)
 
-        extension = self.config['queuefile_extension']
+        extension = channel.queuefile_extension or self.config['queuefile_extension']
         queuefile = download_directory.with_child(video_id).replace_extension(extension)
         open(queuefile.absolute_path, 'a').close()
 

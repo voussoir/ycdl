@@ -115,6 +115,34 @@ def upgrade_4_to_5(ycdldb):
             [uploads_playlist, channel]
         )
 
+def upgrade_5_to_6(ycdldb):
+    '''
+    In this version, the `directory` column of the channels table was renamed
+    to `download_directory` to be in line with the default config's name for
+    the same value, and the `queuefile_extension` column was added.
+    '''
+    ycdldb.sql.execute('ALTER TABLE channels RENAME TO channels_old')
+    ycdldb.sql.execute('''
+        CREATE TABLE channels(
+            id TEXT,
+            name TEXT,
+            uploads_playlist TEXT,
+            download_directory TEXT COLLATE NOCASE,
+            queuefile_extension TEXT COLLATE NOCASE,
+            automark TEXT
+        )
+    ''')
+    ycdldb.sql.execute('''
+        INSERT INTO channels SELECT
+            id,
+            name,
+            uploads_playlist,
+            directory,
+            NULL,
+            automark
+        FROM channels_old
+    ''')
+    ycdldb.sql.execute('DROP TABLE channels_old')
 
 def upgrade_all(data_directory):
     '''
