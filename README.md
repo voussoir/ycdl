@@ -1,7 +1,7 @@
 Youtube Channel Downloader
 ==========================
 
-YouTubeChannelDownloader creates an SQLite3 database of Youtube channels and their videos, and serves it out of a web server.
+YoutubeChannelDownloader creates an SQLite3 database of Youtube channels and their videos, and serves it out of a web server.
 
 ## YCDL solves three main problems:
 
