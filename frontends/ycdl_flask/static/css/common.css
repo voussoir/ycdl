@@ -1,3 +1,9 @@
+:root
+{
+    --color_3d_shadow: rgba(0, 0, 0, 0.5);
+    --color_3d_highlight: rgba(255, 255, 255, 0.5);
+}
+
 body
 {
     display: flex;
@@ -33,4 +39,45 @@ body
     flex: 0 0 auto;
     display: flex;
     flex-direction: row;
+}
+
+
+button,
+button *
+{
+    color: black;
+}
+button:disabled
+{
+    background-color: #cccccc !important;
+}
+button
+{
+    border-top: 2px solid var(--color_3d_highlight);
+    border-left: 2px solid var(--color_3d_highlight);
+    border-right: 2px solid var(--color_3d_shadow);
+    border-bottom: 2px solid var(--color_3d_shadow);
+}
+button:active
+{
+    border-top: 2px solid var(--color_3d_shadow);
+    border-left: 2px solid var(--color_3d_shadow);
+    border-right: 2px solid var(--color_3d_highlight);
+    border-bottom: 2px solid var(--color_3d_highlight);
+}
+.gray_button
+{
+    background-color: #cccccc;
+}
+.green_button
+{
+    background-color: #6df16f;
+}
+.red_button
+{
+    background-color: #ff4949;
+}
+.yellow_button
+{
+    background-color: #ffea57;
 }
