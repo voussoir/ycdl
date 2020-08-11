@@ -13,13 +13,36 @@
 <style>
 #content_body
 {
-    display: flex;
-    flex-direction: column;
     min-width: 200px;
     width: 100%;
     max-width: 1440px;
     margin-left: auto;
     margin-right: auto;
+}
+#content_body
+{
+    display: grid;
+    grid-template:
+        "toolbox_left toolbox_right" auto
+        "video_cards video_cards" auto
+        /auto auto;
+}
+#toolbox_left
+{
+    grid-area: toolbox_left;
+    display: flex;
+    flex-direction: column;
+}
+#toolbox_right
+{
+    grid-area: toolbox_right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+#video_cards
+{
+    grid-area: video_cards;
 }
 .video_card
 {
@@ -155,6 +178,7 @@ https://stackoverflow.com/a/35153397
 <body>
 {{header.make_header()}}
 <div id="content_body">
+    <div id="toolbox_left">
     {% if channel is not none %}
     <span><button class="refresh_button button_with_spinner" onclick="refresh_channel_form(false)">Refresh new videos</button></span>
     <span><button class="refresh_button button_with_spinner" onclick="refresh_channel_form(true)">Refresh everything</button></span>
@@ -199,11 +223,16 @@ https://stackoverflow.com/a/35153397
     <a class="merge_params" href="?orderby=views">Views</a>
     <a class="merge_params" href="?orderby=random">Random</a>
     </span>
+    </div>
     
-    <center><input type="text" id="search_filter"/></center>
-    <center><span id="search_filter_count">{{videos|length}}</span> items</center>
+    <div id="toolbox_right">
+    </div>
+
 
     <div id="video_cards">
+        <center><input type="text" id="search_filter"/></center>
+        <center><span id="search_filter_count">{{videos|length}}</span> items</center>
+
         {% for video in videos %}
         <div id="video_card_{{video.id}}"
         data-ytid="{{video.id}}"
@@ -301,14 +330,12 @@ function filter_video_cards(search_term)
     Apply the search filter textbox by hiding the mismatched cards.
     */
     var count = 0;
-    video_cards = document.getElementById("video_cards");
-    video_cards.classList.add("hidden");
+    video_cards = document.getElementById("video_cards").getElementsByClassName("video_card");
     search_term = search_term.toLocaleLowerCase();
-    var cards = video_cards.children;
     var download_filter_class = "video_card_" + DOWNLOAD_FILTER;
-    for (var index = 0; index < video_cards.children.length; index += 1)
+    for (var index = 0; index < video_cards.length; index += 1)
     {
-        var video_card = video_cards.children[index];
+        var video_card = video_cards[index];
         var title = video_card.getElementsByClassName("video_title")[0].innerText.toLocaleLowerCase();
         if (DOWNLOAD_FILTER && !video_card.classList.contains(download_filter_class))
         {
@@ -325,7 +352,6 @@ function filter_video_cards(search_term)
             count += 1;
         }
     }
-    video_cards.classList.remove("hidden");
     document.getElementById("search_filter_count").innerText = count;
 }
 
