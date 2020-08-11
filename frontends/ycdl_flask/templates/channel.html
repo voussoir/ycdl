@@ -226,6 +226,12 @@ https://stackoverflow.com/a/35153397
     </div>
     
     <div id="toolbox_right">
+        {% if channel is not none %}
+        <button class="red_button button_with_confirm"
+        data-prompt="Delete channel and all videos?"
+        data-onclick="delete_channel_form();"
+        >Delete Channel</button>
+        {% endif %}
     </div>
 
 
@@ -297,6 +303,11 @@ var CHANNEL_ID = "{{channel.id}}";
 var DOWNLOAD_FILTER = "{{download_filter if download_filter else ""}}";
 var video_card_first_selected = null;
 var video_card_selections = [];
+
+function delete_channel_form()
+{
+    api.channels.delete_channel(CHANNEL_ID, api.channels.callback_go_to_channels);
+}
 
 function refresh_channel_form(force)
 {

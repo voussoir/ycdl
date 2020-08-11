@@ -12,6 +12,14 @@ function add_channel(channel_id, callback)
     return common.post(url, data, callback);
 }
 
+api.channels.delete_channel =
+function delete_channel(channel_id, callback)
+{
+    var url = `/channel/${channel_id}/delete`;
+    data = new FormData();
+    return common.post(url, data, callback);
+}
+
 api.channels.refresh_channel =
 function refresh_channel(channel_id, force, callback)
 {
@@ -37,6 +45,19 @@ function set_automark(channel_id, state, callback)
     data = new FormData();
     data.append("state", state);
     return common.post(url, data, callback);
+}
+
+api.channels.callback_go_to_channels =
+function callback_go_to_channels(response)
+{
+    if (response.meta.status === 200)
+    {
+        window.location.href = "/channels";
+    }
+    else
+    {
+        console.log(response);
+    }
 }
 
 /**************************************************************************************************/
