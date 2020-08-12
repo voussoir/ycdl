@@ -45,7 +45,7 @@ def get_channel(channel_id=None, download_filter=None):
 
     search_terms = request.args.get('q', '').lower().strip().replace('+', ' ').split()
     if search_terms:
-        videos = [v for v in videos if all(term in v.title.lower() for term in search_terms)]
+        videos = (v for v in videos if all(term in v.title.lower() for term in search_terms))
 
     limit = request.args.get('limit', None)
     if limit is not None:
