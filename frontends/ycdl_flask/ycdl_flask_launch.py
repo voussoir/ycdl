@@ -1,8 +1,6 @@
 import logging
 logging.basicConfig()
-logging.getLogger('ycdl.ycdldb').setLevel(logging.DEBUG)
-logging.getLogger('ycdl.ytapi').setLevel(logging.DEBUG)
-logging.getLogger('ycdl.ytrss').setLevel(logging.DEBUG)
+logging.getLogger('ycdl').setLevel(logging.DEBUG)
 
 import gevent.monkey
 gevent.monkey.patch_all()
