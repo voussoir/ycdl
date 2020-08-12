@@ -38,12 +38,14 @@ class Channel(Base):
         return self.ycdldb.sql_select_one(query, bindings) is not None
 
     def refresh(self, force=False, commit=True):
-        seen_ids = set()
+        self.ycdldb.log.debug('Refreshing channel: %s', self.id)
+
         if not self.uploads_playlist:
             self.uploads_playlist = self.ycdldb.youtube.get_user_uploads_playlist_id(self.id)
             self.set_uploads_playlist_id(self.uploads_playlist)
+
+        seen_ids = set()
         video_generator = self.ycdldb.youtube.get_playlist_videos(self.uploads_playlist)
-        self.ycdldb.log.debug('Refreshing channel: %s', self.id)
         for video in video_generator:
             seen_ids.add(video.id)
             status = self.ycdldb.insert_video(video, commit=False)
@@ -54,12 +56,15 @@ class Channel(Base):
                     self.ycdldb.download_video(video.id, commit=False)
                 video.mark_state(self.automark, commit=False)
 
-            if not force and not status['new']:
+            if not (force or status['new']):
                 break
 
         if force:
-            known_videos = self.ycdldb.get_videos(channel_id=self.id)
-            known_ids = {v.id for v in known_videos}
+            # If some videos have become unlisted, then they will not have been
+            # refreshed by the previous loop. So, take the set of all known ids
+            # minus those refreshed by the loop, and try to refresh them.
+            # Of course, it's possible they were deleted.
+            known_ids = {v.id for v in self.ycdldb.get_videos(channel_id=self.id)}
             refresh_ids = list(known_ids.difference(seen_ids))
             for video in self.ycdldb.youtube.get_video(refresh_ids):
                 self.ycdldb.insert_video(video, commit=False)
