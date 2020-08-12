@@ -48,13 +48,12 @@ class Video:
 
 class Youtube:
     def __init__(self, key):
-        youtube = apiclient.discovery.build(
+        self.youtube = apiclient.discovery.build(
             developerKey=key,
             serviceName='youtube',
             version='v3',
         )
         self.log = logging.getLogger(__name__)
-        self.youtube = youtube
 
     def get_playlist_videos(self, playlist_id):
         page_token = None
