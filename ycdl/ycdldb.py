@@ -257,13 +257,14 @@ class YCDLDBVideoMixin:
         try:
             channel = self.get_channel(video.author_id)
             download_directory = channel.download_directory or self.config['download_directory']
+            extension = channel.queuefile_extension or self.config['queuefile_extension']
         except exceptions.NoSuchChannel:
             download_directory = self.config['download_directory']
+            extension = self.config['queuefile_extension']
 
         download_directory = pathclass.Path(download_directory)
         os.makedirs(download_directory.absolute_path, exist_ok=True)
 
-        extension = channel.queuefile_extension or self.config['queuefile_extension']
         queuefile = download_directory.with_child(video_id).replace_extension(extension)
         open(queuefile.absolute_path, 'a').close()
 
