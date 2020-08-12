@@ -26,7 +26,10 @@ def get_channel(channel_id=None, download_filter=None):
             common.ycdldb.add_channel(channel_id)
         except Exception:
             traceback.print_exc()
-        channel = common.ycdldb.get_channel(channel_id)
+        try:
+            channel = common.ycdldb.get_channel(channel_id)
+        except ycdl.exceptions.NoSuchChannel:
+            flask.abort(404)
     else:
         channel = None
 
