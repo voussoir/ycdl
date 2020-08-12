@@ -45,8 +45,8 @@ def merge_db_argparse(args):
 def main(argv):
     parser = argparse.ArgumentParser(description=__doc__)
 
-    parser.add_argument('--from_db_path', dest='from_db_path', required=True)
-    parser.add_argument('--to_db_path', dest='to_db_path', required=True)
+    parser.add_argument('--from', dest='from_db_path', required=True)
+    parser.add_argument('--to', dest='to_db_path', required=True)
     parser.add_argument('--channel', dest='channel', required=True)
     parser.set_defaults(func=merge_db_argparse)
 
