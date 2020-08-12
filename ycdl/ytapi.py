@@ -65,8 +65,9 @@ class Youtube:
                 playlistId=playlist_id,
             ).execute()
             page_token = response.get('nextPageToken', None)
+
             video_ids = [item['contentDetails']['videoId'] for item in response['items']]
-            videos = self.get_video(video_ids)
+            videos = self.get_videos(video_ids)
             videos.sort(key=lambda x: x.published, reverse=True)
 
             self.log.debug('Got %d more videos.', len(videos))
@@ -87,9 +88,9 @@ class Youtube:
             type='video',
             maxResults=count,
         ).execute()
-        videos = []
+
         related = [rel['id']['videoId'] for rel in results['items']]
-        videos = self.get_video(related)
+        videos = self.get_videos(related)
         return videos
 
     def get_user_id(self, username):
@@ -113,16 +114,19 @@ class Youtube:
     def get_user_videos(self, uid):
         yield from self.get_playlist_videos(self.get_user_uploads_playlist_id(uid))
 
-    def get_video(self, video_ids):
-        if isinstance(video_ids, str):
-            singular = True
-            video_ids = [video_ids]
-        else:
-            singular = False
+    def get_video(self, video_id):
+        videos = self.get_videos([video_id])
 
+        if len(videos) == 1:
+            return videos[0]
+        elif len(videos) == 0:
+            raise VideoNotFound(video_id)
+
+    def get_videos(self, video_ids):
         snippets = []
         chunks = helpers.chunk_sequence(video_ids, 50)
         for chunk in chunks:
+            self.log.debug('Requesting batch of %d video ids.', len(chunk))
             chunk = ','.join(chunk)
             data = self.youtube.videos().list(
                 part='id,contentDetails,snippet,statistics',
@@ -130,6 +134,7 @@ class Youtube:
             ).execute()
             items = data['items']
             snippets.extend(items)
+
         videos = []
         broken = []
         for snippet in snippets:
@@ -141,9 +146,4 @@ class Youtube:
         if broken:
             # print('broken:', broken)
             pass
-        if singular:
-            if len(videos) == 1:
-                return videos[0]
-            elif len(videos) == 0:
-                raise VideoNotFound(video_ids[0])
         return videos
