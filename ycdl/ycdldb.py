@@ -8,6 +8,7 @@ from . import constants
 from . import exceptions
 from . import objects
 from . import ytapi
+from . import ytrss
 
 from voussoirkit import cacheclass
 from voussoirkit import configlayers
@@ -147,7 +148,74 @@ class YCDLDBChannelMixin:
         channels.sort(key=lambda c: c.name.lower())
         return channels
 
+    def _rss_assisted_refresh(self, skip_failures=False, commit=True):
+        '''
+        Youtube provides RSS feeds for every channel. These feeds do not
+        require the API token and seem to have generous ratelimits, or
+        perhaps no ratelimits at all.
+
+        This RSS-assisted refresh will cut down on tokened API calls by:
+        1. Getting video IDs from the free RSS feed instead of the tokened
+           playlistItems endpoint.
+        2. Batching video IDs from multiple channels and requesting them
+           together, instead of requesting each channel's videos separately in
+           less-than-full batches. In retrospect, this improvement could be
+           applied to the non-RSS refresh method too. If this RSS experiment
+           turns out to be bad, I can at least go ahead with that.
+
+        The RSS has two limitations:
+        1. It does not contain all the properties I want to store, otherwise
+           I'd happily use that data directly instead of passing the ID batches
+           into ytapi.
+        2. It only returns the latest 15 videos, and of course does not
+           paginate. So, for any channel with more than 14 new videos, we'll
+           do a traditional refresh.
+        '''
+        query = 'SELECT id FROM videos WHERE author_id == ? ORDER BY published DESC LIMIT 1'
+        exceptions = []
+
+        def traditional(channel):
+            try:
+                channel.refresh()
+            except Exception as exc:
+                if skip_failures:
+                    traceback.print_exc()
+                    exceptions.append(exc)
+                else:
+                    raise
+
+        def gen():
+            for channel in self.get_channels():
+                most_recent_video = self.sql_select_one(query, [channel.id])[0]
+                try:
+                    rss_videos = ytrss.get_user_videos(channel.id)
+                except Exception:
+                    # traceback.print_exc()
+                    traditional(channel)
+                    continue
+
+                try:
+                    index = rss_videos.index(most_recent_video)
+                except ValueError:
+                    # traceback.print_exc()
+                    traditional(channel)
+                    continue
+
+                new_ids = rss_videos[:index]
+                yield from new_ids
+
+        for video in self.youtube.get_videos(gen()):
+            self.ingest_video(video, commit=False)
+
+        if commit:
+            self.commit()
+
+        return exceptions
+
     def refresh_all_channels(self, force=False, skip_failures=False, commit=True):
+        if not force:
+            return self._rss_assisted_refresh(skip_failures=skip_failures, commit=commit)
+
         exceptions = []
         for channel in self.get_channels():
             try:
@@ -160,6 +228,7 @@ class YCDLDBChannelMixin:
                     raise
         if commit:
             self.commit()
+
         return exceptions
 
 class YCDLSQLMixin:
