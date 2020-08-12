@@ -48,13 +48,7 @@ class Channel(Base):
         video_generator = self.ycdldb.youtube.get_playlist_videos(self.uploads_playlist)
         for video in video_generator:
             seen_ids.add(video.id)
-            status = self.ycdldb.insert_video(video, commit=False)
-
-            video = status['video']
-            if status['new'] and self.automark not in [None, "pending"]:
-                if self.automark == 'downloaded':
-                    self.ycdldb.download_video(video.id, commit=False)
-                video.mark_state(self.automark, commit=False)
+            status = self.ycdldb.ingest_video(video, commit=False)
 
             if not (force or status['new']):
                 break

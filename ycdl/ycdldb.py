@@ -326,6 +326,35 @@ class YCDLDBVideoMixin:
 
         return results
 
+    def ingest_video(self, video, commit=True):
+        '''
+        Call `insert_video`, and additionally use the channel's automark to
+        mark this video's state.
+        '''
+        status = self.insert_video(video, commit=False)
+
+        if not status['new']:
+            return status
+
+        video = status['video']
+        author = video.author
+
+        if not author:
+            return status
+
+        if author.automark in [None, 'pending']:
+            return status
+
+        if author.automark == 'downloaded':
+            self.download_video(video.id, commit=False)
+
+        video.mark_state(author.automark, commit=False)
+
+        if commit:
+            self.commit()
+
+        return status
+
     def insert_video(self, video, *, add_channel=True, commit=True):
         if not isinstance(video, ytapi.Video):
             video = self.youtube.get_video(video)
