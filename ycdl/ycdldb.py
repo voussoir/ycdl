@@ -15,12 +15,6 @@ from voussoirkit import pathclass
 from voussoirkit import sqlhelpers
 
 
-logging.basicConfig()
-logging.getLogger('googleapiclient.discovery').setLevel(logging.WARNING)
-logging.getLogger('requests.packages.urllib3.connectionpool').setLevel(logging.WARNING)
-logging.getLogger('requests.packages.urllib3.util.retry').setLevel(logging.WARNING)
-
-
 class YCDLDBCacheManagerMixin:
     _THING_CLASSES = {
         'channel':
@@ -417,7 +411,6 @@ class YCDLDB(
 
         # LOGGING
         self.log = logging.getLogger(__name__)
-        self.log.setLevel(logging.DEBUG)
 
         # DATABASE
         self.database_filepath = self.data_directory.with_child(constants.DEFAULT_DBNAME)

@@ -4,12 +4,6 @@ import logging
 
 from . import helpers
 
-logging.basicConfig(level=logging.DEBUG)
-log = logging.getLogger(__name__)
-logging.getLogger('googleapiclient.discovery').setLevel(logging.WARNING)
-logging.getLogger('requests.packages.urllib3.connectionpool').setLevel(logging.WARNING)
-logging.getLogger('requests.packages.urllib3.util.retry').setLevel(logging.WARNING)
-
 
 def int_none(x):
     if x is None:
@@ -52,7 +46,6 @@ class Video:
     def __str__(self):
         return 'Video:%s' % self.id
 
-
 class Youtube:
     def __init__(self, key):
         youtube = apiclient.discovery.build(
@@ -60,6 +53,7 @@ class Youtube:
             serviceName='youtube',
             version='v3',
         )
+        self.log = logging.getLogger(__name__)
         self.youtube = youtube
 
     def get_playlist_videos(self, playlist_id):
@@ -76,7 +70,7 @@ class Youtube:
             videos = self.get_video(video_ids)
             videos.sort(key=lambda x: x.published, reverse=True)
 
-            log.debug('Got %d more videos.', len(videos))
+            self.log.debug('Got %d more videos.', len(videos))
 
             for video in videos:
                 yield video

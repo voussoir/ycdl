@@ -1,6 +1,3 @@
-import logging
-logging.basicConfig(level=logging.WARNING)
-
 import bot3 as bot
 import os
 import traceback
