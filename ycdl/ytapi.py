@@ -1,7 +1,6 @@
 import apiclient.discovery
-import datetime
-import logging
 import isodate
+import logging
 
 from . import helpers
 
@@ -37,10 +36,7 @@ class Video:
         self.author_name = snippet.get('channelTitle', self.author_id)
         # Something like '2016-10-01T21:00:01'
         self.published_string = snippet['publishedAt']
-        published = snippet['publishedAt'].split('.')[0]
-        published = published.rstrip('Z')
-        published = datetime.datetime.strptime(published, '%Y-%m-%dT%H:%M:%S')
-        self.published = published.timestamp()
+        self.published = isodate.parse_datetime(self.published_string).timestamp()
         self.tags = snippet.get('tags', [])
 
         self.duration = isodate.parse_duration(content_details['duration']).seconds
