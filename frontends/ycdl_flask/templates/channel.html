@@ -182,9 +182,9 @@ https://stackoverflow.com/a/35153397
     {% if channel is not none %}
     <span><button class="refresh_button button_with_spinner" onclick="refresh_channel_form(false)">Refresh new videos</button></span>
     <span><button class="refresh_button button_with_spinner" onclick="refresh_channel_form(true)">Refresh everything</button></span>
-    {% endif %}
 
     <p><!-- spacer --></p>
+    {% endif %}
 
     <span>View
     {% if channel is not none %}
@@ -201,9 +201,9 @@ https://stackoverflow.com/a/35153397
     {% endfor %}
     </span>
 
-    {% if channel is not none %}
     <p><!-- spacer --></p>
 
+    {% if channel is not none %}
     <span>
         New videos are:
     <select onchange="set_automark_hook(event)">
@@ -213,9 +213,9 @@ https://stackoverflow.com/a/35153397
     </select>
     <span id="set_automark_spinner" class="hidden">Working...</span>
     </span>
-    {% endif %}
 
     <p><!-- spacer --></p>
+    {% endif %}
 
     <span>Sort by
     <a class="merge_params" href="?orderby=published">Date</a>
