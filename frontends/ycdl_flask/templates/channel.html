@@ -341,12 +341,13 @@ function filter_video_cards(search_term)
     Apply the search filter textbox by hiding the mismatched cards.
     */
     var count = 0;
-    video_cards = document.getElementById("video_cards").getElementsByClassName("video_card");
+    video_cards = document.getElementById("video_cards");
+    cards = video_cards.getElementsByClassName("video_card");
     search_term = search_term.toLocaleLowerCase();
     var download_filter_class = "video_card_" + DOWNLOAD_FILTER;
-    for (var index = 0; index < video_cards.length; index += 1)
+    for (var index = 0; index < cards.length; index += 1)
     {
-        var video_card = video_cards[index];
+        var video_card = cards[index];
         var title = video_card.getElementsByClassName("video_title")[0].innerText.toLocaleLowerCase();
         if (DOWNLOAD_FILTER && !video_card.classList.contains(download_filter_class))
         {
