@@ -60,7 +60,7 @@ class Channel(Base):
             # Of course, it's possible they were deleted.
             known_ids = {v.id for v in self.ycdldb.get_videos(channel_id=self.id)}
             refresh_ids = list(known_ids.difference(seen_ids))
-            for video in self.ycdldb.youtube.get_video(refresh_ids):
+            for video in self.ycdldb.youtube.get_videos(refresh_ids):
                 self.ycdldb.insert_video(video, commit=False)
 
         if commit:
