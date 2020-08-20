@@ -49,6 +49,7 @@ class Video:
 class Youtube:
     def __init__(self, key):
         self.youtube = apiclient.discovery.build(
+            cache_discovery=False,
             developerKey=key,
             serviceName='youtube',
             version='v3',
