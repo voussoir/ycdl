@@ -54,7 +54,7 @@
     <span><button class="refresh_button button_with_spinner" onclick="refresh_all_channels_form(true)">Refresh everything</button></span>
     <div>
         <input type="text" id="new_channel_textbox">
-        <button id="new_channel_button" onclick="add_channel_form(event)">Add new channel</button>
+        <button id="new_channel_button" class="button_with_spinner" onclick="add_channel_form(event)">Add new channel</button>
     </div>
     {% for channel in channels %}
     {% if channel.has_pending() %}
