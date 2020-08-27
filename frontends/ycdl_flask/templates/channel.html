@@ -342,17 +342,15 @@ function filter_video_cards(search_term)
     */
     var count = 0;
     video_cards = document.getElementById("video_cards");
-    cards = video_cards.getElementsByClassName("video_card");
+    video_cards.classList.add("hidden");
     search_term = search_term.toLocaleLowerCase();
     var download_filter_class = "video_card_" + DOWNLOAD_FILTER;
-    for (var index = 0; index < cards.length; index += 1)
+    Array.from(video_cards.getElementsByClassName("video_card")).forEach(function(video_card)
     {
-        var video_card = cards[index];
         var title = video_card.getElementsByClassName("video_title")[0].innerText.toLocaleLowerCase();
         if (DOWNLOAD_FILTER && !video_card.classList.contains(download_filter_class))
         {
             video_cards.removeChild(video_card);
-            index -= 1;
         }
         else if (search_term !== "" && title.indexOf(search_term) == -1)
         {
@@ -363,7 +361,8 @@ function filter_video_cards(search_term)
             video_card.classList.remove("hidden");
             count += 1;
         }
-    }
+    });
+    video_cards.classList.remove("hidden");
     document.getElementById("search_filter_count").innerText = count;
 }
 
