@@ -15,15 +15,15 @@ Note: At this time, refreshing a channel in YCDL will update video titles, descr
 
 ### Easily watch every video on the channel
 
-When I discover a channel, I like to watch through their videos over the course of weeks or months. Within Youtube's own interface, it becomes difficult to know which videos I've watched and which ones I haven't. Scrolling through all of a channel's videos is tough especially if there are many.
+When I discover a channel, I like to watch through the videos over the course of weeks or months. Within Youtube's own interface, there is no good way to filter videos you've watched from videos you haven't. Scrolling through all of a channel's videos to find ones you haven't seen is tough.
 
-In YCDL, videos start off as pending and you can mark them as ignore or download, so the pending page is always your "to-watch" list.
+In YCDL, videos start off as pending and you can mark them as ignore or download. The pending page always acts as your "to-watch" list.
 
-On my Youtube subscription box, I would often press the "hide" button on videos only to find them come back a few days later, and hiding live broadcasts was never reliable. YCDL makes watching my subscriptions much easier.
+On Youtube's subscription page, there is a button to hide a video from the list. I would often press this hide button after watching a video, only to find it come back a few days later. Don't get me started on live broadcasts or premieres -- hiding those was never reliable. YCDL makes watching my subscriptions much easier.
 
 ### Send video IDs to youtube-dl
 
-YCDL does not perform the downloading of videos itself. When you click on the download button, it will create an empty file called `xxxxxxxxxxx.ytqueue` in the directory specified by the `ycdl.json` config file. You can send this ID into youtube-dl in your preferred way.
+YCDL does not perform the downloading of videos itself. [youtube-dl](https://github.com/ytdl-org/youtube-dl) is the tool for that. When you click on the download button, it will create an empty file called `xxxxxxxxxxx.ytqueue` in the directory specified by the `ycdl.json` config file. You can send this ID into youtube-dl in your preferred way.
 
 ## Features
 
@@ -35,7 +35,7 @@ YCDL does not perform the downloading of videos itself. When you click on the do
 
 ## Your API key
 
-You are responsible for your own `bot.py` file, with a function `get_youtube_key`, called with no arguments, that returns a Youtube API key.
+You are responsible for your own `bot.py` file, with a function `get_youtube_key`. YCDL will `import bot` and call `bot.get_youtube_key()` with no arguments. It should return a Youtube API key. Here is how to get one:
 
 1. Go to https://console.developers.google.com/.
 2. Create a project using the menu in the upper left.
