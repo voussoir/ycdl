@@ -327,9 +327,14 @@ function refresh_channel_callback(response)
 }
 
 var search_filter_box = document.getElementById("search_filter");
+var search_filter_wait_for_typing;
 var search_filter_hook = function(event)
 {
-    filter_video_cards(search_filter_box.value);
+    clearTimeout(search_filter_wait_for_typing);
+    search_filter_wait_for_typing = setTimeout(function()
+    {
+        filter_video_cards(search_filter_box.value);
+    }, 200);
 }
 search_filter_box.addEventListener("keyup", search_filter_hook);
 
