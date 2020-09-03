@@ -53,7 +53,7 @@
     <span><button class="refresh_button button_with_spinner" onclick="refresh_all_channels_form(false)">Refresh new videos</button></span>
     <span><button class="refresh_button button_with_spinner" onclick="refresh_all_channels_form(true)">Refresh everything</button></span>
     <div>
-        <input type="text" id="new_channel_textbox">
+        <input type="text" id="new_channel_textbox" placeholder="Channel id">
         <button id="new_channel_button" class="button_with_spinner" onclick="add_channel_form()">Add new channel</button>
     </div>
     {% for channel in channels %}
