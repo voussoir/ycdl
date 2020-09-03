@@ -6,6 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel="stylesheet" href="/static/css/common.css">
+    <link rel="stylesheet" href="/static/css/ycdl.css">
     <script src="/static/js/common.js"></script>
     <script src="/static/js/api.js"></script>
     <script src="/static/js/spinner.js"></script>
@@ -13,14 +14,7 @@
 <style>
 #content_body
 {
-    display: flex;
-    flex-grow: 1;
-    flex-shrink: 0;
-    flex-basis: auto;
-    flex-direction: column;
-    width: 1440px;
-    margin: auto;
-    max-width: 100%;
+    grid-gap: unset;
 }
 #new_channel_textbox,
 #new_channel_button
@@ -30,7 +24,7 @@
 .channel_card_no_pending,
 .channel_card_pending
 {
-    margin: 8px;
+    margin: 8px 0;
     padding: 10px;
     border-radius: 4px;
     border: 1px solid #000;
@@ -50,12 +44,14 @@
 <body>
 {{header.make_header()}}
 <div id="content_body">
-    <span><button class="refresh_button button_with_spinner" onclick="refresh_all_channels_form(false)">Refresh new videos</button></span>
-    <span><button class="refresh_button button_with_spinner" onclick="refresh_all_channels_form(true)">Refresh everything</button></span>
+    <div><button class="refresh_button button_with_spinner" onclick="refresh_all_channels_form(false)">Refresh new videos</button></div>
+    <div><button class="refresh_button button_with_spinner" onclick="refresh_all_channels_form(true)">Refresh everything</button></div>
     <div>
         <input type="text" id="new_channel_textbox" placeholder="Channel id">
         <button id="new_channel_button" class="button_with_spinner" onclick="add_channel_form()">Add new channel</button>
     </div>
+
+    <div id="channels">
     {% for channel in channels %}
     {% if channel.has_pending() %}
     <div class="channel_card_pending">
@@ -68,6 +64,7 @@
         {% endif %}
     </div>
     {% endfor %}
+    </div>
 </div>
 </body>
 

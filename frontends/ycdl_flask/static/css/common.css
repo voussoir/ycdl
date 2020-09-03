@@ -1,51 +1,112 @@
 :root
 {
+    --color_text_normal: black;
+    --color_text_link: blue;
+
+    --color_textfields: white;
+    --color_text_placeholder: gray;
+
+    --color_transparency: rgba(0, 0, 0, 0.1);
+    --color_dropshadow: rgba(0, 0, 0, 0.25);
     --color_3d_shadow: rgba(0, 0, 0, 0.5);
     --color_3d_highlight: rgba(255, 255, 255, 0.5);
 }
 
-body
-{
-    display: flex;
-    flex-direction: column;
-    background-color:#fff;
-    margin: 8px;
-}
-#header
-{
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-content: center;
-    margin-bottom: 4px;
-}
-.header_element
-{
-    display: flex;
-    justify-content: center;
-    flex: 1;
-    background-color: rgba(0, 0, 0, 0.1);   
-}
-.header_element:hover
-{
-    background-color: rgba(0, 0, 0, 0.2);
-}
 .hidden
 {
     display: none !important;
 }
-#content_body
+
+html
 {
-    flex: 0 0 auto;
-    display: flex;
-    flex-direction: row;
+    height: 100vh;
+    box-sizing: border-box;
 }
 
+*, *:before, *:after
+{
+    box-sizing: inherit;
+}
+
+* { color: var(--color_text_normal); }
+
+body
+{
+    display: grid;
+    grid-template:
+        "header" auto
+        "content_body" 1fr
+        /1fr;
+
+    height: 100%;
+    margin: 0;
+
+    background-color: var(--color_primary);
+}
+
+a
+{
+    color: var(--color_text_link);
+    cursor: pointer;
+}
+
+input, select, textarea
+{
+    background-color: var(--color_textfields);
+}
+
+input::placeholder, textarea::placeholder
+{
+    color: var(--color_text_placeholder);
+    opacity: 1;
+}
+
+pre
+{
+    white-space: pre-line;
+}
+
+#header
+{
+    grid-area: header;
+    display: flex;
+    flex-direction: row;
+
+    margin: 8px;
+    background-color: var(--color_transparency);
+}
+#header button
+{
+    border: 0;
+    cursor: pointer;
+    background-color: transparent;
+}
+.header_element
+{
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+.header_element:hover
+{
+    background-color: var(--color_transparency);
+}
+
+#content_body
+{
+    grid-area: content_body;
+    display: grid;
+    grid-auto-rows: min-content;
+    grid-gap: 8px;
+
+    margin: 8px;
+    margin-top: 0;
+}
 
 button,
 button *
 {
-    color: black;
+    color: var(--color_text_normal);
 }
 button:disabled
 {
@@ -80,4 +141,32 @@ button:active
 .yellow_button
 {
     background-color: #ffea57;
+}
+
+#message_area
+{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: auto;
+    background-color: var(--color_transparency);
+}
+.message_bubble
+{
+    width: 80%;
+    margin: 4px;
+
+    word-wrap: break-word;
+}
+.message_bubble *
+{
+    color: var(--color_text_normal);
+}
+.message_positive
+{
+    background-color: #afa;
+}
+.message_negative
+{
+    background-color: #faa;
 }
