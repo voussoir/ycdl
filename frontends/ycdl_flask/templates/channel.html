@@ -12,38 +12,14 @@
     <script src="/static/js/spinner.js"></script>
 
 <style>
-#content_body
+.tabbed_container .tab
 {
-    min-width: 200px;
-    width: 100%;
-    max-width: 1440px;
-    margin-left: auto;
-    margin-right: auto;
-}
-#content_body
-{
-    display: grid;
-    grid-template:
-        "toolbox_left toolbox_right" auto
-        "video_cards video_cards" auto
-        /auto auto;
-}
-#toolbox_left
-{
-    grid-area: toolbox_left;
+    padding: 8px;
     display: flex;
     flex-direction: column;
-}
-#toolbox_right
-{
-    grid-area: toolbox_right;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
 }
 #video_cards
 {
-    grid-area: video_cards;
 }
 .video_card
 {
@@ -55,7 +31,7 @@
         /auto 1fr auto;
     grid-gap: 4px;
 
-    margin: 8px;
+    margin: 8px 0;
     padding: 8px;
 
     border-radius: 4px;
@@ -86,6 +62,11 @@
 {
     grid-area: thumbnail;
     justify-self: center;
+}
+
+.video_title
+{
+    word-break: break-word;
 }
 
 .video_details
@@ -165,11 +146,10 @@ https://stackoverflow.com/a/35153397
     .video_card
     {
         grid-template:
-            "thumbnail"
-            "details"
-            "toolbox"
-            "embed"
-            /1fr;
+            "thumbnail details"
+            "toolbox toolbox"
+            "embed embed"
+            /auto 1fr;
     }
 }
 </style>
@@ -179,20 +159,27 @@ https://stackoverflow.com/a/35153397
 <body>
 {{header.make_header()}}
 <div id="content_body">
-    <div id="toolbox_left">
     {% if channel is not none %}
-    <span><button class="refresh_button button_with_spinner" onclick="refresh_channel_form(false)">Refresh new videos</button></span>
-    <span><button class="refresh_button button_with_spinner" onclick="refresh_channel_form(true)">Refresh everything</button></span>
+    <h2>{{channel.name}}</h2>
+    {% endif %}
+
+    <div class="tabbed_container">
+    <div class="tab" data-tab-title="Videos">
+
+    {% if channel is not none %}
+    <div><button class="refresh_button button_with_spinner" onclick="refresh_channel_form(false)">Refresh new videos</button></div>
+    <div><button class="refresh_button button_with_spinner" onclick="refresh_channel_form(true)">Refresh everything</button></div>
 
     <p><!-- spacer --></p>
     {% endif %}
 
-    <span>View
+    <div>View
     {% if channel is not none %}
     <a class="merge_params" href="/channel/{{channel.id}}">All</a>
     {% else %}
     <a class="merge_params" href="/videos">All</a>
     {% endif %}
+
     {% for statename in all_states %}
     {% if channel is not none %}
     <a class="merge_params" href="/channel/{{channel.id}}/{{statename}}">{{statename.capitalize()}}</a>
@@ -200,41 +187,18 @@ https://stackoverflow.com/a/35153397
     <a class="merge_params" href="/videos/{{statename}}">{{statename.capitalize()}}</a>
     {% endif %}
     {% endfor %}
-    </span>
+    </div>
 
     <p><!-- spacer --></p>
 
-    {% if channel is not none %}
-    <span>
-        New videos are:
-    <select onchange="set_automark_hook(event)">
-        <option value="pending" {{"selected" if channel.automark == "pending" else ""}}  >pending</option>
-        <option value="downloaded" {{"selected" if channel.automark == "downloaded" else ""}}  >downloaded</option>
-        <option value="ignored" {{"selected" if channel.automark == "ignored" else ""}}  >ignored</option>
-    </select>
-    <span id="set_automark_spinner" class="hidden">Working...</span>
-    </span>
-
-    <p><!-- spacer --></p>
-    {% endif %}
-
-    <span>Sort by
+    <div>Sort by
     <a class="merge_params" href="?orderby=published">Date</a>
     <a class="merge_params" href="?orderby=duration">Duration</a>
     <a class="merge_params" href="?orderby=views">Views</a>
     <a class="merge_params" href="?orderby=random">Random</a>
-    </span>
-    </div>
-    
-    <div id="toolbox_right">
-        {% if channel is not none %}
-        <button class="red_button button_with_confirm"
-        data-prompt="Delete channel and all videos?"
-        data-onclick="delete_channel_form();"
-        >Delete Channel</button>
-        {% endif %}
     </div>
 
+    <p><!-- spacer --></p>
 
     <div id="video_cards">
         <center><input disabled class="enable_on_pageload" type="text" id="search_filter"/></center>
@@ -290,8 +254,31 @@ https://stackoverflow.com/a/35153397
             </div>
         </div>
         {% endfor %}
+    </div> <!-- video_cards -->
+    </div> <!-- tab-videos -->
+
+    {% if channel is not none %}
+    <div class="tab" data-tab-title="Settings">
+    <div>
+        New videos are:
+        <select onchange="set_automark_hook(event)">
+            <option value="pending" {{"selected" if channel.automark == "pending" else ""}}  >pending</option>
+            <option value="downloaded" {{"selected" if channel.automark == "downloaded" else ""}}  >downloaded</option>
+            <option value="ignored" {{"selected" if channel.automark == "ignored" else ""}}  >ignored</option>
+        </select>
+        <span id="set_automark_spinner" class="hidden">Working...</span>
     </div>
 
+    <p><!-- spacer --></p>
+
+    <button class="red_button button_with_confirm"
+    data-prompt="Delete channel and all videos?"
+    data-onclick="delete_channel_form();"
+    >Delete Channel</button>
+    </div> <!-- tab-settings -->
+    {% endif %}
+
+    </div> <!-- tabbed_container -->
 </div>
 </body>
 
