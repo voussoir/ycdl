@@ -333,14 +333,14 @@ function filter_video_cards(search_term)
     mismatched cards from the dom.
     Apply the search filter textbox by hiding the mismatched cards.
     */
-    var count = 0;
+    let count = 0;
     video_cards = document.getElementById("video_cards");
     video_cards.classList.add("hidden");
     search_term = search_term.toLocaleLowerCase();
-    var download_filter_class = "video_card_" + DOWNLOAD_FILTER;
+    let download_filter_class = "video_card_" + DOWNLOAD_FILTER;
     Array.from(video_cards.getElementsByClassName("video_card")).forEach(function(video_card)
     {
-        var title = video_card.getElementsByClassName("video_title")[0].innerText.toLocaleLowerCase();
+        let title = video_card.getElementsByClassName("video_title")[0].innerText.toLocaleLowerCase();
         if (DOWNLOAD_FILTER && !video_card.classList.contains(download_filter_class))
         {
             video_cards.removeChild(video_card);
@@ -361,15 +361,15 @@ function filter_video_cards(search_term)
 
 function toggle_embed_video(video_id)
 {
-    var video_card = document.getElementById("video_card_" + video_id);
-    var show_button = video_card.getElementsByClassName("show_embed_button")[0];
-    var hide_button = video_card.getElementsByClassName("hide_embed_button")[0];
-    var embed_toolbox = video_card.getElementsByClassName("embed_toolbox")[0];
-    var embeds = video_card.getElementsByClassName("video_iframe_holder");
+    let video_card = document.getElementById("video_card_" + video_id);
+    let show_button = video_card.getElementsByClassName("show_embed_button")[0];
+    let hide_button = video_card.getElementsByClassName("hide_embed_button")[0];
+    let embed_toolbox = video_card.getElementsByClassName("embed_toolbox")[0];
+    let embeds = video_card.getElementsByClassName("video_iframe_holder");
     if (embeds.length == 0)
     {
-        var html = `<div class="video_iframe_holder"><iframe width="711" height="400" src="https://www.youtube.com/embed/${video_id}" frameborder="0" allow="encrypted-media" allowfullscreen></iframe></div>`
-        var embed = common.html_to_element(html);
+        let html = `<div class="video_iframe_holder"><iframe width="711" height="400" src="https://www.youtube.com/embed/${video_id}" frameborder="0" allow="encrypted-media" allowfullscreen></iframe></div>`
+        let embed = common.html_to_element(html);
         embed_toolbox.appendChild(embed);
         show_button.classList.add("hidden");
         hide_button.classList.remove("hidden");
@@ -384,10 +384,10 @@ function toggle_embed_video(video_id)
 
 function deselect_all()
 {
-    var video_card_first_selected = null;
-    for (var index = 0; index < video_card_selections.length; index +=1)
+    let video_card_first_selected = null;
+    for (const video_card_selection of video_card_selections)
     {
-        video_card_selections[index].classList.remove("video_card_selected");
+        video_card_selection.classList.remove("video_card_selected");
     }
     video_card_selections = [];
 }
@@ -403,7 +403,7 @@ function onclick_select(event)
         video_card_first_selected = event.target;
     }
 
-    var video_cards = Array.from(document.getElementById("video_cards").children);
+    let video_cards = Array.from(document.getElementById("video_cards").children);
 
     if (event.shiftKey === false && event.ctrlKey === false)
     {
@@ -414,16 +414,16 @@ function onclick_select(event)
     else if (event.shiftKey === true)
     {
         video_card_selections = [];
-        var start_index = video_cards.indexOf(video_card_first_selected);
-        var end_index = video_cards.indexOf(event.target);
+        let start_index = video_cards.indexOf(video_card_first_selected);
+        let end_index = video_cards.indexOf(event.target);
         if (end_index < start_index)
         {
-            var temp = start_index;
+            let temp = start_index;
             start_index = end_index;
             end_index = temp;
         }
 
-        for (var index = start_index; index <= end_index; index += 1)
+        for (let index = start_index; index <= end_index; index += 1)
         {
             if (video_cards[index].classList.contains("hidden"))
             {
@@ -434,7 +434,7 @@ function onclick_select(event)
     }
     else if (event.ctrlKey === true)
     {
-        var existing_index = video_card_selections.indexOf(event.target)
+        let existing_index = video_card_selections.indexOf(event.target)
         if (existing_index == -1)
         {
             video_card_first_selected = event.target;
@@ -446,16 +446,15 @@ function onclick_select(event)
         }
     }
 
-    for (var index = 0; index < video_cards.length; index += 1)
+    for (const video_card of video_cards)
     {
-        card = video_cards[index];
-        if (video_card_selections.indexOf(card) > -1)
+        if (video_card_selections.indexOf(video_card) > -1)
         {
-            card.classList.add("video_card_selected");
+            video_card.classList.add("video_card_selected");
         }
         else
         {
-            card.classList.remove("video_card_selected");
+            video_card.classList.remove("video_card_selected");
         }
     }
     document.getSelection().removeAllRanges();
@@ -465,8 +464,8 @@ function onclick_select(event)
 
 function action_button_passthrough(event, action_function, action_argument)
 {
-    var elements;
-    var this_card = event.target.parentElement.parentElement;
+    let elements;
+    let this_card = event.target.parentElement.parentElement;
     if (video_card_selections.length > 0 && video_card_selections.indexOf(this_card) > -1)
     {
         elements = video_card_selections;
@@ -476,10 +475,10 @@ function action_button_passthrough(event, action_function, action_argument)
         // Button -> button toolbox -> video card
         elements = [this_card];
     }
-    var video_ids = [];
-    for (var index = 0; index < elements.length; index += 1)
+    let video_ids = [];
+    for (const element of elements)
     {
-        video_ids.push(elements[index].dataset["ytid"]);
+        video_ids.push(element.dataset["ytid"]);
     }
     video_ids = video_ids.join(",");
 
@@ -499,9 +498,9 @@ function action_button_passthrough(event, action_function, action_argument)
 
 function give_action_buttons(video_card_div)
 {
-    var toolbox = video_card_div.getElementsByClassName("action_toolbox")[0]
-    var buttons = Array.from(toolbox.getElementsByTagName("button"));
-    var is_pending = video_card_div.classList.contains("video_card_pending");
+    let toolbox = video_card_div.getElementsByClassName("action_toolbox")[0]
+    let buttons = Array.from(toolbox.getElementsByTagName("button"));
+    let is_pending = video_card_div.classList.contains("video_card_pending");
     buttons.forEach(function(button)
     {
         if (is_pending)
@@ -510,7 +509,7 @@ function give_action_buttons(video_card_div)
             { button.classList.add("hidden"); }
     });
 
-    var button_pending = video_card_div.getElementsByClassName("video_action_pending")[0];
+    let button_pending = video_card_div.getElementsByClassName("video_action_pending")[0];
     if (is_pending)
         { button_pending.classList.add("hidden"); }
     else
@@ -519,16 +518,16 @@ function give_action_buttons(video_card_div)
 
 function receive_action_response(response)
 {
-    var video_ids = response.data.video_ids;
-    for (var index = 0; index < video_ids.length; index += 1)
+    let video_ids = response.data.video_ids;
+    let state = response.data.state;
+    let state_class = "video_card_" + state;
+    for (const video_id of video_ids)
     {
-        var video_id = video_ids[index];
-        var state = response.data.state;
-        var card = document.getElementById("video_card_" + video_id);
+        let card = document.getElementById("video_card_" + video_id);
         {% for statename in all_states %}
         card.classList.remove("video_card_{{statename}}");
         {% endfor %}
-        card.classList.add("video_card_" + state);
+        card.classList.add(state_class);
         give_action_buttons(card);
     }
 }

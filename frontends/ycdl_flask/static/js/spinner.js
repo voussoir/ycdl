@@ -54,10 +54,10 @@ function close_grouped_spinners(group_id)
     if (group_id && !(spinner.spinner_group_closing[group_id]))
     {
         spinner.spinner_group_closing[group_id] = true;
-        spinner.button_spinner_groups[group_id].forEach(function(button)
+        for (const button of spinner.button_spinner_groups[group_id])
         {
             window[button.dataset.spinnerCloser]();
-        });
+        }
         delete spinner.spinner_group_closing[group_id];
     }
 }
@@ -65,10 +65,10 @@ function close_grouped_spinners(group_id)
 spinner.open_grouped_spinners =
 function open_grouped_spinners(group_id)
 {
-    spinner.button_spinner_groups[group_id].forEach(function(button)
+    for (const button of spinner.button_spinner_groups[group_id])
     {
         window[button.dataset.spinnerOpener]();
-    });
+    }
 }
 
 spinner.init_button_with_spinner =
@@ -98,20 +98,19 @@ function init_button_with_spinner()
             page, or two buttons which do opposite things and you only want one
             to run at a time.
     */
-    var buttons = Array.from(document.getElementsByClassName("button_with_spinner"));
-    buttons.forEach(function(button)
+    let buttons = Array.from(document.getElementsByClassName("button_with_spinner"));
+    for (const button of buttons)
     {
         button.classList.remove("button_with_spinner");
         button.innerHTML = button.innerHTML.trim();
 
-        var holder = document.createElement("span");
+        let holder = document.createElement("span");
         holder.classList.add("spinner_holder");
         holder.classList.add(button.dataset.holderClass || "spinner_holder");
         button.parentElement.insertBefore(holder, button);
-        button.parentElement.removeChild(button);
         holder.appendChild(button);
 
-        var spinner_element;
+        let spinner_element;
         if (button.dataset.spinnerId)
         {
             spinner_element = document.getElementById(button.dataset.spinnerId);
@@ -129,8 +128,8 @@ function init_button_with_spinner()
             spinner.add_to_spinner_group(button.dataset.spinnerGroup, button);
         }
 
-        var spin = new spinner.Spinner(spinner_element);
-        var spin_delay = parseFloat(button.dataset.spinnerDelay) || 0;
+        let spin = new spinner.Spinner(spinner_element);
+        let spin_delay = parseFloat(button.dataset.spinnerDelay) || 0;
 
         button.dataset.spinnerOpener = "spinner_opener_" + spinner.spinner_button_index;
         window[button.dataset.spinnerOpener] = function spinner_opener()
@@ -149,7 +148,7 @@ function init_button_with_spinner()
             button.disabled = false;
         }
 
-        var wrapped_onclick = button.onclick;
+        let wrapped_onclick = button.onclick;
         button.removeAttribute('onclick');
         button.onclick = function()
         {
@@ -165,7 +164,7 @@ function init_button_with_spinner()
         }
 
         spinner.spinner_button_index += 1;
-    });
+    }
 }
 
 spinner.on_pageload =
