@@ -24,6 +24,6 @@ def video(v):
         'duration': v.duration,
         'views': v.views,
         'thumbnail': v.thumbnail,
-        'download': v.download,
+        'state': v.state,
     }
     return j

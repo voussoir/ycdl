@@ -313,7 +313,7 @@ class YCDLDBVideoMixin:
             video_id = video
 
         video = self.get_video(video_id)
-        if video.download != 'pending' and not force:
+        if video.state != 'pending' and not force:
             print(f'{video.id} does not need to be downloaded.')
             return
 
@@ -339,7 +339,7 @@ class YCDLDBVideoMixin:
     def get_video(self, video_id):
         return self.get_thing_by_id('video', video_id)
 
-    def get_videos(self, channel_id=None, *, download_filter=None, orderby=None):
+    def get_videos(self, channel_id=None, *, state=None, orderby=None):
         wheres = []
         orderbys = []
 
@@ -348,9 +348,9 @@ class YCDLDBVideoMixin:
             wheres.append('author_id')
             bindings.append(channel_id)
 
-        if download_filter is not None:
-            wheres.append('download')
-            bindings.append(download_filter)
+        if state is not None:
+            wheres.append('state')
+            bindings.append(state)
 
         if wheres:
             wheres = [x + ' == ?' for x in wheres]
@@ -428,7 +428,7 @@ class YCDLDBVideoMixin:
 
         try:
             existing = self.get_video(video.id)
-            download_status = existing.download
+            download_status = existing.state
         except exceptions.NoSuchVideo:
             existing = None
             download_status = 'pending'
@@ -442,7 +442,7 @@ class YCDLDBVideoMixin:
             'duration': video.duration,
             'views': video.views,
             'thumbnail': video.thumbnail['url'],
-            'download': download_status,
+            'state': download_status,
         }
 
         if existing:
@@ -527,13 +527,13 @@ class YCDLDB(
 
     def get_all_states(self):
         '''
-        Get a list of all the different `download` states that are currently in
-        use in the database.
+        Get a list of all the different states that are currently in use in
+        the database.
         '''
         # Note: This function was added while I was considering the addition of
         # arbitrarily many states for user-defined purposes, but I kind of went
         # back on that so I'm not sure if it will be useful.
-        query = 'SELECT DISTINCT download FROM videos'
+        query = 'SELECT DISTINCT state FROM videos'
         states = self.sql_select(query)
         states = [row[0] for row in states]
         return sorted(states)

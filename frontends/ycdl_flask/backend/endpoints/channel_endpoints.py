@@ -17,10 +17,10 @@ def get_channels():
 
 @site.route('/videos')
 @site.route('/watch')
-@site.route('/videos/<download_filter>')
+@site.route('/videos/<state>')
 @site.route('/channel/<channel_id>')
-@site.route('/channel/<channel_id>/<download_filter>')
-def get_channel(channel_id=None, download_filter=None):
+@site.route('/channel/<channel_id>/<state>')
+def get_channel(channel_id=None, state=None):
     if channel_id is not None:
         try:
             common.ycdldb.add_channel(channel_id)
@@ -42,7 +42,7 @@ def get_channel(channel_id=None, download_filter=None):
     else:
         videos = common.ycdldb.get_videos(
             channel_id=channel_id,
-            download_filter=download_filter,
+            state=state,
             orderby=orderby,
         )
 
@@ -72,7 +72,7 @@ def get_channel(channel_id=None, download_filter=None):
         'channel.html',
         all_states=all_states,
         channel=channel,
-        download_filter=download_filter,
+        state=state,
         query_string='?' + request.query_string.decode('utf-8'),
         videos=videos,
     )

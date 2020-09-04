@@ -144,6 +144,20 @@ def upgrade_5_to_6(ycdldb):
     ''')
     ycdldb.sql.execute('DROP TABLE channels_old')
 
+def upgrade_6_to_7(ycdldb):
+    '''
+    In this version, the `download` column of the videos table was renamed to
+    `state`. The vocabulary throughout the rest of the program had already
+    evolved and the database column was behind the times.
+    '''
+    ycdldb.sql.execute('ALTER TABLE videos RENAME COLUMN download TO state')
+    ycdldb.sql.execute('DROP INDEX IF EXISTS index_video_author_download')
+    ycdldb.sql.execute('DROP INDEX IF EXISTS index_video_download')
+    ycdldb.sql.execute('DROP INDEX IF EXISTS index_video_download_published')
+    ycdldb.sql.execute('CREATE INDEX index_video_author_state on videos(author_id, state)')
+    ycdldb.sql.execute('CREATE INDEX index_video_state on videos(state)')
+    ycdldb.sql.execute('CREATE INDEX index_video_state_published on videos(state, published)')
+
 def upgrade_all(data_directory):
     '''
     Given the directory containing a ycdl database, apply all of the

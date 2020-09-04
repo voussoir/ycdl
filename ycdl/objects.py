@@ -33,7 +33,7 @@ class Channel(Base):
             self.ycdldb.commit()
 
     def has_pending(self):
-        query = 'SELECT 1 FROM videos WHERE author_id == ? AND download == "pending" LIMIT 1'
+        query = 'SELECT 1 FROM videos WHERE author_id == ? AND state == "pending" LIMIT 1'
         bindings = [self.id]
         return self.ycdldb.sql_select_one(query, bindings) is not None
 
@@ -109,7 +109,7 @@ class Video(Base):
         self.duration = db_row['duration']
         self.views = db_row['views']
         self.thumbnail = db_row['thumbnail']
-        self.download = db_row['download']
+        self.state = db_row['state']
 
     @property
     def author(self):
@@ -133,9 +133,9 @@ class Video(Base):
 
         pairs = {
             'id': self.id,
-            'download': state,
+            'state': state,
         }
-        self.download = state
+        self.state = state
         self.ycdldb.sql_update(table='videos', pairs=pairs, where_key='id')
 
         if commit:

@@ -208,7 +208,7 @@ https://stackoverflow.com/a/35153397
         <div id="video_card_{{video.id}}"
         data-ytid="{{video.id}}"
         onclick="return onclick_select(event);"
-        class="video_card video_card_{{video.download}}"
+        class="video_card video_card_{{video.state}}"
         >
             <img class="video_thumbnail" loading="lazy" src="http://i3.ytimg.com/vi/{{video.id}}/default.jpg" height="100px">
             <div class="video_details">
@@ -222,7 +222,7 @@ https://stackoverflow.com/a/35153397
 
             <div class="action_toolbox">
                 <button
-                {% if video.download == "pending" %}
+                {% if video.state == "pending" %}
                 class="video_action_pending hidden"
                 {% else %}
                 class="video_action_pending"
@@ -231,7 +231,7 @@ https://stackoverflow.com/a/35153397
                 >Revert to Pending</button>
 
                 <button
-                {% if video.download == "pending" %}
+                {% if video.state == "pending" %}
                 class="video_action_download"
                 {% else %}
                 class="video_action_download hidden"
@@ -240,7 +240,7 @@ https://stackoverflow.com/a/35153397
                 >Download</button>
 
                 <button
-                {% if video.download == "pending" %}
+                {% if video.state == "pending" %}
                 class="video_action_ignore"
                 {% else %}
                 class="video_action_ignore hidden"
@@ -288,7 +288,7 @@ https://stackoverflow.com/a/35153397
 var CHANNEL_ID = "{{channel.id}}";
 {% endif %}
 
-var DOWNLOAD_FILTER = "{{download_filter if download_filter else ""}}";
+var STATE = "{{state if state else ""}}";
 var video_card_first_selected = null;
 var video_card_selections = [];
 
@@ -337,11 +337,11 @@ function filter_video_cards(search_term)
     video_cards = document.getElementById("video_cards");
     video_cards.classList.add("hidden");
     search_term = search_term.toLocaleLowerCase();
-    let download_filter_class = "video_card_" + DOWNLOAD_FILTER;
+    let state_class = "video_card_" + STATE;
     Array.from(video_cards.getElementsByClassName("video_card")).forEach(function(video_card)
     {
         let title = video_card.getElementsByClassName("video_title")[0].innerText.toLocaleLowerCase();
-        if (DOWNLOAD_FILTER && !video_card.classList.contains(download_filter_class))
+        if (STATE && !video_card.classList.contains(state_class))
         {
             video_cards.removeChild(video_card);
         }
