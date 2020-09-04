@@ -87,8 +87,8 @@ def post_add_channel():
         # It seems they have given us a username instead.
         try:
             channel_id = common.ycdldb.youtube.get_user_id(username=channel_id)
-        except IndexError:
-            flask.abort(404)
+        except ycdl.ytapi.ChannelNotFound:
+            return jsonify.make_json_response({}, status=404)
 
     channel = common.ycdldb.add_channel(channel_id, get_videos=True)
     return jsonify.make_json_response(ycdl.jsonify.channel(channel))
