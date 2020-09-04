@@ -44,11 +44,11 @@
 <body>
 {{header.make_header()}}
 <div id="content_body">
-    <div><button class="refresh_button button_with_spinner" onclick="refresh_all_channels_form(false)">Refresh new videos</button></div>
-    <div><button class="refresh_button button_with_spinner" onclick="refresh_all_channels_form(true)">Refresh everything</button></div>
+    <div><button class="refresh_button button_with_spinner" onclick="return refresh_all_channels_form(false);">Refresh new videos</button></div>
+    <div><button class="refresh_button button_with_spinner" onclick="return refresh_all_channels_form(true);">Refresh everything</button></div>
     <div>
         <input type="text" id="new_channel_textbox" placeholder="Channel id">
-        <button id="new_channel_button" class="button_with_spinner" onclick="add_channel_form()">Add new channel</button>
+        <button id="new_channel_button" class="button_with_spinner" onclick="return add_channel_form();">Add new channel</button>
     </div>
 
     <div id="channels">

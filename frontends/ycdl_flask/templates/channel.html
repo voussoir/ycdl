@@ -167,8 +167,8 @@ https://stackoverflow.com/a/35153397
     <div class="tab" data-tab-title="Videos">
 
     {% if channel is not none %}
-    <div><button class="refresh_button button_with_spinner" onclick="refresh_channel_form(false)">Refresh new videos</button></div>
-    <div><button class="refresh_button button_with_spinner" onclick="refresh_channel_form(true)">Refresh everything</button></div>
+    <div><button class="refresh_button button_with_spinner" onclick="return return refresh_channel_form(false);">Refresh new videos</button></div>
+    <div><button class="refresh_button button_with_spinner" onclick="return return refresh_channel_form(true);">Refresh everything</button></div>
 
     <p><!-- spacer --></p>
     {% endif %}
@@ -207,7 +207,7 @@ https://stackoverflow.com/a/35153397
         {% for video in videos %}
         <div id="video_card_{{video.id}}"
         data-ytid="{{video.id}}"
-        onclick="onclick_select(event)"
+        onclick="return onclick_select(event);"
         class="video_card video_card_{{video.download}}"
         >
             <img class="video_thumbnail" loading="lazy" src="http://i3.ytimg.com/vi/{{video.id}}/default.jpg" height="100px">
@@ -227,7 +227,7 @@ https://stackoverflow.com/a/35153397
                 {% else %}
                 class="video_action_pending"
                 {% endif %}
-                onclick="action_button_passthrough(event, api.videos.mark_state, 'pending')"
+                onclick="return action_button_passthrough(event, api.videos.mark_state, 'pending');"
                 >Revert to Pending</button>
 
                 <button
@@ -236,7 +236,7 @@ https://stackoverflow.com/a/35153397
                 {% else %}
                 class="video_action_download hidden"
                 {% endif %}
-                onclick="action_button_passthrough(event, api.videos.start_download)"
+                onclick="return action_button_passthrough(event, api.videos.start_download);"
                 >Download</button>
 
                 <button
@@ -245,12 +245,12 @@ https://stackoverflow.com/a/35153397
                 {% else %}
                 class="video_action_ignore hidden"
                 {% endif %}
-                onclick="action_button_passthrough(event, api.videos.mark_state, 'ignored')"
+                onclick="return action_button_passthrough(event, api.videos.mark_state, 'ignored');"
                 >Ignore</button>
             </div>
             <div class="embed_toolbox">
-            <button class="show_embed_button" onclick="toggle_embed_video('{{video.id}}');">Embed</button>
-            <button class="hide_embed_button hidden" onclick="toggle_embed_video('{{video.id}}');">Unembed</button>
+            <button class="show_embed_button" onclick="return toggle_embed_video('{{video.id}}');">Embed</button>
+            <button class="hide_embed_button hidden" onclick="return toggle_embed_video('{{video.id}}');">Unembed</button>
             </div>
         </div>
         {% endfor %}
@@ -261,7 +261,7 @@ https://stackoverflow.com/a/35153397
     <div class="tab" data-tab-title="Settings">
     <div>
         New videos are:
-        <select onchange="set_automark_hook(event)">
+        <select onchange="set_automark_hook(event);">
             <option value="pending" {{"selected" if channel.automark == "pending" else ""}}  >pending</option>
             <option value="downloaded" {{"selected" if channel.automark == "downloaded" else ""}}  >downloaded</option>
             <option value="ignored" {{"selected" if channel.automark == "ignored" else ""}}  >ignored</option>
@@ -273,7 +273,7 @@ https://stackoverflow.com/a/35153397
 
     <button class="red_button button_with_confirm"
     data-prompt="Delete channel and all videos?"
-    data-onclick="delete_channel_form();"
+    data-onclick="return delete_channel_form();"
     >Delete Channel</button>
     </div> <!-- tab-settings -->
     {% endif %}
