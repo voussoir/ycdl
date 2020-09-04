@@ -76,10 +76,11 @@ common.bind_box_to_button(box, button);
 
 function add_channel_form()
 {
-    if (box.value !== "")
+    if (box.value === "")
     {
-        api.channels.add_channel(box.value, add_channel_callback);
+        return spinner.BAIL;
     }
+    api.channels.add_channel(box.value, add_channel_callback);
 }
 function add_channel_callback(response)
 {
