@@ -66,7 +66,7 @@ class BadTable(BadSQL):
 # GENERAL ERRORS
 OUTOFDATE = '''
 Database is out of date. {existing} should be {new}.
-Please run utilities\\database_upgrader\\database_upgrader.py "{filepath.absolute_path}"
+Please run utilities\\database_upgrader.py "{filepath.absolute_path}"
 '''.strip()
 class DatabaseOutOfDate(YCDLException):
     error_message = OUTOFDATE
