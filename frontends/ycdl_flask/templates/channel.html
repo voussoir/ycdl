@@ -163,10 +163,9 @@ https://stackoverflow.com/a/35153397
     <h2>{{channel.name}}</h2>
     {% endif %}
 
+    {% if channel is not none %}
     <div class="tabbed_container">
     <div class="tab" data-tab-title="Videos">
-
-    {% if channel is not none %}
     <div><button class="refresh_button button_with_spinner" onclick="return refresh_channel_form(false);">Refresh new videos</button></div>
     <div><button class="refresh_button button_with_spinner" onclick="return refresh_channel_form(true);">Refresh everything</button></div>
 
@@ -255,9 +254,10 @@ https://stackoverflow.com/a/35153397
         </div>
         {% endfor %}
     </div> <!-- video_cards -->
-    </div> <!-- tab-videos -->
 
     {% if channel is not none %}
+    </div> <!-- tab-videos -->
+
     <div class="tab" data-tab-title="Settings">
     <div>
         New videos are:
@@ -276,9 +276,9 @@ https://stackoverflow.com/a/35153397
     data-onclick="return delete_channel_form();"
     >Delete Channel</button>
     </div> <!-- tab-settings -->
-    {% endif %}
 
     </div> <!-- tabbed_container -->
+    {% endif %}
 </div>
 </body>
 
