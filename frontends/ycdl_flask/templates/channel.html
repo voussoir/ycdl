@@ -14,9 +14,10 @@
 <style>
 .tabbed_container .tab
 {
+    display: grid;
+    grid-auto-flow: row;
+    grid-gap: 8px;
     padding: 8px;
-    display: flex;
-    flex-direction: column;
 }
 #video_cards
 {
@@ -169,7 +170,6 @@ https://stackoverflow.com/a/35153397
     <div><button class="refresh_button button_with_spinner" onclick="return refresh_channel_form(false);">Refresh new videos</button></div>
     <div><button class="refresh_button button_with_spinner" onclick="return refresh_channel_form(true);">Refresh everything</button></div>
 
-    <p><!-- spacer --></p>
     {% endif %}
 
     <div>View
@@ -188,16 +188,12 @@ https://stackoverflow.com/a/35153397
     {% endfor %}
     </div>
 
-    <p><!-- spacer --></p>
-
     <div>Sort by
     <a class="merge_params" href="?orderby=published">Date</a>
     <a class="merge_params" href="?orderby=duration">Duration</a>
     <a class="merge_params" href="?orderby=views">Views</a>
     <a class="merge_params" href="?orderby=random">Random</a>
     </div>
-
-    <p><!-- spacer --></p>
 
     <div id="video_cards">
         <center><input disabled class="enable_on_pageload" type="text" id="search_filter"/></center>
@@ -268,8 +264,6 @@ https://stackoverflow.com/a/35153397
         </select>
         <span id="set_automark_spinner" class="hidden">Working...</span>
     </div>
-
-    <p><!-- spacer --></p>
 
     <button class="red_button button_with_confirm"
     data-prompt="Delete channel and all videos?"
