@@ -174,25 +174,25 @@ https://stackoverflow.com/a/35153397
 
     <div>View
     {% if channel is not none %}
-    <a class="merge_params" href="/channel/{{channel.id}}">All</a>
+    <a class="merge_params {{"bold" if not state else ""}}" href="/channel/{{channel.id}}">All</a>
     {% else %}
-    <a class="merge_params" href="/videos">All</a>
+    <a class="merge_params {{"bold" if not state else ""}}" href="/videos">All</a>
     {% endif %}
 
     {% for statename in all_states %}
     {% if channel is not none %}
-    <a class="merge_params" href="/channel/{{channel.id}}/{{statename}}">{{statename.capitalize()}}</a>
+    <a class="merge_params {{"bold" if state == statename else ""}}" href="/channel/{{channel.id}}/{{statename}}">{{statename.capitalize()}}</a>
     {% else %}
-    <a class="merge_params" href="/videos/{{statename}}">{{statename.capitalize()}}</a>
+    <a class="merge_params {{"bold" if state == statename else ""}}" href="/videos/{{statename}}">{{statename.capitalize()}}</a>
     {% endif %}
     {% endfor %}
     </div>
 
     <div>Sort by
-    <a class="merge_params" href="?orderby=published">Date</a>
-    <a class="merge_params" href="?orderby=duration">Duration</a>
-    <a class="merge_params" href="?orderby=views">Views</a>
-    <a class="merge_params" href="?orderby=random">Random</a>
+    <a class="merge_params {{"bold" if orderby == "published" or not orderby else ""}}" href="?orderby=published">Date</a>
+    <a class="merge_params {{"bold" if orderby == "duration" else ""}}" href="?orderby=duration">Duration</a>
+    <a class="merge_params {{"bold" if orderby == "views" else ""}}" href="?orderby=views">Views</a>
+    <a class="merge_params {{"bold" if orderby == "random" else ""}}" href="?orderby=random">Random</a>
     </div>
 
     <div id="video_cards">
