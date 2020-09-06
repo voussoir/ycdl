@@ -73,6 +73,7 @@ def get_channel(channel_id=None, state=None):
         all_states=all_states,
         channel=channel,
         state=state,
+        orderby=orderby,
         query_string='?' + request.query_string.decode('utf-8'),
         videos=videos,
     )
