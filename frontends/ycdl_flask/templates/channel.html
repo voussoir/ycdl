@@ -257,7 +257,7 @@ https://stackoverflow.com/a/35153397
     <div class="tab" data-tab-title="Settings">
     <div>
         New videos are:
-        <select onchange="set_automark_hook(event);">
+        <select onchange="return set_automark_hook(event);">
             <option value="pending" {{"selected" if channel.automark == "pending" else ""}}  >pending</option>
             <option value="downloaded" {{"selected" if channel.automark == "downloaded" else ""}}  >downloaded</option>
             <option value="ignored" {{"selected" if channel.automark == "ignored" else ""}}  >ignored</option>
