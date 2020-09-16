@@ -257,7 +257,7 @@ https://stackoverflow.com/a/35153397
     <div class="tab" data-tab-title="Settings">
     <div>
         New videos are:
-        <select onchange="return set_automark_hook(event);">
+        <select onchange="return set_automark_form(event);">
             <option value="pending" {{"selected" if channel.automark == "pending" else ""}}  >pending</option>
             <option value="downloaded" {{"selected" if channel.automark == "downloaded" else ""}}  >downloaded</option>
             <option value="ignored" {{"selected" if channel.automark == "ignored" else ""}}  >ignored</option>
@@ -279,10 +279,10 @@ https://stackoverflow.com/a/35153397
 
 <script type="text/javascript">
 {% if channel is not none %}
-var CHANNEL_ID = "{{channel.id}}";
+const CHANNEL_ID = "{{channel.id}}";
 {% endif %}
 
-var STATE = "{{state if state else ""}}";
+const STATE = "{{state if state else ""}}";
 var video_card_first_selected = null;
 var video_card_selections = [];
 
@@ -528,9 +528,8 @@ function receive_action_response(response)
 
 var set_automark_spinner = document.getElementById("set_automark_spinner");
 set_automark_spinner = new spinner.Spinner(set_automark_spinner);
-function set_automark_hook(event)
+function set_automark_form(event)
 {
-
     set_automark_spinner.show();
     api.channels.set_automark(CHANNEL_ID, event.target.value, set_automark_callback);
 }
