@@ -134,3 +134,12 @@ def post_set_automark(channel_id):
         flask.abort(400)
 
     return jsonify.make_json_response({})
+
+@site.route('/channel/<channel_id>/set_queuefile_extension', methods=['POST'])
+def post_set_queuefile_extension(channel_id):
+    extension = request.form['extension']
+    channel = common.ycdldb.get_channel(channel_id)
+
+    channel.set_queuefile_extension(extension)
+
+    return jsonify.make_json_response({})

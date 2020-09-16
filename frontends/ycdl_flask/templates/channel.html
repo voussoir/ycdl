@@ -265,6 +265,11 @@ https://stackoverflow.com/a/35153397
         <span id="set_automark_spinner" class="hidden">Working...</span>
     </div>
 
+    <div>
+        <input type="text" id="set_queuefile_extension_input" placeholder="Queuefile extension" value="{{channel.queuefile_extension or ''}}"/>
+        <button id="set_queuefile_extension_button" class="button_with_spinner" onclick="return set_queuefile_extension_form();">Set extension</button>
+    </div>
+
     <button class="red_button button_with_confirm"
     data-prompt="Delete channel and all videos?"
     data-onclick="return delete_channel_form();"
@@ -538,6 +543,23 @@ function set_automark_callback(response)
     if (response.meta.status == 200)
     {
         set_automark_spinner.hide();
+    }
+}
+
+set_queuefile_extension_input = document.getElementById("set_queuefile_extension_input");
+set_queuefile_extension_button = document.getElementById("set_queuefile_extension_button");
+common.bind_box_to_button(set_queuefile_extension_input, set_queuefile_extension_button);
+function set_queuefile_extension_form(event)
+{
+    const extension = set_queuefile_extension_input.value.trim();
+    api.channels.set_queuefile_extension(CHANNEL_ID, extension, set_queuefile_extension_callback);
+}
+
+function set_queuefile_extension_callback(response)
+{
+    if (response.meta.status == 200)
+    {
+        window[set_queuefile_extension_button.dataset.spinnerCloser]();
     }
 }
 </script>

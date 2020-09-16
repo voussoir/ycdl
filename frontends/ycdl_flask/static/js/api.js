@@ -47,6 +47,15 @@ function set_automark(channel_id, state, callback)
     return common.post(url, data, callback);
 }
 
+api.channels.set_queuefile_extension =
+function set_queuefile_extension(channel_id, extension, callback)
+{
+    const url = `/channel/${channel_id}/set_queuefile_extension`;
+    const data = new FormData();
+    data.append("extension", extension);
+    return common.post(url, data, callback);
+}
+
 api.channels.callback_go_to_channels =
 function callback_go_to_channels(response)
 {

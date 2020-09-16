@@ -80,6 +80,23 @@ class Channel(Base):
         if commit:
             self.ycdldb.commit()
 
+    def set_queuefile_extension(self, extension, commit=True):
+        if not extension:
+            extension = None
+
+        if extension is not None:
+            extension = extension.strip()
+
+        pairs = {
+            'id': self.id,
+            'queuefile_extension': extension,
+        }
+        self.ycdldb.sql_update(table='channels', pairs=pairs, where_key='id')
+        self.queuefile_extension = extension
+
+        if commit:
+            self.ycdldb.commit()
+
     def set_uploads_playlist_id(self, playlist_id, commit=True):
         if not isinstance(playlist_id, str):
             raise TypeError(f'Playlist id must be a string, not {type(playlist_id)}.')
