@@ -12,6 +12,22 @@
     --color_highlight: rgba(255, 255, 255, 0.5);
 }
 
+@media screen and (min-width: 800px)
+{
+    :root
+    {
+        --wide: 1;
+    }
+}
+
+@media screen and (max-width: 800px)
+{
+    :root
+    {
+        --narrow: 1;
+    }
+}
+
 .hidden
 {
     display: none !important;
@@ -104,6 +120,9 @@ pre
     grid-auto-rows: min-content;
     grid-gap: 8px;
 
+    /*
+    8px all around except the top, where the header already has a margin.
+    */
     margin: 8px;
     margin-top: 0;
 }
