@@ -329,7 +329,7 @@ class YCDLDBVideoMixin:
         os.makedirs(download_directory.absolute_path, exist_ok=True)
 
         queuefile = download_directory.with_child(video_id).replace_extension(extension)
-        open(queuefile.absolute_path, 'a').close()
+        queuefile.touch()
 
         video.mark_state('downloaded', commit=False)
 
@@ -549,5 +549,5 @@ class YCDLDB(
             self.save_config()
 
     def save_config(self):
-        with open(self.config_filepath.absolute_path, 'w', encoding='utf-8') as handle:
+        with self.config_filepath.open('w', encoding='utf-8') as handle:
             handle.write(json.dumps(self.config, indent=4, sort_keys=True))
