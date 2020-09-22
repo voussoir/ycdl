@@ -27,6 +27,7 @@ class ErrorTypeAdder(type):
 
 class YCDLException(Exception, metaclass=ErrorTypeAdder):
     '''
+    Base type for all of the YCDL exceptions.
     Subtypes should have a class attribute `error_message`. The error message
     may contain {format} strings which will be formatted using the
     Exception's constructor arguments.
@@ -43,27 +44,35 @@ class YCDLException(Exception, metaclass=ErrorTypeAdder):
     def __str__(self):
         return self.error_type + '\n' + self.error_message
 
-class InvalidVideoState(YCDLException):
-    error_message = '{} is not a valid state.'
+# NO SUCH ##########################################################################################
 
-
-# NO SUCH
 class NoSuchChannel(YCDLException):
     error_message = 'Channel {} does not exist.'
 
 class NoSuchVideo(YCDLException):
     error_message = 'Video {} does not exist.'
 
+# VIDEO ERRORS #####################################################################################
 
-# SQL ERRORS
+class InvalidVideoState(YCDLException):
+    error_message = '{} is not a valid state.'
+
+# SQL ERRORS #######################################################################################
+
 class BadSQL(YCDLException):
     pass
 
 class BadTable(BadSQL):
     error_message = 'Table "{}" does not exist.'
 
+# GENERAL ERRORS ###################################################################################
 
-# GENERAL ERRORS
+class BadDataDirectory(YCDLException):
+    '''
+    Raised by YCDLDB __init__ if the requested data_directory is invalid.
+    '''
+    error_message = 'Bad data directory "{}"'
+
 OUTOFDATE = '''
 Database is out of date. {existing} should be {new}.
 Please run utilities\\database_upgrader.py "{filepath.absolute_path}"

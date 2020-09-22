@@ -15,7 +15,6 @@ from voussoirkit import configlayers
 from voussoirkit import pathclass
 from voussoirkit import sqlhelpers
 
-
 class YCDLDBCacheManagerMixin:
     _THING_CLASSES = {
         'channel':
@@ -466,6 +465,7 @@ class YCDLDB(
     def __init__(
             self,
             youtube,
+            create=True,
             data_directory=None,
             skip_version_check=False,
         ):
@@ -478,12 +478,20 @@ class YCDLDB(
 
         self.data_directory = pathclass.Path(data_directory)
 
+        if self.data_directory.exists and not self.data_directory.is_dir:
+            raise exceptions.BadDataDirectory(self.data_directory.absolute_path)
+
         # LOGGING
         self.log = logging.getLogger(__name__)
 
         # DATABASE
         self.database_filepath = self.data_directory.with_child(constants.DEFAULT_DBNAME)
         existing_database = self.database_filepath.exists
+        if not existing_database and not create:
+            msg = f'"{self.database_filepath.absolute_path}" does not exist and create is off.'
+            raise FileNotFoundError(msg)
+
+        os.makedirs(self.data_directory.absolute_path, exist_ok=True)
         self.sql = sqlite3.connect(self.database_filepath.absolute_path)
 
         if existing_database:

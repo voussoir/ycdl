@@ -4,7 +4,6 @@ import logging
 
 from . import helpers
 
-
 def int_none(x):
     if x is None:
         return None

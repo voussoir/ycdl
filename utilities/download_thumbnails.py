@@ -4,7 +4,6 @@ import traceback
 import ycdl
 from voussoirkit import downloady
 
-
 youtube_core = ycdl.ytapi.Youtube(bot.get_youtube_key())
 ycdldb = ycdl.ycdldb.YCDLDB(youtube_core)
 

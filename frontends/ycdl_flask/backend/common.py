@@ -1,6 +1,6 @@
 '''
 Do not execute this file directly.
-Use ycdl_launch.py to start the server with gevent.
+Use ycdl_flask_launch.py to start the server with gevent.
 '''
 import flask; from flask import request
 import gzip
@@ -12,19 +12,17 @@ import time
 
 from voussoirkit import pathclass
 
-import bot
 import ycdl
 
 from . import jinja_filters
+
+# Flask init #######################################################################################
 
 root_dir = pathclass.Path(__file__).parent.parent
 
 TEMPLATE_DIR = root_dir.with_child('templates')
 STATIC_DIR = root_dir.with_child('static')
 FAVICON_PATH = STATIC_DIR.with_child('favicon.png')
-
-youtube_core = ycdl.ytapi.Youtube(bot.get_youtube_key())
-ycdldb = ycdl.ycdldb.YCDLDB(youtube_core)
 
 site = flask.Flask(
     __name__,
@@ -36,10 +34,15 @@ site.config.update(
     TEMPLATES_AUTO_RELOAD=True,
 )
 site.jinja_env.add_extension('jinja2.ext.do')
-site.jinja_env.filters['seconds_to_hms'] = jinja_filters.seconds_to_hms
+site.jinja_env.trim_blocks = True
+site.jinja_env.lstrip_blocks = True
+jinja_filters.register_all(site)
 site.debug = True
 
+####################################################################################################
+
 gzip_minimum_size = 500
+gzip_maximum_size = 5 * 2**20
 gzip_level = 3
 @site.after_request
 def after_request(response):
@@ -53,6 +56,7 @@ def after_request(response):
     bail = bail or response.status_code < 200
     bail = bail or response.status_code >= 300
     bail = bail or response.direct_passthrough
+    bail = bail or int(response.headers.get('Content-Length', 0)) > gzip_maximum_size
     bail = bail or len(response.get_data()) < gzip_minimum_size
     bail = bail or 'gzip' not in accept_encoding.lower()
     bail = bail or 'Content-Encoding' in response.headers
@@ -75,74 +79,9 @@ def after_request(response):
 ####################################################################################################
 ####################################################################################################
 
-def send_file(filepath):
-    '''
-    Range-enabled file sending.
-    '''
-    try:
-        file_size = os.path.getsize(filepath)
-    except FileNotFoundError:
-        flask.abort(404)
-
-    outgoing_headers = {}
-    mimetype = mimetypes.guess_type(filepath)[0]
-    if mimetype is not None:
-        if 'text/' in mimetype:
-            mimetype += '; charset=utf-8'
-        outgoing_headers['Content-Type'] = mimetype
-
-    if 'range' in request.headers:
-        desired_range = request.headers['range'].lower()
-        desired_range = desired_range.split('bytes=')[-1]
-
-        int_helper = lambda x: int(x) if x.isdigit() else None
-        if '-' in desired_range:
-            (desired_min, desired_max) = desired_range.split('-')
-            range_min = int_helper(desired_min)
-            range_max = int_helper(desired_max)
-        else:
-            range_min = int_helper(desired_range)
-
-        if range_min is None:
-            range_min = 0
-        if range_max is None:
-            range_max = file_size
-
-        # because ranges are 0-indexed
-        range_max = min(range_max, file_size - 1)
-        range_min = max(range_min, 0)
-
-        range_header = 'bytes {min}-{max}/{outof}'.format(
-            min=range_min,
-            max=range_max,
-            outof=file_size,
-        )
-        outgoing_headers['Content-Range'] = range_header
-        status = 206
-    else:
-        range_max = file_size - 1
-        range_min = 0
-        status = 200
-
-    outgoing_headers['Accept-Ranges'] = 'bytes'
-    outgoing_headers['Content-Length'] = (range_max - range_min) + 1
-
-    if request.method == 'HEAD':
-        outgoing_data = bytes()
-    else:
-        outgoing_data = ycdl.helpers.read_filebytes(filepath, range_min=range_min, range_max=range_max)
-
-    response = flask.Response(
-        outgoing_data,
-        status=status,
-        headers=outgoing_headers,
-    )
-    return response
-
-####################################################################################################
-####################################################################################################
-####################################################################################################
-####################################################################################################
+def init_ycdldb(*args, **kwargs):
+    global ycdldb
+    ycdldb = ycdl.ycdldb.YCDLDB(*args, **kwargs)
 
 def refresher_thread(rate):
     while True:
