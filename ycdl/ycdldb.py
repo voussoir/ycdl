@@ -185,22 +185,22 @@ class YCDLDBChannelMixin:
 
         def gen():
             for channel in self.get_channels():
-                most_recent_video = self.sql_select_one(query, [channel.id])[0]
+                most_recent_id = self.sql_select_one(query, [channel.id])[0]
                 try:
-                    rss_videos = ytrss.get_user_videos(channel.id)
+                    rss_ids = ytrss.get_user_videos(channel.id)
                 except Exception:
                     # traceback.print_exc()
                     traditional(channel)
                     continue
 
                 try:
-                    index = rss_videos.index(most_recent_video)
+                    index = rss_ids.index(most_recent_id)
                 except ValueError:
-                    # traceback.print_exc()
+                    self.log.debug('RSS didn\'t contain %s. Calling API refresh.', most_recent_id)
                     traditional(channel)
                     continue
 
-                new_ids = rss_videos[:index]
+                new_ids = rss_ids[:index]
                 yield from new_ids
 
         for video in self.youtube.get_videos(gen()):
