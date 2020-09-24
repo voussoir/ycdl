@@ -325,7 +325,7 @@ class YCDLDBVideoMixin:
             extension = self.config['queuefile_extension']
 
         download_directory = pathclass.Path(download_directory)
-        os.makedirs(download_directory.absolute_path, exist_ok=True)
+        download_directory.makedirs(exist_ok=True)
 
         queuefile = download_directory.with_child(video_id).replace_extension(extension)
         queuefile.touch()
@@ -491,7 +491,7 @@ class YCDLDB(
             msg = f'"{self.database_filepath.absolute_path}" does not exist and create is off.'
             raise FileNotFoundError(msg)
 
-        os.makedirs(self.data_directory.absolute_path, exist_ok=True)
+        self.data_directory.makedirs(exist_ok=True)
         self.sql = sqlite3.connect(self.database_filepath.absolute_path)
 
         if existing_database:
