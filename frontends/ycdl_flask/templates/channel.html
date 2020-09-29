@@ -417,9 +417,7 @@ function onclick_select(event)
         let end_index = video_cards.indexOf(event.target);
         if (end_index < start_index)
         {
-            let temp = start_index;
-            start_index = end_index;
-            end_index = temp;
+            [start_index, end_index] = [end_index, start_index];
         }
 
         for (let index = start_index; index <= end_index; index += 1)
