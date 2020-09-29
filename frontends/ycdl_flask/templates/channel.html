@@ -289,7 +289,7 @@ const CHANNEL_ID = "{{channel.id}}";
 
 const STATE = "{{state if state else ""}}";
 var video_card_first_selected = null;
-var video_card_selections = [];
+var video_card_selections = document.getElementsByClassName("video_card_selected");
 
 function delete_channel_form()
 {
@@ -388,12 +388,11 @@ function toggle_embed_video(video_id)
 
 function deselect_all()
 {
-    let video_card_first_selected = null;
-    for (const video_card_selection of video_card_selections)
+    video_card_first_selected = null;
+    for (const video_card of Array.from(video_card_selections))
     {
-        video_card_selection.classList.remove("video_card_selected");
+        video_card.classList.remove("video_card_selected");
     }
-    video_card_selections = [];
 }
 
 function onclick_select(event)
@@ -402,22 +401,22 @@ function onclick_select(event)
     {
         return;
     }
+
     if (video_card_first_selected === null)
     {
         video_card_first_selected = event.target;
     }
 
-    let video_cards = Array.from(document.getElementById("video_cards").children);
+    let video_cards = Array.from(document.getElementsByClassName("video_card"));
 
     if (event.shiftKey === false && event.ctrlKey === false)
     {
-        video_card_selections = [];
-        video_card_selections.push(event.target);
+        deselect_all();
+        event.target.classList.add("video_card_selected");
         video_card_first_selected = event.target;
     }
     else if (event.shiftKey === true)
     {
-        video_card_selections = [];
         let start_index = video_cards.indexOf(video_card_first_selected);
         let end_index = video_cards.indexOf(event.target);
         if (end_index < start_index)
@@ -431,34 +430,22 @@ function onclick_select(event)
             {
                 continue;
             }
-            video_card_selections.push(video_cards[index]);
+            video_cards[index].classList.add("video_card_selected");
         }
     }
     else if (event.ctrlKey === true)
     {
-        let existing_index = video_card_selections.indexOf(event.target)
-        if (existing_index == -1)
+        if (event.target.classList.contains("video_card_selected"))
         {
-            video_card_first_selected = event.target;
-            video_card_selections.push(event.target);
+            event.target.classList.remove("video_card_selected");
         }
         else
         {
-            video_card_selections.splice(existing_index, 1);
+            video_card_first_selected = event.target;
+            event.target.classList.add("video_card_selected");
         }
     }
 
-    for (const video_card of video_cards)
-    {
-        if (video_card_selections.indexOf(video_card) > -1)
-        {
-            video_card.classList.add("video_card_selected");
-        }
-        else
-        {
-            video_card.classList.remove("video_card_selected");
-        }
-    }
     document.getSelection().removeAllRanges();
 
     return false;
@@ -467,14 +454,16 @@ function onclick_select(event)
 function action_button_passthrough(event, action_function, action_argument)
 {
     let elements;
-    let this_card = event.target.parentElement.parentElement;
-    if (video_card_selections.length > 0 && video_card_selections.indexOf(this_card) > -1)
+    let this_card = event.target.closest(".video_card");
+    if (this_card.classList.contains("video_card_selected"))
     {
+        // The clicked card is indeed part of the current selected group.
         elements = video_card_selections;
     }
     else
     {
-        // Button -> button toolbox -> video card
+        // The clicked card is actually not one of the selected, so we'll just
+        // action it by itself.
         elements = [this_card];
     }
     let video_ids = [];
