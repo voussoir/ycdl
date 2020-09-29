@@ -458,7 +458,7 @@ function action_button_passthrough(event, action_function, action_argument)
     if (this_card.classList.contains("video_card_selected"))
     {
         // The clicked card is indeed part of the current selected group.
-        elements = video_card_selections;
+        elements = Array.from(video_card_selections);
     }
     else
     {
@@ -466,12 +466,8 @@ function action_button_passthrough(event, action_function, action_argument)
         // action it by itself.
         elements = [this_card];
     }
-    let video_ids = [];
-    for (const element of elements)
-    {
-        video_ids.push(element.dataset["ytid"]);
-    }
-    video_ids = video_ids.join(",");
+
+    const video_ids = elements.map(element => element.dataset["ytid"]).join(",");
 
     if (action_argument === undefined)
     {
