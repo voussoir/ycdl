@@ -2,7 +2,7 @@
 This file is the gevent launcher for local / development use.
 
 Simply run it on the command line:
-python ycdl_flask_launch.py [port]
+python ycdl_flask_dev.py [port]
 '''
 import gevent.monkey; gevent.monkey.patch_all()
 
@@ -22,7 +22,11 @@ from voussoirkit import pathclass
 import bot
 import ycdl
 
-import ycdl_flask_entrypoint
+import backend
+
+####################################################################################################
+
+site = backend.site
 
 HTTPS_DIR = pathclass.Path(__file__).parent.with_child('https')
 
@@ -33,21 +37,21 @@ def ycdl_flask_launch(create, port, refresh_rate, use_https):
     if use_https:
         http = gevent.pywsgi.WSGIServer(
             listener=('0.0.0.0', port),
-            application=ycdl_flask_entrypoint.site,
+            application=site,
             keyfile=HTTPS_DIR.with_child('ycdl.key').absolute_path,
             certfile=HTTPS_DIR.with_child('ycdl.crt').absolute_path,
         )
     else:
         http = gevent.pywsgi.WSGIServer(
             listener=('0.0.0.0', port),
-            application=ycdl_flask_entrypoint.site,
+            application=site,
         )
 
     youtube_core = ycdl.ytapi.Youtube(bot.get_youtube_key())
-    ycdl_flask_entrypoint.backend.common.init_ycdldb(youtube_core, create=create)
+    backend.common.init_ycdldb(youtube_core, create=create)
 
     if refresh_rate is not None:
-        ycdl_flask_entrypoint.backend.common.start_refresher_thread(refresh_rate)
+        backend.common.start_refresher_thread(refresh_rate)
 
     message = f'Starting server on port {port}'
     if use_https:
