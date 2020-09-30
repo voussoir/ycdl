@@ -30,7 +30,14 @@ site = backend.site
 
 HTTPS_DIR = pathclass.Path(__file__).parent.with_child('https')
 
-def ycdl_flask_launch(create, port, localhost_only, refresh_rate, use_https):
+def ycdl_flask_launch(
+        *,
+        create,
+        localhost_only,
+        port,
+        refresh_rate,
+        use_https,
+    ):
     if use_https is None:
         use_https = port == 443
 
@@ -85,10 +92,10 @@ def main(argv):
 
     parser.add_argument('port', nargs='?', type=int, default=5000)
     parser.add_argument('--dont_create', '--dont-create', '--no-create', dest='create', action='store_false', default=True)
+    parser.add_argument('--https', dest='use_https', action='store_true', default=None)
     parser.add_argument('--localhost_only', '--localhost-only', dest='localhost_only', action='store_true')
     parser.add_argument('--no_refresh', '--no-refresh', dest='do_refresh', action='store_false', default=True)
     parser.add_argument('--refresh_rate', '--refresh-rate', dest='refresh_rate', type=int, default=60 * 60 * 6)
-    parser.add_argument('--https', dest='use_https', action='store_true', default=None)
     parser.set_defaults(func=ycdl_flask_launch_argparse)
 
     args = parser.parse_args(argv)
