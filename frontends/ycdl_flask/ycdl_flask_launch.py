@@ -1,7 +1,16 @@
+'''
+This file is the gevent launcher for local / development use.
+
+Simply run it on the command line:
+python ycdl_flask_launch.py [port]
+'''
 import gevent.monkey; gevent.monkey.patch_all()
 
 import logging
-logging.basicConfig()
+handler = logging.StreamHandler()
+log_format = '{levelname}:ycdl.{module}.{funcName}: {message}'
+handler.setFormatter(logging.Formatter(log_format, style='{'))
+logging.getLogger().addHandler(handler)
 logging.getLogger('ycdl').setLevel(logging.DEBUG)
 
 import argparse
