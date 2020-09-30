@@ -38,8 +38,15 @@ site.jinja_env.trim_blocks = True
 site.jinja_env.lstrip_blocks = True
 jinja_filters.register_all(site)
 site.debug = True
+site.localhost_only = False
 
 ####################################################################################################
+
+@site.before_request
+def before_request():
+    ip = request.remote_addr
+    if site.localhost_only and ip != '127.0.0.1':
+        flask.abort(403)
 
 gzip_minimum_size = 500
 gzip_maximum_size = 5 * 2**20
