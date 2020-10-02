@@ -27,7 +27,10 @@ class Channel(Base):
         self.automark = db_row['automark'] or "pending"
 
     def _rss_assisted_videos(self):
-        most_recent_video = self.get_most_recent_video_id()
+        try:
+            most_recent_video = self.get_most_recent_video_id()
+        except exceptions.NoVideos as exc:
+            raise exceptions.RSSAssistFailed(f'Channel has no videos to reference.') from exc
         new_ids = ytrss.get_user_videos_since(self.id, most_recent_video)
         videos = self.ycdldb.youtube.get_videos(new_ids)
         return videos
@@ -42,8 +45,10 @@ class Channel(Base):
     def get_most_recent_video_id(self):
         query = 'SELECT id FROM videos WHERE author_id == ? ORDER BY published DESC LIMIT 1'
         bindings = [self.id]
-        most_recent_video = self.ycdldb.sql_select_one(query, bindings)[0]
-        return most_recent_video
+        row = self.ycdldb.sql_select_one(query, bindings)
+        if row is None:
+            raise exceptions.NoVideos(self)
+        return row[0]
 
     def has_pending(self):
         query = 'SELECT 1 FROM videos WHERE author_id == ? AND state == "pending" LIMIT 1'

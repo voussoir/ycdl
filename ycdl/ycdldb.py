@@ -184,10 +184,10 @@ class YCDLDBChannelMixin:
 
         def assisted():
             for channel in self.get_channels():
-                most_recent_video = channel.get_most_recent_video_id()
                 try:
+                    most_recent_video = channel.get_most_recent_video_id()
                     new_ids = ytrss.get_user_videos_since(channel.id, most_recent_video)
-                except exceptions.RSSAssistFailed:
+                except (exceptions.NoVideos, exceptions.RSSAssistFailed):
                     traditional(channel)
                     continue
                 yield from new_ids

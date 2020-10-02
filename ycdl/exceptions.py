@@ -52,6 +52,9 @@ class NoSuchChannel(YCDLException):
 class NoSuchVideo(YCDLException):
     error_message = 'Video {} does not exist.'
 
+class NoVideos(YCDLException):
+    error_message = 'Channel {} has no videos.'
+
 # VIDEO ERRORS #####################################################################################
 
 class InvalidVideoState(YCDLException):

@@ -20,15 +20,12 @@ def get_user_videos(uid):
     try:
         return _get_user_videos(uid)
     except Exception:
-        raise exceptions.RSSAssistFailed() from exc
+        raise exceptions.RSSAssistFailed(f'Failed to fetch RSS videos.') from exc
 
 def get_user_videos_since(uid, most_recent_video):
     video_ids = get_user_videos(uid)
     try:
         index = video_ids.index(most_recent_video)
-        # log.debug(f'RSS contained {most_recent_video}.')
     except ValueError:
-        message = f'RSS didn\'t contain {most_recent_video}.'
-        # log.debug(message)
-        raise exceptions.RSSAssistFailed(message)
+        raise exceptions.RSSAssistFailed(f'RSS didn\'t contain {most_recent_video}.')
     return video_ids[:index]
