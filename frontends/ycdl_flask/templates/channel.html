@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="/static/css/ycdl.css">
     <script src="/static/js/common.js"></script>
     <script src="/static/js/api.js"></script>
+    <script src="/static/js/hotkeys.js"></script>
     <script src="/static/js/spinner.js"></script>
 
 <style>
@@ -559,5 +560,11 @@ function set_queuefile_extension_callback(response)
         window[set_queuefile_extension_button.dataset.spinnerCloser]();
     }
 }
+function on_pageload()
+{
+    hotkeys.register_hotkey("ctrl a", select_all, "Select all videos.");
+    hotkeys.register_hotkey("ctrl d", deselect_all, "Deselect all videos.");
+}
+document.addEventListener("DOMContentLoaded", on_pageload);
 </script>
 </html>
