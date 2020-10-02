@@ -1,6 +1,6 @@
 from voussoirkit import sqlhelpers
 
-DATABASE_VERSION = 7
+DATABASE_VERSION = 8
 DB_VERSION_PRAGMA = f'''
 PRAGMA user_version = {DATABASE_VERSION};
 '''
@@ -36,11 +36,10 @@ CREATE TABLE IF NOT EXISTS videos(
 );
 
 CREATE INDEX IF NOT EXISTS index_channel_id on channels(id);
-CREATE INDEX IF NOT EXISTS index_video_author on videos(author_id);
-CREATE INDEX IF NOT EXISTS index_video_author_state on videos(author_id, state);
+CREATE INDEX IF NOT EXISTS index_video_author_published on videos(author_id, published);
+CREATE INDEX IF NOT EXISTS index_video_author_state_published on videos(author_id, state, published);
 CREATE INDEX IF NOT EXISTS index_video_id on videos(id);
 CREATE INDEX IF NOT EXISTS index_video_published on videos(published);
-CREATE INDEX IF NOT EXISTS index_video_state on videos(state);
 CREATE INDEX IF NOT EXISTS index_video_state_published on videos(state, published);
 ----------------------------------------------------------------------------------------------------
 COMMIT;

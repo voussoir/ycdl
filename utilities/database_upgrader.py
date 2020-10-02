@@ -154,9 +154,30 @@ def upgrade_6_to_7(ycdldb):
     ycdldb.sql.execute('DROP INDEX IF EXISTS index_video_author_download')
     ycdldb.sql.execute('DROP INDEX IF EXISTS index_video_download')
     ycdldb.sql.execute('DROP INDEX IF EXISTS index_video_download_published')
-    ycdldb.sql.execute('CREATE INDEX index_video_author_state on videos(author_id, state)')
-    ycdldb.sql.execute('CREATE INDEX index_video_state on videos(state)')
+    # /videos/state?orderby=published
     ycdldb.sql.execute('CREATE INDEX index_video_state_published on videos(state, published)')
+
+def upgrade_7_to_8(ycdldb):
+    '''
+    In this version, indexes were optimized by adding indexes that satisfy the
+    major use cases, and deleting indexes that are redundant in the presence of
+    another multi-column index.
+    '''
+    # /channel?orderby=published
+    ycdldb.sql.execute('''
+        CREATE INDEX IF NOT EXISTS index_video_author_published on videos(author_id, published);
+    ''')
+    # /channel/state?orderby=published
+    ycdldb.sql.execute('''
+        CREATE INDEX IF NOT EXISTS index_video_author_state_published
+        on videos(author_id, state, published);
+    ''')
+    # Redundant due to (author, published)
+    ycdldb.sql.execute('DROP INDEX IF EXISTS index_video_author')
+    # Redundant due to (author, state, published)
+    ycdldb.sql.execute('DROP INDEX IF EXISTS index_video_author_state')
+    # Redundant due to (state, published)
+    ycdldb.sql.execute('DROP INDEX IF EXISTS index_video_state')
 
 def upgrade_all(data_directory):
     '''
