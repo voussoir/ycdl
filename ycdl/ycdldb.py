@@ -170,8 +170,7 @@ class YCDLDBChannelMixin:
            paginate. So, for any channel with more than 14 new videos, we'll
            do a traditional refresh.
         '''
-        query = 'SELECT id FROM videos WHERE author_id == ? ORDER BY published DESC LIMIT 1'
-        exceptions = []
+        excs = []
 
         def traditional(channel):
             try:
@@ -179,56 +178,46 @@ class YCDLDBChannelMixin:
             except Exception as exc:
                 if skip_failures:
                     traceback.print_exc()
-                    exceptions.append(exc)
+                    excs.append(exc)
                 else:
                     raise
 
-        def gen():
+        def assisted():
             for channel in self.get_channels():
-                most_recent_id = self.sql_select_one(query, [channel.id])[0]
+                most_recent_video = channel.get_most_recent_video_id()
                 try:
-                    rss_ids = ytrss.get_user_videos(channel.id)
-                except Exception:
-                    # traceback.print_exc()
+                    new_ids = ytrss.get_user_videos_since(channel.id, most_recent_video)
+                except exceptions.RSSAssistFailed:
                     traditional(channel)
                     continue
-
-                try:
-                    index = rss_ids.index(most_recent_id)
-                except ValueError:
-                    self.log.debug('RSS didn\'t contain %s. Calling API refresh.', most_recent_id)
-                    traditional(channel)
-                    continue
-
-                new_ids = rss_ids[:index]
                 yield from new_ids
 
-        for video in self.youtube.get_videos(gen()):
+        for video in self.youtube.get_videos(assisted()):
             self.ingest_video(video, commit=False)
 
         if commit:
             self.commit()
 
-        return exceptions
+        return excs
 
     def refresh_all_channels(self, force=False, skip_failures=False, commit=True):
         if not force:
             return self._rss_assisted_refresh(skip_failures=skip_failures, commit=commit)
 
-        exceptions = []
+        excs = []
         for channel in self.get_channels():
             try:
                 channel.refresh(force=force, commit=commit)
             except Exception as exc:
                 if skip_failures:
                     traceback.print_exc()
-                    exceptions.append(exc)
+                    excs.append(exc)
                 else:
                     raise
         if commit:
             self.commit()
 
-        return exceptions
+        return excs
 
 class YCDLSQLMixin:
     def __init__(self):
@@ -313,7 +302,7 @@ class YCDLDBVideoMixin:
 
         video = self.get_video(video_id)
         if video.state != 'pending' and not force:
-            print(f'{video.id} does not need to be downloaded.')
+            self.ycdldb.log.debug('%s does not need to be downloaded.', video_id)
             return
 
         try:
@@ -372,9 +361,9 @@ class YCDLDBVideoMixin:
 
         query = 'SELECT * FROM videos' + wheres + orderbys
 
-        print(query, bindings)
+        self.log.debug(f'{query} {bindings}')
         explain = self.sql_execute('EXPLAIN QUERY PLAN ' + query, bindings)
-        print('\n'.join(str(x) for x in explain.fetchall()))
+        self.log.debug('\n'.join(str(x) for x in explain.fetchall()))
 
         rows = self.sql_select(query, bindings)
         for row in rows:

@@ -57,6 +57,11 @@ class NoSuchVideo(YCDLException):
 class InvalidVideoState(YCDLException):
     error_message = '{} is not a valid state.'
 
+# RSS ERRORS #######################################################################################
+
+class RSSAssistFailed(YCDLException):
+    error_message = '{}'
+
 # SQL ERRORS #######################################################################################
 
 class BadSQL(YCDLException):

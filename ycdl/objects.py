@@ -1,5 +1,6 @@
 from . import constants
 from . import exceptions
+from . import ytrss
 
 def normalize_db_row(db_row, table):
     if isinstance(db_row, (list, tuple)):
@@ -25,12 +26,24 @@ class Channel(Base):
         self.queuefile_extension = db_row['queuefile_extension']
         self.automark = db_row['automark'] or "pending"
 
+    def _rss_assisted_videos(self):
+        most_recent_video = self.get_most_recent_video_id()
+        new_ids = ytrss.get_user_videos_since(self.id, most_recent_video)
+        videos = self.ycdldb.youtube.get_videos(new_ids)
+        return videos
+
     def delete(self, commit=True):
         self.ycdldb.sql_delete(table='videos', pairs={'author_id': self.id})
         self.ycdldb.sql_delete(table='channels', pairs={'id': self.id})
 
         if commit:
             self.ycdldb.commit()
+
+    def get_most_recent_video_id(self):
+        query = 'SELECT id FROM videos WHERE author_id == ? ORDER BY published DESC LIMIT 1'
+        bindings = [self.id]
+        most_recent_video = self.ycdldb.sql_select_one(query, bindings)[0]
+        return most_recent_video
 
     def has_pending(self):
         query = 'SELECT 1 FROM videos WHERE author_id == ? AND state == "pending" LIMIT 1'
@@ -44,8 +57,12 @@ class Channel(Base):
             self.uploads_playlist = self.ycdldb.youtube.get_user_uploads_playlist_id(self.id)
             self.set_uploads_playlist_id(self.uploads_playlist)
 
+        try:
+            video_generator = self._rss_assisted_videos()
+        except exceptions.RSSAssistFailed:
+            video_generator = self.ycdldb.youtube.get_playlist_videos(self.uploads_playlist)
+
         seen_ids = set()
-        video_generator = self.ycdldb.youtube.get_playlist_videos(self.uploads_playlist)
         for video in video_generator:
             seen_ids.add(video.id)
             status = self.ycdldb.ingest_video(video, commit=False)
