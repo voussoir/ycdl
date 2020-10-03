@@ -245,8 +245,7 @@ https://stackoverflow.com/a/35153397
                 >Ignore</button>
             </div>
             <div class="embed_toolbox">
-            <button class="show_embed_button" onclick="return toggle_embed_video('{{video.id}}');">Embed</button>
-            <button class="hide_embed_button hidden" onclick="return toggle_embed_video('{{video.id}}');">Unembed</button>
+            <button class="toggle_embed_button" onclick="return toggle_embed_video(event);">Embed</button>
             </div>
         </div>
         {% endfor %}
@@ -284,38 +283,14 @@ https://stackoverflow.com/a/35153397
 
 
 <script type="text/javascript">
-{% if channel is not none %}
-const CHANNEL_ID = "{{channel.id}}";
-{% endif %}
+const CHANNEL_ID = "{{channel.id if channel else ""}}";
 
 const STATE = "{{state if state else ""}}";
-var video_card_first_selected = null;
-var video_card_selections = document.getElementsByClassName("video_card_selected");
 
-function delete_channel_form()
-{
-    api.channels.delete_channel(CHANNEL_ID, api.channels.callback_go_to_channels);
-}
+// FILTER BOX //////////////////////////////////////////////////////////////////////////////////////
 
-function refresh_channel_form(force)
-{
-    console.log(`Refreshing channel ${CHANNEL_ID}, force=${force}.`);
-    api.channels.refresh_channel(CHANNEL_ID, force, refresh_channel_callback)
-}
-function refresh_channel_callback(response)
-{
-    if (response.meta.status == 200)
-    {
-        common.refresh();
-    }
-    else
-    {
-        alert(JSON.stringify(response));
-    }
-}
-
-var search_filter_box = document.getElementById("search_filter");
 var search_filter_wait_for_typing;
+
 var search_filter_hook = function(event)
 {
     clearTimeout(search_filter_wait_for_typing);
@@ -324,7 +299,6 @@ var search_filter_hook = function(event)
         filter_video_cards(search_filter_box.value);
     }, 200);
 }
-search_filter_box.addEventListener("keyup", search_filter_hook);
 
 function filter_video_cards(search_term)
 {
@@ -359,33 +333,13 @@ function filter_video_cards(search_term)
     document.getElementById("search_filter_count").innerText = count;
 }
 
-function toggle_embed_video(video_id)
-{
-    let video_card = document.getElementById("video_card_" + video_id);
-    let show_button = video_card.getElementsByClassName("show_embed_button")[0];
-    let hide_button = video_card.getElementsByClassName("hide_embed_button")[0];
-    let embed_toolbox = video_card.getElementsByClassName("embed_toolbox")[0];
-    let embeds = video_card.getElementsByClassName("video_iframe_holder");
-    if (embeds.length == 0)
-    {
-        let html = `
-        <div class="video_iframe_holder">
-        <iframe width="711" height="400" frameborder="0" allow="encrypted-media" allowfullscreen
-        src="https://www.youtube.com/embed/${video_id}"></iframe>
-        </div>
-        `
-        let embed = common.html_to_element(html);
-        embed_toolbox.appendChild(embed);
-        show_button.classList.add("hidden");
-        hide_button.classList.remove("hidden");
-    }
-    else
-    {
-        embeds[0].parentElement.removeChild(embeds[0]);
-        show_button.classList.remove("hidden");
-        hide_button.classList.add("hidden");
-    }
-}
+var search_filter_box = document.getElementById("search_filter");
+search_filter_box.addEventListener("keyup", search_filter_hook);
+
+// VIDEO CARD SELECTION ////////////////////////////////////////////////////////////////////////////
+
+var video_card_selections = document.getElementsByClassName("video_card_selected");
+var video_card_first_selected = null;
 
 function select_all()
 {
@@ -396,12 +350,78 @@ function select_all()
     }
 }
 
+function select_all_hotkey()
+{
+    if (! CHANNEL_ID)
+    {
+        select_all();
+        return;
+    }
+    const tabbed_container = document.getElementsByClassName("tabbed_container")[0];
+    if (tabbed_container.dataset.activeTabId === "Videos")
+    {
+        select_all();
+    }
+}
+
 function deselect_all()
 {
     video_card_first_selected = null;
     for (const video_card of Array.from(video_card_selections))
     {
         video_card.classList.remove("video_card_selected");
+    }
+}
+
+function deselect_all_hotkey()
+{
+    if (! CHANNEL_ID)
+    {
+        deselect_all();
+        return;
+    }
+    const tabbed_container = document.getElementsByClassName("tabbed_container")[0];
+    if (tabbed_container.dataset.activeTabId === "Videos")
+    {
+        deselect_all();
+    }
+}
+
+function select_one(event)
+{
+    deselect_all();
+    event.target.classList.add("video_card_selected");
+    video_card_first_selected = event.target;
+}
+
+function select_shift(event)
+{
+    let video_cards = Array.from(document.getElementsByClassName("video_card"));
+    video_cards = video_cards.filter(card => ! card.classList.contains("hidden"))
+
+    let start_index = video_cards.indexOf(video_card_first_selected);
+    let end_index = video_cards.indexOf(event.target);
+    if (end_index < start_index)
+    {
+        [start_index, end_index] = [end_index, start_index];
+    }
+
+    for (let index = start_index; index <= end_index; index += 1)
+    {
+        video_cards[index].classList.add("video_card_selected");
+    }
+}
+
+function select_ctrl(event)
+{
+    if (event.target.classList.contains("video_card_selected"))
+    {
+        event.target.classList.remove("video_card_selected");
+    }
+    else
+    {
+        video_card_first_selected = event.target;
+        event.target.classList.add("video_card_selected");
     }
 }
 
@@ -417,43 +437,17 @@ function onclick_select(event)
         video_card_first_selected = event.target;
     }
 
-    let video_cards = Array.from(document.getElementsByClassName("video_card"));
-
     if (event.shiftKey === false && event.ctrlKey === false)
     {
-        deselect_all();
-        event.target.classList.add("video_card_selected");
-        video_card_first_selected = event.target;
+        select_one(event);
     }
     else if (event.shiftKey === true)
     {
-        let start_index = video_cards.indexOf(video_card_first_selected);
-        let end_index = video_cards.indexOf(event.target);
-        if (end_index < start_index)
-        {
-            [start_index, end_index] = [end_index, start_index];
-        }
-
-        for (let index = start_index; index <= end_index; index += 1)
-        {
-            if (video_cards[index].classList.contains("hidden"))
-            {
-                continue;
-            }
-            video_cards[index].classList.add("video_card_selected");
-        }
+        select_shift(event);
     }
     else if (event.ctrlKey === true)
     {
-        if (event.target.classList.contains("video_card_selected"))
-        {
-            event.target.classList.remove("video_card_selected");
-        }
-        else
-        {
-            video_card_first_selected = event.target;
-            event.target.classList.add("video_card_selected");
-        }
+        select_ctrl(event);
     }
 
     document.getSelection().removeAllRanges();
@@ -461,10 +455,12 @@ function onclick_select(event)
     return false;
 }
 
+// VIDEO CARD BUTTONS //////////////////////////////////////////////////////////////////////////////
+
 function action_button_passthrough(event, action_function, action_argument)
 {
     let elements;
-    let this_card = event.target.closest(".video_card");
+    const this_card = event.target.closest(".video_card");
     if (this_card.classList.contains("video_card_selected"))
     {
         // The clicked card is indeed part of the current selected group.
@@ -495,18 +491,18 @@ function action_button_passthrough(event, action_function, action_argument)
 
 function give_action_buttons(video_card_div)
 {
-    let toolbox = video_card_div.getElementsByClassName("action_toolbox")[0]
-    let buttons = Array.from(toolbox.getElementsByTagName("button"));
-    let is_pending = video_card_div.classList.contains("video_card_pending");
-    buttons.forEach(function(button)
+    const toolbox = video_card_div.getElementsByClassName("action_toolbox")[0]
+    const buttons = Array.from(toolbox.getElementsByTagName("button"));
+    const is_pending = video_card_div.classList.contains("video_card_pending");
+    for (const button of buttons)
     {
         if (is_pending)
             { button.classList.remove("hidden"); }
         else
             { button.classList.add("hidden"); }
-    });
+    }
 
-    let button_pending = video_card_div.getElementsByClassName("video_action_pending")[0];
+    const button_pending = video_card_div.getElementsByClassName("video_action_pending")[0];
     if (is_pending)
         { button_pending.classList.add("hidden"); }
     else
@@ -515,12 +511,12 @@ function give_action_buttons(video_card_div)
 
 function receive_action_response(response)
 {
-    let video_ids = response.data.video_ids;
-    let state = response.data.state;
-    let state_class = "video_card_" + state;
+    const video_ids = response.data.video_ids;
+    const state = response.data.state;
+    const state_class = "video_card_" + state;
     for (const video_id of video_ids)
     {
-        let card = document.getElementById("video_card_" + video_id);
+        const card = document.getElementById("video_card_" + video_id);
         {% for statename in all_states %}
         card.classList.remove("video_card_{{statename}}");
         {% endfor %}
@@ -529,24 +525,75 @@ function receive_action_response(response)
     }
 }
 
-var set_automark_spinner = document.getElementById("set_automark_spinner");
-set_automark_spinner = new spinner.Spinner(set_automark_spinner);
+function toggle_embed_video(event)
+{
+    const video_card = event.target.closest(".video_card");
+    const video_id = video_card.dataset.ytid;
+    const toggle_button = video_card.getElementsByClassName("toggle_embed_button")[0];
+    const embed_toolbox = video_card.getElementsByClassName("embed_toolbox")[0];
+    const embeds = video_card.getElementsByClassName("video_iframe_holder");
+    if (embeds.length == 0)
+    {
+        const html = `
+        <div class="video_iframe_holder">
+        <iframe width="711" height="400" frameborder="0" allow="encrypted-media" allowfullscreen
+        src="https://www.youtube.com/embed/${video_id}"></iframe>
+        </div>
+        `
+        const embed = common.html_to_element(html);
+        embed_toolbox.appendChild(embed);
+        toggle_button.innerText = "Unembed";
+    }
+    else
+    {
+        embeds[0].parentElement.removeChild(embeds[0]);
+        toggle_button.innerText = "Embed";
+    }
+}
+
+// CHANNEL ACTIONS /////////////////////////////////////////////////////////////////////////////////
+
+function delete_channel_form()
+{
+    api.channels.delete_channel(CHANNEL_ID, api.channels.callback_go_to_channels);
+}
+
+function refresh_channel_form(force)
+{
+    console.log(`Refreshing channel ${CHANNEL_ID}, force=${force}.`);
+    api.channels.refresh_channel(CHANNEL_ID, force, refresh_channel_callback)
+}
+
+function refresh_channel_callback(response)
+{
+    if (response.meta.status == 200)
+    {
+        common.refresh();
+    }
+    else
+    {
+        alert(JSON.stringify(response));
+    }
+}
+
 function set_automark_form(event)
 {
     set_automark_spinner.show();
     api.channels.set_automark(CHANNEL_ID, event.target.value, set_automark_callback);
 }
+
 function set_automark_callback(response)
 {
     if (response.meta.status == 200)
     {
         set_automark_spinner.hide();
     }
+    else
+    {
+        alert(JSON.stringify(response));
+    }
 }
 
-set_queuefile_extension_input = document.getElementById("set_queuefile_extension_input");
-set_queuefile_extension_button = document.getElementById("set_queuefile_extension_button");
-common.bind_box_to_button(set_queuefile_extension_input, set_queuefile_extension_button);
 function set_queuefile_extension_form(event)
 {
     const extension = set_queuefile_extension_input.value.trim();
@@ -559,11 +606,28 @@ function set_queuefile_extension_callback(response)
     {
         window[set_queuefile_extension_button.dataset.spinnerCloser]();
     }
+    else
+    {
+        alert(JSON.stringify(response));
+    }
 }
+
+if (CHANNEL_ID)
+{
+    var set_queuefile_extension_input = document.getElementById("set_queuefile_extension_input");
+    var set_queuefile_extension_button = document.getElementById("set_queuefile_extension_button");
+    common.bind_box_to_button(set_queuefile_extension_input, set_queuefile_extension_button);
+
+    var set_automark_spinner = document.getElementById("set_automark_spinner");
+    set_automark_spinner = new spinner.Spinner(set_automark_spinner);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 function on_pageload()
 {
-    hotkeys.register_hotkey("ctrl a", select_all, "Select all videos.");
-    hotkeys.register_hotkey("ctrl d", deselect_all, "Deselect all videos.");
+    hotkeys.register_hotkey("ctrl a", select_all_hotkey, "Select all videos.");
+    hotkeys.register_hotkey("ctrl d", deselect_all_hotkey, "Deselect all videos.");
 }
 document.addEventListener("DOMContentLoaded", on_pageload);
 </script>

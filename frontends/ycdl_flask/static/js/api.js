@@ -65,7 +65,7 @@ function callback_go_to_channels(response)
     }
     else
     {
-        console.log(response);
+        alert(JSON.stringify(response));
     }
 }
 
