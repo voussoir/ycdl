@@ -346,6 +346,10 @@ function select_all()
     video_card_first_selected = null;
     for (const video_card of document.getElementsByClassName("video_card"))
     {
+        if (video_card.classList.contains("hidden"))
+        {
+            continue;
+        }
         video_card.classList.add("video_card_selected");
     }
 }
@@ -369,6 +373,10 @@ function deselect_all()
     video_card_first_selected = null;
     for (const video_card of Array.from(video_card_selections))
     {
+        if (video_card.classList.contains("hidden"))
+        {
+            continue;
+        }
         video_card.classList.remove("video_card_selected");
     }
 }
