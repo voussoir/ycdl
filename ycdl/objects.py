@@ -62,10 +62,13 @@ class Channel(Base):
             self.uploads_playlist = self.ycdldb.youtube.get_user_uploads_playlist_id(self.id)
             self.set_uploads_playlist_id(self.uploads_playlist)
 
-        try:
-            video_generator = self._rss_assisted_videos()
-        except exceptions.RSSAssistFailed:
+        if force:
             video_generator = self.ycdldb.youtube.get_playlist_videos(self.uploads_playlist)
+        else:
+            try:
+                video_generator = self._rss_assisted_videos()
+            except exceptions.RSSAssistFailed:
+                video_generator = self.ycdldb.youtube.get_playlist_videos(self.uploads_playlist)
 
         seen_ids = set()
         for video in video_generator:
