@@ -26,6 +26,9 @@ class Channel(Base):
         self.queuefile_extension = db_row['queuefile_extension']
         self.automark = db_row['automark'] or "pending"
 
+    def __repr__(self):
+        return f'Channel:{self.id}'
+
     def _rss_assisted_videos(self):
         try:
             most_recent_video = self.get_most_recent_video_id()
@@ -152,6 +155,9 @@ class Video(Base):
         self.views = db_row['views']
         self.thumbnail = db_row['thumbnail']
         self.state = db_row['state']
+
+    def __repr__(self):
+        return f'Video:{self.id}'
 
     @property
     def author(self):
