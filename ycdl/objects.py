@@ -39,6 +39,8 @@ class Channel(Base):
         return videos
 
     def delete(self, commit=True):
+        self.ycdldb.log.debug('Deleting %s.', self)
+
         self.ycdldb.sql_delete(table='videos', pairs={'author_id': self.id})
         self.ycdldb.sql_delete(table='channels', pairs={'id': self.id})
 
@@ -59,7 +61,7 @@ class Channel(Base):
         return self.ycdldb.sql_select_one(query, bindings) is not None
 
     def refresh(self, force=False, commit=True):
-        self.ycdldb.log.debug('Refreshing channel: %s', self.id)
+        self.ycdldb.log.debug('Refreshing %s.', self.id)
 
         if not self.uploads_playlist:
             self.uploads_playlist = self.ycdldb.youtube.get_user_uploads_playlist_id(self.id)
@@ -167,6 +169,8 @@ class Video(Base):
             return None
 
     def delete(self, commit=True):
+        self.ycdldb.log.debug('Deleting %s.', self)
+
         self.ycdldb.sql_delete(table='videos', pairs={'id': self.id})
 
         if commit:
@@ -178,6 +182,8 @@ class Video(Base):
         '''
         if state not in constants.VIDEO_STATES:
             raise exceptions.InvalidVideoState(state)
+
+        self.ycdldb.log.debug('Marking %s as %s.', self, state)
 
         pairs = {
             'id': self.id,
