@@ -519,6 +519,11 @@ function give_action_buttons(video_card_div)
 
 function receive_action_response(response)
 {
+    if (response.meta.status !== 200)
+    {
+        alert(JSON.stringify(response));
+        return;
+    }
     const video_ids = response.data.video_ids;
     const state = response.data.state;
     const state_class = "video_card_" + state;
