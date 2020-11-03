@@ -74,16 +74,11 @@ def ycdl_flask_launch(
         pass
 
 def ycdl_flask_launch_argparse(args):
-    if args.do_refresh:
-        refresh_rate = args.refresh_rate
-    else:
-        refresh_rate = None
-
     return ycdl_flask_launch(
         create=args.create,
         localhost_only=args.localhost_only,
         port=args.port,
-        refresh_rate=refresh_rate,
+        refresh_rate=args.refresh_rate,
         use_https=args.use_https,
     )
 
@@ -94,8 +89,7 @@ def main(argv):
     parser.add_argument('--dont_create', '--dont-create', '--no-create', dest='create', action='store_false', default=True)
     parser.add_argument('--https', dest='use_https', action='store_true', default=None)
     parser.add_argument('--localhost_only', '--localhost-only', dest='localhost_only', action='store_true')
-    parser.add_argument('--no_refresh', '--no-refresh', dest='do_refresh', action='store_false', default=True)
-    parser.add_argument('--refresh_rate', '--refresh-rate', dest='refresh_rate', type=int, default=60 * 60 * 6)
+    parser.add_argument('--refresh_rate', '--refresh-rate', dest='refresh_rate', type=int, default=None)
     parser.set_defaults(func=ycdl_flask_launch_argparse)
 
     args = parser.parse_args(argv)
