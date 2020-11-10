@@ -95,7 +95,11 @@ def refresher_thread(rate):
         time.sleep(rate)
         print('Starting refresh job.')
         thread_kwargs = {'force': False, 'skip_failures': True}
-        refresh_job = threading.Thread(target=ycdldb.refresh_all_channels, kwargs=thread_kwargs, daemon=True)
+        refresh_job = threading.Thread(
+            target=ycdldb.refresh_all_channels,
+            kwargs=thread_kwargs,
+            daemon=True,
+        )
         refresh_job.start()
 
 def start_refresher_thread(rate):
