@@ -182,18 +182,21 @@ class YCDLDBChannelMixin:
                 else:
                     raise
 
-        def assisted():
-            for channel in self.get_channels():
-                try:
-                    most_recent_video = channel.get_most_recent_video_id()
-                    new_ids = ytrss.get_user_videos_since(channel.id, most_recent_video)
-                except (exceptions.NoVideos, exceptions.RSSAssistFailed) as exc:
-                    self.log.debug('RSS assist failed "%s", using traditional refresh.', exc.error_message)
-                    traditional(channel)
-                    continue
+        def assisted(channel):
+            try:
+                most_recent_video = channel.get_most_recent_video_id()
+                new_ids = ytrss.get_user_videos_since(channel.id, most_recent_video)
                 yield from new_ids
+            except (exceptions.NoVideos, exceptions.RSSAssistFailed) as exc:
+                self.log.debug(
+                    'RSS assist for %s failed "%s", using traditional refresh.',
+                    channel.id,
+                    exc.error_message
+                )
+                traditional(channel)
 
-        for video in self.youtube.get_videos(assisted()):
+        new_ids = (id for channel in self.get_channels() for id in assisted(channel))
+        for video in self.youtube.get_videos(new_ids):
             self.ingest_video(video, commit=False)
 
         if commit:
