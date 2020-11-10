@@ -187,7 +187,8 @@ class YCDLDBChannelMixin:
                 try:
                     most_recent_video = channel.get_most_recent_video_id()
                     new_ids = ytrss.get_user_videos_since(channel.id, most_recent_video)
-                except (exceptions.NoVideos, exceptions.RSSAssistFailed):
+                except (exceptions.NoVideos, exceptions.RSSAssistFailed) as exc:
+                    self.log.debug('RSS assist failed "%s", using traditional refresh.', exc.error_message)
                     traditional(channel)
                     continue
                 yield from new_ids
