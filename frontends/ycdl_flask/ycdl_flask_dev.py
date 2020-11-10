@@ -11,7 +11,6 @@ handler = logging.StreamHandler()
 log_format = '{levelname}:ycdl.{module}.{funcName}: {message}'
 handler.setFormatter(logging.Formatter(log_format, style='{'))
 logging.getLogger().addHandler(handler)
-logging.getLogger('ycdl').setLevel(logging.DEBUG)
 
 import argparse
 import gevent.pywsgi
@@ -58,7 +57,7 @@ def ycdl_flask_launch(
         site.localhost_only = True
 
     youtube_core = ycdl.ytapi.Youtube(bot.get_youtube_key())
-    backend.common.init_ycdldb(youtube_core, create=create)
+    backend.common.init_ycdldb(youtube_core, create=create, log_level=logging.DEBUG)
 
     if refresh_rate is not None:
         backend.common.start_refresher_thread(refresh_rate)
