@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 import sqlite3
 import traceback
@@ -14,6 +13,7 @@ from voussoirkit import cacheclass
 from voussoirkit import configlayers
 from voussoirkit import pathclass
 from voussoirkit import sqlhelpers
+from voussoirkit import vlogging
 
 class YCDLDBCacheManagerMixin:
     _THING_CLASSES = {
@@ -475,7 +475,7 @@ class YCDLDB(
             raise exceptions.BadDataDirectory(self.data_directory.absolute_path)
 
         # LOGGING
-        self.log = logging.getLogger(__name__)
+        self.log = vlogging.getLogger('ycdl:%s' % self.data_directory.absolute_path)
 
         # DATABASE
         self.database_filepath = self.data_directory.with_child(constants.DEFAULT_DBNAME)
