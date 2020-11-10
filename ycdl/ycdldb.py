@@ -204,7 +204,7 @@ class YCDLDBChannelMixin:
 
         return excs
 
-    def refresh_all_channels(self, force=False, skip_failures=False, commit=True):
+    def refresh_all_channels(self, *, force=False, skip_failures=False, commit=True):
         if not force:
             return self._rss_assisted_refresh(skip_failures=skip_failures, commit=commit)
 
