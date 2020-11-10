@@ -5,11 +5,12 @@ import requests
 from . import exceptions
 
 log = logging.getLogger(__name__)
+session = requests.Session()
 
 def _get_user_videos(uid):
     log.debug(f'Fetching RSS for {uid}.')
     url = f'https://www.youtube.com/feeds/videos.xml?channel_id={uid}'
-    response = requests.get(url)
+    response = session.get(url)
     response.raise_for_status()
     soup = bs4.BeautifulSoup(response.text, 'lxml')
     # find_all does not work on namespaced tags unless you add a limit paramter.
