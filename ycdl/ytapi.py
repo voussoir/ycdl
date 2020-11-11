@@ -1,6 +1,7 @@
 import apiclient.discovery
 import isodate
-import logging
+
+from voussoirkit import vlogging
 
 from . import helpers
 
@@ -53,7 +54,7 @@ class Youtube:
             serviceName='youtube',
             version='v3',
         )
-        self.log = logging.getLogger(__name__)
+        self.log = vlogging.getLogger(__name__)
 
     def get_playlist_videos(self, playlist_id):
         page_token = None
@@ -69,8 +70,6 @@ class Youtube:
             video_ids = [item['contentDetails']['videoId'] for item in response['items']]
             videos = self.get_videos(video_ids)
             videos.sort(key=lambda x: x.published, reverse=True)
-
-            self.log.debug('Got %d more videos.', len(videos))
 
             for video in videos:
                 yield video
@@ -127,12 +126,14 @@ class Youtube:
         chunks = helpers.chunk_sequence(video_ids, 50)
         for chunk in chunks:
             self.log.debug('Requesting batch of %d video ids.', len(chunk))
+            self.log.loud(chunk)
             chunk = ','.join(chunk)
             data = self.youtube.videos().list(
                 part='id,contentDetails,snippet,statistics',
                 id=chunk,
             ).execute()
             items = data['items']
+            self.log.debug('Got %d snippets.', len(items))
             snippets.extend(items)
 
         videos = []

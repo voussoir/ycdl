@@ -205,6 +205,8 @@ class YCDLDBChannelMixin:
         return excs
 
     def refresh_all_channels(self, *, force=False, rss_assisted=True, skip_failures=False, commit=True):
+        self.log.info('Refreshing all channels.')
+
         if rss_assisted and not force:
             return self._rss_assisted_refresh(skip_failures=skip_failures, commit=commit)
 
@@ -365,7 +367,7 @@ class YCDLDBVideoMixin:
 
         query = 'SELECT * FROM videos' + wheres + orderbys
 
-        self.log.debug(f'{query} {bindings}')
+        self.log.debug('%s %s', query, bindings)
         explain = self.sql_execute('EXPLAIN QUERY PLAN ' + query, bindings)
         self.log.debug('\n'.join(str(x) for x in explain.fetchall()))
 
@@ -438,8 +440,10 @@ class YCDLDBVideoMixin:
         }
 
         if existing:
+            self.log.loud('Updating Video %s.', video.id)
             self.sql_update(table='videos', pairs=data, where_key='id')
         else:
+            self.log.loud('Inserting Video %s.', video.id)
             self.sql_insert(table='videos', data=data)
 
         video = self.get_cached_instance('video', data)
@@ -478,6 +482,7 @@ class YCDLDB(
         # LOGGING
         self.log = vlogging.getLogger('ycdl:%s' % self.data_directory.absolute_path)
         self.log.setLevel(log_level)
+        self.youtube.log.setLevel(log_level)
 
         # DATABASE
         self.database_filepath = self.data_directory.with_child(constants.DEFAULT_DBNAME)
@@ -519,7 +524,7 @@ class YCDLDB(
             )
 
     def _first_time_setup(self):
-        self.log.debug('Running first-time database setup.')
+        self.log.info('Running first-time database setup.')
         self.sql.executescript(constants.DB_INIT)
         self.commit()
 

@@ -39,7 +39,7 @@ class Channel(Base):
         return videos
 
     def delete(self, commit=True):
-        self.ycdldb.log.debug('Deleting %s.', self)
+        self.ycdldb.log.info('Deleting %s.', self)
 
         self.ycdldb.sql_delete(table='videos', pairs={'author_id': self.id})
         self.ycdldb.sql_delete(table='channels', pairs={'id': self.id})
@@ -61,7 +61,7 @@ class Channel(Base):
         return self.ycdldb.sql_select_one(query, bindings) is not None
 
     def refresh(self, *, force=False, rss_assisted=True, commit=True):
-        self.ycdldb.log.debug('Refreshing %s.', self.id)
+        self.ycdldb.log.info('Refreshing %s.', self.id)
 
         if not self.uploads_playlist:
             self.uploads_playlist = self.ycdldb.youtube.get_user_uploads_playlist_id(self.id)
@@ -90,6 +90,11 @@ class Channel(Base):
             # Of course, it's possible they were deleted.
             known_ids = {v.id for v in self.ycdldb.get_videos(channel_id=self.id)}
             refresh_ids = list(known_ids.difference(seen_ids))
+            if refresh_ids:
+                self.ycdldb.log.debug(
+                    '%d ids did not come back from the generator, fetching them separately.',
+                    len(refresh_ids),
+                )
             for video in self.ycdldb.youtube.get_videos(refresh_ids):
                 self.ycdldb.insert_video(video, commit=False)
 
@@ -169,7 +174,7 @@ class Video(Base):
             return None
 
     def delete(self, commit=True):
-        self.ycdldb.log.debug('Deleting %s.', self)
+        self.ycdldb.log.info('Deleting %s.', self)
 
         self.ycdldb.sql_delete(table='videos', pairs={'id': self.id})
 
@@ -183,7 +188,7 @@ class Video(Base):
         if state not in constants.VIDEO_STATES:
             raise exceptions.InvalidVideoState(state)
 
-        self.ycdldb.log.debug('Marking %s as %s.', self, state)
+        self.ycdldb.log.info('Marking %s as %s.', self, state)
 
         pairs = {
             'id': self.id,
