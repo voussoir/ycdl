@@ -60,14 +60,14 @@ class Channel(Base):
         bindings = [self.id]
         return self.ycdldb.sql_select_one(query, bindings) is not None
 
-    def refresh(self, force=False, commit=True):
+    def refresh(self, *, force=False, rss_assisted=True, commit=True):
         self.ycdldb.log.debug('Refreshing %s.', self.id)
 
         if not self.uploads_playlist:
             self.uploads_playlist = self.ycdldb.youtube.get_user_uploads_playlist_id(self.id)
             self.set_uploads_playlist_id(self.uploads_playlist)
 
-        if force:
+        if force or not rss_assisted:
             video_generator = self.ycdldb.youtube.get_playlist_videos(self.uploads_playlist)
         else:
             try:
