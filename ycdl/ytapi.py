@@ -56,7 +56,7 @@ class Youtube:
         )
         self.log = vlogging.getLogger(__name__)
 
-    def get_playlist_videos(self, playlist_id):
+    def _playlist_paginator(self, playlist_id):
         page_token = None
         while True:
             response = self.youtube.playlistItems().list(
@@ -65,17 +65,20 @@ class Youtube:
                 part='contentDetails',
                 playlistId=playlist_id,
             ).execute()
+
+            yield from response['items']
+
             page_token = response.get('nextPageToken', None)
-
-            video_ids = [item['contentDetails']['videoId'] for item in response['items']]
-            videos = self.get_videos(video_ids)
-            videos.sort(key=lambda x: x.published, reverse=True)
-
-            for video in videos:
-                yield video
-
             if page_token is None:
                 break
+
+    def get_playlist_videos(self, playlist_id):
+        paginator = self._playlist_paginator(playlist_id)
+        video_ids = (item['contentDetails']['videoId'] for item in paginator)
+        videos = self.get_videos(video_ids)
+        videos.sort(key=lambda x: x.published, reverse=True)
+
+        yield from videos
 
     def get_related_videos(self, video_id, count=50):
         if isinstance(video_id, Video):
