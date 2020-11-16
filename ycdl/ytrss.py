@@ -10,7 +10,7 @@ log = vlogging.getLogger(__name__)
 session = requests.Session()
 
 def _get_user_videos(uid):
-    log.debug(f'Fetching RSS for {uid}.')
+    log.info(f'Fetching RSS for {uid}.')
     url = f'https://www.youtube.com/feeds/videos.xml?channel_id={uid}'
     response = session.get(url)
     response.raise_for_status()

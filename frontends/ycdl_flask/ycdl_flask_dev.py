@@ -58,6 +58,7 @@ def ycdl_flask_launch(
 
     youtube_core = ycdl.ytapi.Youtube(bot.get_youtube_key())
     backend.common.init_ycdldb(youtube_core, create=create, log_level=logging.DEBUG)
+    ycdl.ytrss.log.setLevel(logging.DEBUG)
 
     if refresh_rate is not None:
         backend.common.start_refresher_thread(refresh_rate)
