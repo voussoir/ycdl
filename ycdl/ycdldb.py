@@ -485,7 +485,7 @@ class YCDLDB(
             raise exceptions.BadDataDirectory(self.data_directory.absolute_path)
 
         # LOGGING
-        self.log = vlogging.getLogger('ycdl:%s' % self.data_directory.absolute_path)
+        self.log = vlogging.getLogger(f'{__name__}:{self.data_directory.absolute_path}')
         self.log.setLevel(log_level)
         self.youtube.log.setLevel(log_level)
 
