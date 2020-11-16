@@ -1,6 +1,7 @@
 import apiclient.discovery
 import isodate
 
+from voussoirkit import gentools
 from voussoirkit import vlogging
 
 from . import helpers
@@ -126,7 +127,7 @@ class Youtube:
 
     def get_videos(self, video_ids):
         snippets = []
-        chunks = helpers.chunk_sequence(video_ids, 50)
+        chunks = gentools.chunk_generator(video_ids, 50)
         for chunk in chunks:
             self.log.debug('Requesting batch of %d video ids.', len(chunk))
             self.log.loud(chunk)
