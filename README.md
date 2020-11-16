@@ -61,3 +61,7 @@ You are responsible for your own `bot.py` file, with a function `get_youtube_key
 
 - Keep permanent record of titles and descriptions.
 - Progress indicator for channel refresh.
+
+https://github.com/voussoir/ycdl
+
+https://gitlab.com/voussoir/ycdl
