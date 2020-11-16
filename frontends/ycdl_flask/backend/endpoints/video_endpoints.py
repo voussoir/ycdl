@@ -23,7 +23,6 @@ def post_mark_video_state():
 
     except ycdl.exceptions.NoSuchVideo:
         common.ycdldb.rollback()
-        traceback.print_exc()
         flask.abort(404)
 
     except ycdl.exceptions.InvalidVideoState:

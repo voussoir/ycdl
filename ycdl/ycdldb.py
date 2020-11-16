@@ -177,7 +177,6 @@ class YCDLDBChannelMixin:
                 channel.refresh()
             except Exception as exc:
                 if skip_failures:
-                    traceback.print_exc()
                     excs.append(exc)
                 else:
                     raise
@@ -216,7 +215,6 @@ class YCDLDBChannelMixin:
                 channel.refresh(force=force, commit=commit)
             except Exception as exc:
                 if skip_failures:
-                    traceback.print_exc()
                     excs.append(exc)
                 else:
                     raise

@@ -22,10 +22,7 @@ def get_channels():
 @site.route('/channel/<channel_id>/<state>')
 def get_channel(channel_id=None, state=None):
     if channel_id is not None:
-        try:
-            common.ycdldb.add_channel(channel_id)
-        except Exception:
-            traceback.print_exc()
+        common.ycdldb.add_channel(channel_id)
         try:
             channel = common.ycdldb.get_channel(channel_id)
         except ycdl.exceptions.NoSuchChannel:
