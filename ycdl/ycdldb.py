@@ -222,6 +222,7 @@ class YCDLDBChannelMixin:
                 channel.refresh(force=force, commit=commit)
             except Exception as exc:
                 if skip_failures:
+                    self.log.warning(exc)
                     excs.append(exc)
                 else:
                     raise
