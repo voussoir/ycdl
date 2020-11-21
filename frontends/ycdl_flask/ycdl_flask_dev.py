@@ -17,6 +17,7 @@ import gevent.pywsgi
 import sys
 
 from voussoirkit import pathclass
+from voussoirkit import vlogging
 
 import bot
 import ycdl
@@ -28,6 +29,7 @@ import backend
 site = backend.site
 
 HTTPS_DIR = pathclass.Path(__file__).parent.with_child('https')
+LOG_LEVEL = vlogging.NOTSET
 
 def ycdl_flask_launch(
         *,
@@ -57,8 +59,8 @@ def ycdl_flask_launch(
         site.localhost_only = True
 
     youtube_core = ycdl.ytapi.Youtube(bot.get_youtube_key())
-    backend.common.init_ycdldb(youtube_core, create=create, log_level=logging.DEBUG)
-    ycdl.ytrss.log.setLevel(logging.DEBUG)
+    backend.common.init_ycdldb(youtube_core, create=create, log_level=LOG_LEVEL)
+    ycdl.ytrss.log.setLevel(LOG_LEVEL)
 
     if refresh_rate is not None:
         backend.common.start_refresher_thread(refresh_rate)
@@ -83,6 +85,9 @@ def ycdl_flask_launch_argparse(args):
     )
 
 def main(argv):
+    global LOG_LEVEL
+    (LOG_LEVEL, argv) = vlogging.get_level_by_argv(argv)
+
     parser = argparse.ArgumentParser(description=__doc__)
 
     parser.add_argument('port', nargs='?', type=int, default=5000)
