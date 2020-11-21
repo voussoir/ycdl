@@ -174,7 +174,7 @@ class YCDLDBChannelMixin:
 
         def traditional(channel):
             try:
-                channel.refresh()
+                channel.refresh(rss_assisted=False)
             except Exception as exc:
                 if skip_failures:
                     excs.append(exc)
