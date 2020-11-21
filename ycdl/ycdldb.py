@@ -118,6 +118,8 @@ class YCDLDBChannelMixin:
         if download_directory is not None:
             download_directory = pathclass.Path(download_directory).absolute_path
 
+        self.log.info('Adding channel %s %s', channel_id, name)
+
         data = {
             'id': channel_id,
             'name': name,
@@ -324,6 +326,8 @@ class YCDLDBVideoMixin:
         except exceptions.NoSuchChannel:
             download_directory = self.config['download_directory']
             extension = self.config['queuefile_extension']
+
+        self.log.info('Creating queuefile for %s.', video_id)
 
         download_directory = pathclass.Path(download_directory)
         download_directory.makedirs(exist_ok=True)
