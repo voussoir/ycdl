@@ -65,3 +65,5 @@ You are responsible for your own `bot.py` file, with a function `get_youtube_key
 https://github.com/voussoir/ycdl
 
 https://gitlab.com/voussoir/ycdl
+
+https://codeberg.org/voussoir/ycdl
