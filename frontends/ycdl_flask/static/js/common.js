@@ -76,6 +76,12 @@ function _request(method, url, callback)
         }
         "data": {JSON parsed from server response if json_ok}.
     }
+
+    So, from most lenient to most strict, error catching might look like:
+    if response.meta.completed
+    if response.meta.json_ok
+    if response.meta.status === 200
+    if response.meta.status === 200 and response.meta.json_ok
     */
     const request = new XMLHttpRequest();
     const response = {
@@ -157,6 +163,12 @@ function html_to_element(html)
     const template = document.createElement("template");
     template.innerHTML = html.trim();
     return template.content.firstElementChild;
+}
+
+common.size_iframe_to_content =
+function size_iframe_to_content(iframe)
+{
+    iframe.style.height = iframe.contentWindow.document.documentElement.scrollHeight + 'px';
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
