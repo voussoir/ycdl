@@ -21,8 +21,10 @@ from voussoirkit import vlogging
 
 import bot
 import ycdl
-
 import backend
+
+site = backend.site
+site.debug = True
 
 ####################################################################################################
 
