@@ -68,7 +68,7 @@ def ycdl_flask_launch(
     if refresh_rate is not None:
         backend.common.start_refresher_thread(refresh_rate)
 
-    message = f'Starting server on port {port}, pid={os.getpid()}'
+    message = f'Starting server on port {port}, pid={os.getpid()}.'
     if use_https:
         message += ' (https)'
     print(message)
