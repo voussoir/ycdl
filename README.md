@@ -23,7 +23,7 @@ On Youtube's subscription page, there is a button to hide a video from the list.
 
 ### Send video IDs to youtube-dl
 
-YCDL does not perform the downloading of videos itself. [youtube-dl](https://github.com/ytdl-org/youtube-dl) is the tool for that. When you click on the download button, it will create an empty file called `xxxxxxxxxxx.ytqueue` in the directory specified by the `ycdl.json` config file. You can send this ID into youtube-dl in your preferred way.
+YCDL does not perform the downloading of videos itself. [youtube-dl](https://github.com/ytdl-org/youtube-dl) is the tool for that. When you click on the download button, it will create an empty file called `xxxxxxxxxxx.ytqueue` in the directory specified by the `ycdl.json` config file. You should create a separate shell / Python script that watches for ytqueue files and calls youtube-dl with your preferred arguments.
 
 ## Features
 
