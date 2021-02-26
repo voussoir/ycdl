@@ -60,6 +60,14 @@ class Channel(Base):
         bindings = [self.id]
         return self.ycdldb.sql_select_one(query, bindings) is not None
 
+    def jsonify(self):
+        j = {
+            'id': self.id,
+            'name': self.name,
+            'automark': self.automark,
+        }
+        return j
+
     def refresh(self, *, force=False, rss_assisted=True, commit=True):
         self.ycdldb.log.info('Refreshing %s.', self.id)
 
@@ -180,6 +188,20 @@ class Video(Base):
 
         if commit:
             self.ycdldb.commit()
+
+    def jsonify(self):
+        j = {
+            'id': self.id,
+            'published': self.published,
+            'author_id': self.author_id,
+            'title': self.title,
+            'description': self.description,
+            'duration': self.duration,
+            'views': self.views,
+            'thumbnail': self.thumbnail,
+            'state': self.state,
+        }
+        return j
 
     def mark_state(self, state, commit=True):
         '''

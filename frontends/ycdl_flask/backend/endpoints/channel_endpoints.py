@@ -89,14 +89,14 @@ def post_add_channel():
             return jsonify.make_json_response({}, status=404)
 
     channel = common.ycdldb.add_channel(channel_id, get_videos=True)
-    return jsonify.make_json_response(ycdl.jsonify.channel(channel))
+    return jsonify.make_json_response(channel.jsonify())
 
 @site.route('/channel/<channel_id>/delete', methods=['POST'])
 def post_delete_channel(channel_id):
     try:
         channel = common.ycdldb.get_channel(channel_id)
     except ycdl.exceptions.NoSuchChannel as exc:
-        return jsonify.make_json_response(ycdl.jsonify.exception(exc), status=404)
+        return jsonify.make_json_response(exc.jsonify(), status=404)
 
     channel.delete()
     return jsonify.make_json_response({})
@@ -108,10 +108,10 @@ def post_refresh_channel(channel_id):
     try:
         channel = common.ycdldb.get_channel(channel_id)
     except ycdl.exceptions.NoSuchChannel as exc:
-        return jsonify.make_json_response(ycdl.jsonify.exception(exc), status=404)
+        return jsonify.make_json_response(exc.jsonify(), status=404)
 
     channel.refresh(force=force)
-    return jsonify.make_json_response(ycdl.jsonify.channel(channel))
+    return jsonify.make_json_response(channel.jsonify())
 
 @site.route('/refresh_all_channels', methods=['POST'])
 def post_refresh_all_channels():
