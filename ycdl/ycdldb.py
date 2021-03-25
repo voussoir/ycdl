@@ -130,7 +130,8 @@ class YCDLDBChannelMixin:
         }
         self.sql_insert(table='channels', data=data)
 
-        channel = self.get_cached_instance('channel', data)
+        channel = objects.Channel(self, data)
+        self.caches['channel'][channel_id] = channel
 
         if get_videos:
             channel.refresh(commit=False)
@@ -456,7 +457,10 @@ class YCDLDBVideoMixin:
             self.log.loud('Inserting Video %s.', video.id)
             self.sql_insert(table='videos', data=data)
 
-        video = self.get_cached_instance('video', data)
+        # Override the cached copy with the new copy so that the cache contains
+        # updated information (view counts etc.).
+        video = objects.Video(self, data)
+        self.caches['video'][video.id] = video
 
         if commit:
             self.commit()
