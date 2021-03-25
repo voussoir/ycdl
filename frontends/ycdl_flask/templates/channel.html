@@ -208,7 +208,7 @@ https://stackoverflow.com/a/35153397
         >
             <img class="video_thumbnail" loading="lazy" src="http://i3.ytimg.com/vi/{{video.id}}/default.jpg" height="100px">
             <div class="video_details">
-            <a class="video_title" href="https://www.youtube.com/watch?v={{video.id}}">{{video._published_str}} - {{video.title}}</a>
+            <a class="video_title" href="https://www.youtube.com/watch?v={{video.id}}">{{video.published_string}} - {{video.title}}</a>
             <span>({{video.duration | seconds_to_hms}})</span>
             <span>({{video.views}})</span>
             {% if channel is none %}

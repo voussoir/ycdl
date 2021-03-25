@@ -1,3 +1,5 @@
+import datetime
+
 from . import constants
 from . import exceptions
 from . import ytrss
@@ -221,3 +223,10 @@ class Video(Base):
 
         if commit:
             self.ycdldb.commit()
+
+    @property
+    def published_string(self):
+        published = self.published
+        published = datetime.datetime.utcfromtimestamp(published)
+        published = published.strftime('%Y-%m-%d')
+        return published

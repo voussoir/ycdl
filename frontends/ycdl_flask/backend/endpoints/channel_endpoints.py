@@ -1,4 +1,3 @@
-import datetime
 import flask; from flask import request
 import itertools
 import traceback
@@ -56,12 +55,6 @@ def get_channel(channel_id=None, state=None):
             pass
 
     videos = list(videos)
-
-    for video in videos:
-        published = video.published
-        published = datetime.datetime.utcfromtimestamp(published)
-        published = published.strftime('%Y %m %d')
-        video._published_str = published
 
     all_states = common.ycdldb.get_all_states()
 
