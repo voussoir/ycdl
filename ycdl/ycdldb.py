@@ -310,14 +310,17 @@ class YCDLDBVideoMixin:
         Create the queuefile within the channel's associated directory, or
         the default directory from the config file.
         '''
-        if isinstance(video, ytapi.Video):
-            video_id = video.id
+        if isinstance(video, objects.Video):
+            pass
+        elif isinstance(video, ytapi.Video):
+            video = self.get_video(video.id)
+        elif isinstance(video, str):
+            video = self.get_video(video)
         else:
-            video_id = video
+            raise TypeError(video)
 
-        video = self.get_video(video_id)
         if video.state != 'pending' and not force:
-            self.log.debug('%s does not need to be downloaded.', video_id)
+            self.log.debug('%s does not need to be downloaded.', video.id)
             return
 
         try:
@@ -328,12 +331,12 @@ class YCDLDBVideoMixin:
             download_directory = self.config['download_directory']
             extension = self.config['queuefile_extension']
 
-        self.log.info('Creating queuefile for %s.', video_id)
+        self.log.info('Creating queuefile for %s.', video.id)
 
         download_directory = pathclass.Path(download_directory)
         download_directory.makedirs(exist_ok=True)
 
-        queuefile = download_directory.with_child(video_id).replace_extension(extension)
+        queuefile = download_directory.with_child(video.id).replace_extension(extension)
         queuefile.touch()
 
         video.mark_state('downloaded', commit=False)
