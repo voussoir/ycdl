@@ -418,9 +418,10 @@ class YCDLDBVideoMixin:
             return status
 
         if author.automark == 'downloaded':
+            # download_video contains a call to mark_state.
             self.download_video(video.id, commit=False)
-
-        video.mark_state(author.automark, commit=False)
+        else:
+            video.mark_state(author.automark, commit=False)
 
         if commit:
             self.commit()
