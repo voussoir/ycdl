@@ -6,36 +6,100 @@ import sys
 import bot
 import ycdl
 
+class Migrator:
+    '''
+    Many of the upgraders involve adding columns. ALTER TABLE ADD COLUMN only
+    allows adding at the end, which I usually don't prefer. In order to add a
+    column in the middle, you must rename the table, create a new one, transfer
+    the data, and drop the old one. But, foreign keys and indices will still
+    point to the old table, which causes broken foreign keys and dropped
+    indices. So, the only way to prevent all that is to regenerate all affected
+    tables and indices. Rather than parsing relationships to determine the
+    affected tables, this implementation just regenerates everything.
+
+    It's kind of horrible but it allows me to have the columns in the order I
+    want instead of just always appending. Besides, modifying collations cannot
+    be done in-place either.
+
+    If you want to truly remove a table or index and not have it get
+    regenerated, just do that before instantiating the Migrator.
+    '''
+    def __init__(self, ycdldb):
+        self.ycdldb = ycdldb
+
+        query = 'SELECT name, sql FROM sqlite_master WHERE type == "table"'
+        self.tables = {
+            name: {'create': sql, 'transfer': f'INSERT INTO {name} SELECT * FROM {name}_old'}
+            for (name, sql) in self.ycdldb.sql_select(query)
+        }
+
+        # The user may be adding entirely new tables derived from the data of
+        # old ones. We'll need to skip new tables for the rename and drop_old
+        # steps. So we track which tables already existed at the beginning.
+        self.existing_tables = set(self.tables)
+
+        query = 'SELECT name, sql FROM sqlite_master WHERE type == "index" AND name NOT LIKE "sqlite_%"'
+        self.indices = list(self.ycdldb.sql_select(query))
+
+    def go(self):
+        # This loop is split in many parts, because otherwise if table A
+        # references table B and table A is completely reconstructed, it will
+        # be pointing to the version of B which has not been reconstructed yet,
+        # which is about to get renamed to B_old and then A's reference will be
+        # broken.
+        self.ycdldb.sql_execute('PRAGMA foreign_keys = OFF')
+        self.ycdldb.sql_execute('BEGIN')
+        for (name, table) in self.tables.items():
+            if name not in self.existing_tables:
+                continue
+            self.ycdldb.sql_execute(f'ALTER TABLE {name} RENAME TO {name}_old')
+
+        for (name, table) in self.tables.items():
+            self.ycdldb.sql_execute(table['create'])
+
+        for (name, table) in self.tables.items():
+            self.ycdldb.sql_execute(table['transfer'])
+
+        for (name, query) in self.tables.items():
+            if name not in self.existing_tables:
+                continue
+            self.ycdldb.sql_execute(f'DROP TABLE {name}_old')
+
+        for (name, query) in self.indices:
+            self.ycdldb.sql_execute(query)
+
 def upgrade_1_to_2(ycdldb):
     '''
     In this version, the `duration` column was added to the videos table.
     '''
-    ycdldb.sql.execute('ALTER TABLE videos RENAME TO videos_old')
-    ycdldb.sql.execute('''
-        CREATE TABLE videos(
-            id TEXT,
-            published INT,
-            author_id TEXT,
-            title TEXT,
-            description TEXT,
-            duration INT,
-            thumbnail TEXT,
-            download TEXT
-        )
-    ''')
-    ycdldb.sql.execute('''
-        INSERT INTO videos SELECT
-            id,
-            published,
-            author_id,
-            title,
-            description,
-            NULL,
-            thumbnail,
-            download
-        FROM videos_old
-    ''')
-    ycdldb.sql.execute('DROP TABLE videos_old')
+    m = Migrator(ycdldb)
+
+    m.tables['videos']['create'] = '''
+    CREATE TABLE videos(
+        id TEXT,
+        published INT,
+        author_id TEXT,
+        title TEXT,
+        description TEXT,
+        duration INT,
+        thumbnail TEXT,
+        download TEXT
+    );
+    '''
+    m.tables['videos']['transfer'] = '''
+    INSERT INTO videos SELECT
+        id,
+        published,
+        author_id,
+        title,
+        description,
+        NULL,
+        thumbnail,
+        download
+    FROM videos_old;
+    '''
+
+    m.go()
 
 def upgrade_2_to_3(ycdldb):
     '''
@@ -48,59 +112,63 @@ def upgrade_3_to_4(ycdldb):
     '''
     In this version, the `views` column was added to the videos table.
     '''
-    ycdldb.sql.execute('ALTER TABLE videos RENAME TO videos_old')
-    ycdldb.sql.execute('''
-        CREATE TABLE videos(
-            id TEXT,
-            published INT,
-            author_id TEXT,
-            title TEXT,
-            description TEXT,
-            duration INT,
-            views INT,
-            thumbnail TEXT,
-            download TEXT
-        )
-    ''')
-    ycdldb.sql.execute('''
-        INSERT INTO videos SELECT
-            id,
-            published,
-            author_id,
-            title,
-            description,
-            duration,
-            NULL,
-            thumbnail,
-            download
-        FROM videos_old
-    ''')
-    ycdldb.sql.execute('DROP TABLE videos_old')
+    m = Migrator(ycdldb)
+
+    m.tables['videos']['create'] = '''
+    CREATE TABLE videos(
+        id TEXT,
+        published INT,
+        author_id TEXT,
+        title TEXT,
+        description TEXT,
+        duration INT,
+        views INT,
+        thumbnail TEXT,
+        download TEXT
+    );
+    '''
+    m.tables['videos']['transfer'] = '''
+    INSERT INTO videos SELECT
+        id,
+        published,
+        author_id,
+        title,
+        description,
+        duration,
+        NULL,
+        thumbnail,
+        download
+    FROM videos_old;
+    '''
+
+    m.go()
 
 def upgrade_4_to_5(ycdldb):
     '''
     In this version, the `uploads_playlist` column was added to the channels table.
     '''
-    ycdldb.sql.execute('ALTER TABLE channels RENAME TO channels_old')
-    ycdldb.sql.execute('''
-        CREATE TABLE channels(
-            id TEXT,
-            name TEXT,
-            uploads_playlist TEXT,
-            directory TEXT COLLATE NOCASE,
-            automark TEXT
-        )
-    ''')
-    ycdldb.sql.execute('''
-        INSERT INTO channels SELECT
-            id,
-            name,
-            NULL,
-            directory,
-            automark
-        FROM channels_old
-    ''')
-    ycdldb.sql.execute('DROP TABLE channels_old')
+    m = Migrator(ycdldb)
+
+    m.tables['channels']['create'] = '''
+    CREATE TABLE channels(
+        id TEXT,
+        name TEXT,
+        uploads_playlist TEXT,
+        directory TEXT COLLATE NOCASE,
+        automark TEXT
+    );
+    '''
+    m.tables['channels']['transfer'] = '''
+    INSERT INTO channels SELECT
+        id,
+        name,
+        NULL,
+        directory,
+        automark
+    FROM channels_old;
+    '''
+
+    m.go()
 
     rows = ycdldb.sql.execute('SELECT id FROM channels').fetchall()
     channels = [row[0] for row in rows]
@@ -121,28 +189,30 @@ def upgrade_5_to_6(ycdldb):
     to `download_directory` to be in line with the default config's name for
     the same value, and the `queuefile_extension` column was added.
     '''
-    ycdldb.sql.execute('ALTER TABLE channels RENAME TO channels_old')
-    ycdldb.sql.execute('''
-        CREATE TABLE channels(
-            id TEXT,
-            name TEXT,
-            uploads_playlist TEXT,
-            download_directory TEXT COLLATE NOCASE,
-            queuefile_extension TEXT COLLATE NOCASE,
-            automark TEXT
-        )
-    ''')
-    ycdldb.sql.execute('''
-        INSERT INTO channels SELECT
-            id,
-            name,
-            uploads_playlist,
-            directory,
-            NULL,
-            automark
-        FROM channels_old
-    ''')
-    ycdldb.sql.execute('DROP TABLE channels_old')
+    m = Migrator(ycdldb)
+
+    m.tables['channels']['create'] = '''
+    CREATE TABLE channels(
+        id TEXT,
+        name TEXT,
+        uploads_playlist TEXT,
+        download_directory TEXT COLLATE NOCASE,
+        queuefile_extension TEXT COLLATE NOCASE,
+        automark TEXT
+    );
+    '''
+    m.tables['channels']['transfer'] = '''
+    INSERT INTO channels SELECT
+        id,
+        name,
+        uploads_playlist,
+        directory,
+        NULL,
+        automark
+    FROM channels_old;
+    '''
+
+    m.go()
 
 def upgrade_6_to_7(ycdldb):
     '''
@@ -203,7 +273,7 @@ def upgrade_all(data_directory):
         upgrade_function = eval(upgrade_function)
 
         try:
-            ycdldb.sql.execute('BEGIN')
+            ycdldb.sql.execute('PRAGMA foreign_keys = ON')
             upgrade_function(ycdldb)
         except Exception as exc:
             ycdldb.rollback()
