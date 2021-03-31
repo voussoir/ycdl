@@ -93,6 +93,15 @@ class YCDLDBCacheManagerMixin:
         thing_cache[thing_id] = thing
         return thing
 
+    def get_things_by_sql(self, thing_type, query, bindings=None):
+        '''
+        Use an arbitrary SQL query to select things from the database.
+        Your query select *, all the columns of the thing's table.
+        '''
+        thing_rows = self.sql_select(query, bindings)
+        for thing_row in thing_rows:
+            yield self.get_cached_instance(thing_type, thing_row)
+
 class YCDLDBChannelMixin:
     def __init__(self):
         super().__init__()
@@ -149,6 +158,9 @@ class YCDLDBChannelMixin:
         channels = [self.get_cached_instance('channel', row) for row in rows]
         channels.sort(key=lambda c: c.name.lower())
         return channels
+
+    def get_channels_by_sql(self, query, bindings=None):
+        return self.get_things_by_sql('channel', query, bindings)
 
     def _rss_assisted_refresh(self, skip_failures=False, commit=True):
         '''
@@ -388,6 +400,9 @@ class YCDLDBVideoMixin:
         rows = self.sql_select(query, bindings)
         for row in rows:
             yield self.get_cached_instance('video', row)
+
+    def get_videos_by_sql(self, query, bindings=None):
+        return self.get_things_by_sql('video', query, bindings)
 
     def insert_playlist(self, playlist_id, commit=True):
         video_generator = self.youtube.get_playlist_videos(playlist_id)
