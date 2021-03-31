@@ -138,6 +138,7 @@ class Youtube:
             ).execute()
             items = data['items']
             self.log.debug('Got %d snippets.', len(items))
+            self.log.loud(items)
             snippets.extend(items)
 
         videos = []
