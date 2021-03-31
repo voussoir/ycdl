@@ -73,9 +73,8 @@ class Channel(Base):
     def refresh(self, *, force=False, rss_assisted=True, commit=True):
         self.ycdldb.log.info('Refreshing %s.', self.id)
 
-        if not self.uploads_playlist:
-            self.uploads_playlist = self.ycdldb.youtube.get_user_uploads_playlist_id(self.id)
-            self.set_uploads_playlist_id(self.uploads_playlist)
+        if force or (not self.uploads_playlist):
+            self.reset_uploads_playlist_id()
 
         if force or not rss_assisted:
             video_generator = self.ycdldb.youtube.get_playlist_videos(self.uploads_playlist)
@@ -111,6 +110,14 @@ class Channel(Base):
         if commit:
             self.ycdldb.commit()
 
+    def reset_uploads_playlist_id(self):
+        '''
+        Reset the stored uploads_playlist id with current data from the API.
+        '''
+        self.uploads_playlist = self.ycdldb.youtube.get_user_uploads_playlist_id(self.id)
+        self.set_uploads_playlist_id(self.uploads_playlist)
+        return self.uploads_playlist
+
     def set_automark(self, state, commit=True):
         if state not in constants.VIDEO_STATES:
             raise exceptions.InvalidVideoState(state)
@@ -143,6 +150,7 @@ class Channel(Base):
             self.ycdldb.commit()
 
     def set_uploads_playlist_id(self, playlist_id, commit=True):
+        self.ycdldb.log.debug('Setting %s upload playlist to %s.', self.id, playlist_id)
         if not isinstance(playlist_id, str):
             raise TypeError(f'Playlist id must be a string, not {type(playlist_id)}.')
 
