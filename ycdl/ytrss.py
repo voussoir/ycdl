@@ -21,12 +21,20 @@ def _get_user_videos(channel_id):
     return video_ids
 
 def get_user_videos(channel_id):
+    '''
+    Return the list of video ids from the channel.
+    Expect a maximum of 15 results.
+    '''
     try:
         return _get_user_videos(channel_id)
     except Exception:
         raise exceptions.RSSAssistFailed(f'Failed to fetch RSS videos.') from exc
 
 def get_user_videos_since(channel_id, video_id):
+    '''
+    Return the list of video ids that are more recently released than the
+    reference id.
+    '''
     video_ids = get_user_videos(channel_id)
     try:
         index = video_ids.index(video_id)

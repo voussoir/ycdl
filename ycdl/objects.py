@@ -32,6 +32,13 @@ class Channel(Base):
         return f'Channel:{self.id}'
 
     def _rss_assisted_videos(self):
+        '''
+        RSS-assisted refresh will use the channel's RSS feed to find videos
+        that are newer than the most recent video we have in the database.
+        Then, these new videos can be queried using the regular API since the
+        RSS doesn't contain all the attributes we need. This saves us from
+        wasting any metered API calls in the case that the RSS has nothing new.
+        '''
         try:
             most_recent_video = self.get_most_recent_video_id()
         except exceptions.NoVideos as exc:
