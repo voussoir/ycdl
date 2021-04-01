@@ -80,9 +80,7 @@ class Youtube:
         paginator = self._playlist_paginator(playlist_id)
         video_ids = (item['contentDetails']['videoId'] for item in paginator)
         videos = self.get_videos(video_ids)
-        videos.sort(key=lambda x: x.published, reverse=True)
-
-        yield from videos
+        return videos
 
     def get_related_videos(self, video_id, count=50):
         if isinstance(video_id, Video):
@@ -121,15 +119,13 @@ class Youtube:
         yield from self.get_playlist_videos(self.get_user_uploads_playlist_id(uid))
 
     def get_video(self, video_id):
-        videos = self.get_videos([video_id])
-
-        if len(videos) == 1:
-            return videos[0]
-        elif len(videos) == 0:
-            raise VideoNotFound(video_id)
+        try:
+            video = next(self.get_videos([video_id]))
+            return video
+        except StopIteration:
+            raise VideoNotFound(video_id) from None
 
     def get_videos(self, video_ids):
-        snippets = []
         chunks = gentools.chunk_generator(video_ids, 50)
         for chunk in chunks:
             self.log.debug('Requesting batch of %d video ids.', len(chunk))
@@ -139,20 +135,12 @@ class Youtube:
                 part='id,contentDetails,snippet,statistics',
                 id=chunk,
             ).execute()
-            items = data['items']
-            self.log.debug('Got %d snippets.', len(items))
-            self.log.loud(items)
-            snippets.extend(items)
-
-        videos = []
-        broken = []
-        for snippet in snippets:
-            try:
-                videos.append(Video(snippet))
-            except KeyError as exc:
-                print(f'KEYERROR: {exc} not in {snippet}')
-                broken.append(snippet)
-        if broken:
-            # print('broken:', broken)
-            pass
-        return videos
+            snippets = data['items']
+            self.log.debug('Got %d snippets.', len(snippets))
+            self.log.loud(snippets)
+            for snippet in snippets:
+                try:
+                    video = Video(snippet)
+                    yield video
+                except KeyError as exc:
+                    self.log.warning(f'KEYERROR: {exc} not in {snippet}')

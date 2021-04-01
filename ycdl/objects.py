@@ -88,7 +88,8 @@ class Channel(Base):
         else:
             try:
                 video_generator = self._rss_assisted_videos()
-            except exceptions.RSSAssistFailed:
+            except exceptions.RSSAssistFailed as exc:
+                self.ycdldb.log.debug('Caught %s.', exc)
                 video_generator = self.ycdldb.youtube.get_playlist_videos(self.uploads_playlist)
 
         seen_ids = set()
@@ -96,7 +97,7 @@ class Channel(Base):
             seen_ids.add(video.id)
             status = self.ycdldb.ingest_video(video, commit=False)
 
-            if not (force or status['new']):
+            if (not status['new']) and (not force):
                 break
 
         # Now we will refresh some other IDs that may not have been refreshed
