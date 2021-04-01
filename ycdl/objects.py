@@ -99,20 +99,33 @@ class Channel(Base):
             if not (force or status['new']):
                 break
 
+        # Now we will refresh some other IDs that may not have been refreshed
+        # by the previous loop.
+        refresh_ids = set()
+
+        # 1. Videos which have become unlisted, therefore not returned by the
+        # get_playlist_videos call. Take the set of all known ids minus those
+        # refreshed by the earlier  loop, the difference will be unlisted,
+        # private, or deleted videos. At this time we have no special handling
+        # for deleted videos, but they simply won't come back from ytapi.
         if force:
-            # If some videos have become unlisted, then they will not have been
-            # refreshed by the previous loop. So, take the set of all known ids
-            # minus those refreshed by the loop, and try to refresh them.
-            # Of course, it's possible they were deleted.
             known_ids = {v.id for v in self.ycdldb.get_videos(channel_id=self.id)}
-            refresh_ids = list(known_ids.difference(seen_ids))
-            if refresh_ids:
-                self.ycdldb.log.debug(
-                    '%d ids did not come back from the generator, fetching them separately.',
-                    len(refresh_ids),
-                )
-            for video in self.ycdldb.youtube.get_videos(refresh_ids):
-                self.ycdldb.insert_video(video, commit=False)
+            refresh_ids.update(known_ids.difference(seen_ids))
+
+        # 2. Premieres or live events which may now be over but were not
+        # included in the requested batch of IDs because they are not the most
+        # recent.
+        query = 'SELECT * FROM videos WHERE live_broadcast IS NOT NULL'
+        videos = self.ycdldb.get_videos_by_sql(query)
+        refresh_ids.update(v.id for v in videos)
+
+        if refresh_ids:
+            self.ycdldb.log.debug('Refreshing %d ids separately.', len(refresh_ids))
+
+        # We call ingest_video instead of insert_video so that
+        # premieres / livestreams which have finished can be automarked.
+        for video_id in self.ycdldb.youtube.get_videos(refresh_ids):
+            self.ycdldb.ingest_video(video_id, commit=False)
 
         if commit:
             self.ycdldb.commit()
@@ -186,6 +199,7 @@ class Video(Base):
         self.duration = db_row['duration']
         self.views = db_row['views']
         self.thumbnail = db_row['thumbnail']
+        self.live_broadcast = db_row['live_broadcast']
         self.state = db_row['state']
 
     def __repr__(self):

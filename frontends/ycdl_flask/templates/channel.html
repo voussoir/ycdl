@@ -226,6 +226,7 @@ https://stackoverflow.com/a/35153397
                 onclick="return action_button_passthrough(event, api.videos.mark_state, 'pending');"
                 >Revert to Pending</button>
 
+                {% if video.live_broadcast is none %}
                 <button
                 {% if video.state == "pending" %}
                 class="video_action_download"
@@ -234,6 +235,9 @@ https://stackoverflow.com/a/35153397
                 {% endif %}
                 onclick="return action_button_passthrough(event, api.videos.start_download);"
                 >Download</button>
+                {% else %}
+                <button disabled>Video is {{video.live_broadcast}}</button>
+                {% endif %}
 
                 <button
                 {% if video.state == "pending" %}

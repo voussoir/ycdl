@@ -433,6 +433,13 @@ class YCDLDBVideoMixin:
             return status
 
         if author.automark == 'downloaded':
+            if video.live_broadcast is not None:
+                self.log.debug(
+                    'Not downloading %s because live_broadcast=%s.',
+                    video.id,
+                    video.live_broadcast,
+                )
+                return status
             # download_video contains a call to mark_state.
             self.download_video(video.id, commit=False)
         else:
@@ -452,9 +459,11 @@ class YCDLDBVideoMixin:
 
         try:
             existing = self.get_video(video.id)
+            existing_live_broadcast = existing.live_broadcast
             download_status = existing.state
         except exceptions.NoSuchVideo:
             existing = None
+            existing_live_broadcast = None
             download_status = 'pending'
 
         data = {
@@ -466,6 +475,7 @@ class YCDLDBVideoMixin:
             'duration': video.duration,
             'views': video.views,
             'thumbnail': video.thumbnail['url'],
+            'live_broadcast': video.live_broadcast,
             'state': download_status,
         }
 
@@ -484,7 +494,16 @@ class YCDLDBVideoMixin:
         if commit:
             self.commit()
 
-        return {'new': not existing, 'video': video}
+        # For the benefit of ingest_video, which will only apply the channel's
+        # automark to newly released videos, let's consider the video to be
+        # new if live_broadcast has changed to be None since last time.
+        # This way, premieres and livestreams can be automarked by the next
+        # refresh after they've ended.
+        is_new = (
+            (existing is None) or
+            (existing_live_broadcast is not None and video.live_broadcast is None)
+        )
+        return {'new': is_new, 'video': video}
 
 class YCDLDB(
         YCDLDBCacheManagerMixin,

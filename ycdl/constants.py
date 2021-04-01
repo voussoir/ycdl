@@ -1,6 +1,6 @@
 from voussoirkit import sqlhelpers
 
-DATABASE_VERSION = 8
+DATABASE_VERSION = 9
 DB_VERSION_PRAGMA = f'''
 PRAGMA user_version = {DATABASE_VERSION};
 '''
@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS videos(
     duration INT,
     views INT,
     thumbnail TEXT,
+    live_broadcast TEXT,
     state TEXT
 );
 

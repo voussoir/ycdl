@@ -249,6 +249,43 @@ def upgrade_7_to_8(ycdldb):
     # Redundant due to (state, published)
     ycdldb.sql.execute('DROP INDEX IF EXISTS index_video_state')
 
+def upgrade_8_to_9(ycdldb):
+    '''
+    In this version, the `live_broadcast` column was added to the videos table.
+    '''
+    m = Migrator(ycdldb)
+
+    m.tables['videos']['create'] = '''
+    CREATE TABLE IF NOT EXISTS videos(
+        id TEXT,
+        published INT,
+        author_id TEXT,
+        title TEXT,
+        description TEXT,
+        duration INT,
+        views INT,
+        thumbnail TEXT,
+        live_broadcast TEXT,
+        state TEXT
+    );
+    '''
+    m.tables['videos']['transfer'] = '''
+    INSERT INTO videos SELECT
+        id,
+        published,
+        author_id,
+        title,
+        description,
+        duration,
+        views,
+        thumbnail,
+        NULL,
+        state
+    FROM videos_old;
+    '''
+
+    m.go()
+
 def upgrade_all(data_directory):
     '''
     Given the directory containing a ycdl database, apply all of the

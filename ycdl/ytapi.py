@@ -32,6 +32,9 @@ class Video:
         # Something like '2016-10-01T21:00:01'
         self.published_string = snippet['publishedAt']
         self.published = isodate.parse_datetime(self.published_string).timestamp()
+        self.live_broadcast = snippet['liveBroadcastContent']
+        if self.live_broadcast == 'none':
+            self.live_broadcast = None
         self.tags = snippet.get('tags', [])
 
         self.duration = isodate.parse_duration(content_details['duration']).seconds
