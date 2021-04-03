@@ -1,6 +1,6 @@
 '''
 Do not execute this file directly.
-Use ycdl_flask_launch.py to start the server with gevent.
+Use ycdl_flask_dev.py or ycdl_flask_prod.py.
 '''
 import flask; from flask import request
 import gzip
