@@ -283,7 +283,7 @@ class YCDLSQLMixin:
         if bindings is None:
             bindings = []
         cur = self.sql.cursor()
-        #self.log.log(1, f'{query} {bindings}')
+        self.log.loud('%s %s', query, bindings)
         cur.execute(query, bindings)
         return cur
 
