@@ -27,7 +27,7 @@ def get_user_videos(channel_id):
     '''
     try:
         return _get_user_videos(channel_id)
-    except Exception:
+    except Exception as exc:
         raise exceptions.RSSAssistFailed(f'Failed to fetch RSS videos.') from exc
 
 def get_user_videos_since(channel_id, video_id):
