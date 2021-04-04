@@ -29,6 +29,7 @@ class Video:
         self.description = snippet.get('description', '')
         self.author_id = snippet['channelId']
         self.author_name = snippet.get('channelTitle', self.author_id)
+
         # Something like '2016-10-01T21:00:01'
         self.published_string = snippet['publishedAt']
         self.published = isodate.parse_datetime(self.published_string).timestamp()
@@ -37,6 +38,7 @@ class Video:
             self.live_broadcast = None
         self.tags = snippet.get('tags', [])
 
+        # Something like 'PT10M25S'
         self.duration = isodate.parse_duration(content_details['duration']).seconds
         self.views = int_none(statistics.get('viewCount', None))
         self.likes = int_none(statistics.get('likeCount', 0))

@@ -1,5 +1,12 @@
+# For parsing RSS
 bs4
+
+# For running the webserver
 flask
 gevent
-https://github.com/voussoir/else/raw/master/_voussoirkit/voussoirkit.zip
+
+# For parsing Youtube API's published dates and duration strings
 isodate
+
+# My own variety toolkit
+https://github.com/voussoir/else/raw/master/_voussoirkit/voussoirkit.zip

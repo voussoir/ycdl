@@ -56,6 +56,8 @@ def after_request(response):
 ####################################################################################################
 ####################################################################################################
 
+# These functions will be called by the launcher, flask_dev, flask_prod.
+
 def init_ycdldb(*args, **kwargs):
     global ycdldb
     ycdldb = ycdl.ycdldb.YCDLDB(*args, **kwargs)
