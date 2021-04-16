@@ -314,7 +314,7 @@ function filter_video_cards(search_term)
     Apply the search filter textbox by hiding the mismatched cards.
     */
     let count = 0;
-    video_cards = document.getElementById("video_cards");
+    let video_cards = document.getElementById("video_cards");
     video_cards.classList.add("hidden");
     search_term = search_term.toLocaleLowerCase();
     let state_class = "video_card_" + STATE;
