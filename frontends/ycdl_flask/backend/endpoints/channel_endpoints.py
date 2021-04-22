@@ -109,7 +109,7 @@ def post_refresh_channel(channel_id):
 def post_refresh_all_channels():
     force = request.form.get('force', False)
     force = ycdl.helpers.truthystring(force)
-    common.ycdldb.refresh_all_channels(force=force)
+    common.ycdldb.refresh_all_channels(force=force, skip_failures=True)
     return jsonify.make_json_response({})
 
 @site.route('/channel/<channel_id>/set_automark', methods=['POST'])
