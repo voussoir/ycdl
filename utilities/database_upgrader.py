@@ -3,8 +3,8 @@ import os
 import sqlite3
 import sys
 
-import bot
 import ycdl
+import youtube_credentials
 
 class Migrator:
     '''
@@ -291,7 +291,7 @@ def upgrade_all(data_directory):
     Given the directory containing a ycdl database, apply all of the
     needed upgrade_x_to_y functions in order.
     '''
-    youtube = ycdl.ytapi.Youtube(bot.get_youtube_key())
+    youtube = ycdl.ytapi.Youtube(youtube_credentials.get_youtube_key())
     ycdldb = ycdl.ycdldb.YCDLDB(youtube, data_directory, skip_version_check=True)
 
     cur = ycdldb.sql.cursor()

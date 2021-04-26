@@ -37,7 +37,7 @@ The reason for this is that youtube-dl is extremely configurable. Every user mig
 
 ## Your API key
 
-You are responsible for your own `bot.py` file, with a function `get_youtube_key`. YCDL will `import bot` and call `bot.get_youtube_key()` with no arguments. It should return a Youtube API key. Here is how to get one:
+You are responsible for your own `youtube_credentials.py` file on your PYTHONPATH, with a function `get_youtube_key`. YCDL will `import youtube_credentials` and call `youtube_credentials.get_youtube_key()` with no arguments. It should return a Youtube API key. Here is how to get one:
 
 1. Go to https://console.developers.google.com/.
 2. Create a project using the menu in the upper left.

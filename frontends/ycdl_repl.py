@@ -6,8 +6,8 @@ import logging
 logging.basicConfig()
 logging.getLogger('ycdl').setLevel(logging.DEBUG)
 
-import bot
 import ycdl
+import youtube_credentials
 
-youtube = ycdl.ytapi.Youtube(bot.get_youtube_key())
+youtube = ycdl.ytapi.Youtube(youtube_credentials.get_youtube_key())
 Y = ycdl.ycdldb.YCDLDB(youtube)

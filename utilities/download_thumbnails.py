@@ -1,10 +1,12 @@
-import bot3 as bot
 import os
 import traceback
-import ycdl
+
 from voussoirkit import downloady
 
-youtube_core = ycdl.ytapi.Youtube(bot.get_youtube_key())
+import ycdl
+import youtube_credentials
+
+youtube_core = ycdl.ytapi.Youtube(youtube_credentials.get_youtube_key())
 ycdldb = ycdl.ycdldb.YCDLDB(youtube_core)
 
 DIRECTORY = '.\\youtube thumbnails'

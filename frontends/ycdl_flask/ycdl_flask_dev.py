@@ -20,8 +20,8 @@ import sys
 from voussoirkit import pathclass
 from voussoirkit import vlogging
 
-import bot
 import ycdl
+import youtube_credentials
 import backend
 
 site = backend.site
@@ -61,7 +61,7 @@ def ycdl_flask_launch(
     if localhost_only:
         site.localhost_only = True
 
-    youtube_core = ycdl.ytapi.Youtube(bot.get_youtube_key())
+    youtube_core = ycdl.ytapi.Youtube(youtube_credentials.get_youtube_key())
     backend.common.init_ycdldb(youtube_core, create=create, log_level=LOG_LEVEL)
     ycdl.ytrss.log.setLevel(LOG_LEVEL)
 
