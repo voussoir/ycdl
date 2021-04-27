@@ -47,6 +47,18 @@ You are responsible for your own `youtube_credentials.py` file on your PYTHONPAT
 6. Click "Create credentials" and choose "API key". In my experience they all start with "AIzaSy".
 7. Return this value from `get_youtube_key` however you deem fit.
 
+## Pairs well with...
+
+Here is a javascript bookmarklet that you can click while on youtube.com to be redirected to the same URL on your YCDL server. Mainly for `/channel` and `/watch` URLs.
+
+```Javascript
+javascript:
+document.location = document.location.href.replace('https://www.youtube.com', 'http://localhost:5000');
+false;
+```
+
+Replace 5000 with the port on which you choose to run YCDL.
+
 ## Screenshots
 
 ![2020-04-04_15-27-15](https://user-images.githubusercontent.com/7299570/78462830-ca4f9900-768a-11ea-98c9-a4e622d3da62.png)
