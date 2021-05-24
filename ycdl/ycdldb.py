@@ -343,12 +343,12 @@ class YCDLDBVideoMixin:
             download_directory = self.config['download_directory']
             extension = self.config['queuefile_extension']
 
-        self.log.info('Creating queuefile for %s.', video.id)
-
         download_directory = pathclass.Path(download_directory)
-        download_directory.makedirs(exist_ok=True)
-
         queuefile = download_directory.with_child(video.id).replace_extension(extension)
+
+        self.log.info('Creating %s.', queuefile.absolute_path)
+
+        download_directory.makedirs(exist_ok=True)
         queuefile.touch()
 
         video.mark_state('downloaded', commit=False)
