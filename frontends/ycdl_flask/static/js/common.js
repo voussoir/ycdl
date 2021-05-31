@@ -85,14 +85,19 @@ function _request(method, url, callback)
     */
     const request = new XMLHttpRequest();
     const response = {
-        "meta": {"completed": false, "status": 0},
+        "meta": {
+            "completed": false,
+            "status": 0,
+            "json_ok": false,
+            "request_url": url,
+        },
     };
 
     request.onreadystatechange = function()
     {
         /*
         readystate values:
-        0 UNSENT
+        0 UNSENT / ABORTED
         1 OPENED
         2 HEADERS_RECEIVED
         3 LOADING
@@ -105,7 +110,6 @@ function _request(method, url, callback)
             {return;}
 
         response.meta.status = request.status;
-        response.meta.request_url = url;
 
         if (request.status != 0)
         {
@@ -132,6 +136,7 @@ function get(url, callback)
 {
     request = common._request("GET", url, callback);
     request.send();
+    return request;
 }
 
 common.post =
@@ -142,6 +147,21 @@ function post(url, data, callback)
     */
     request = common._request("POST", url, callback);
     request.send(data);
+    return request;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// STRING TOOLS ////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+common.join_and_trail =
+function join_and_trail(l, s)
+{
+    if (l.length === 0)
+    {
+        return "";
+    }
+    return l.join(s) + s
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
