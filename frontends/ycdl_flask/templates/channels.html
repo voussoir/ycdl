@@ -17,8 +17,7 @@
 {
     width: 200px;
 }
-.channel_card_no_pending,
-.channel_card_pending
+.channel_card
 {
     margin: 8px 0;
     padding: 10px;
@@ -50,9 +49,9 @@
     <div id="channels">
     {% for channel in channels|sort(attribute='name', case_sensitive=False) %}
     {% if channel.has_pending() %}
-    <div class="channel_card_pending">
+    <div class="channel_card channel_card_pending">
     {% else %}
-    <div class="channel_card_no_pending">
+    <div class="channel_card channel_card_no_pending">
     {% endif %}
         <a href="/channel/{{channel.id}}">{{channel.name}}</a> <a href="/channel/{{channel.id}}/pending">(p)</a>
         {% if channel.automark not in [none, "pending"] %}
