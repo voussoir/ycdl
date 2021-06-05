@@ -17,17 +17,25 @@
 {
     width: 200px;
 }
+
+#channel_list
+{
+    display: grid;
+    grid-row-gap: 8px;
+}
+
 .channel_card
 {
-    margin: 8px 0;
     padding: 10px;
     border-radius: 4px;
     border: 1px solid black;
 }
+
 .channel_card_pending
 {
     background-color: #ffffaa;
 }
+
 .channel_card_no_pending
 {
     background-color: #aaffaa;
@@ -46,7 +54,7 @@
         <button id="new_channel_button" class="button_with_spinner" onclick="return add_channel_form();">Add new channel</button>
     </div>
 
-    <div id="channels">
+    <div id="channel_list">
     {% for channel in channels|sort(attribute='name', case_sensitive=False) %}
     {% if channel.has_pending() %}
     <div class="channel_card channel_card_pending">
