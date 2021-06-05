@@ -48,7 +48,7 @@
     </div>
 
     <div id="channels">
-    {% for channel in channels %}
+    {% for channel in channels|sort(attribute='name', case_sensitive=False) %}
     {% if channel.has_pending() %}
     <div class="channel_card_pending">
     {% else %}

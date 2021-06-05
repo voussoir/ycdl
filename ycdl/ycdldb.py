@@ -93,6 +93,19 @@ class YCDLDBCacheManagerMixin:
         thing_cache[thing_id] = thing
         return thing
 
+    def get_things(self, thing_type):
+        '''
+        Yield things, unfiltered, in whatever order they appear in the database.
+        '''
+        thing_map = self._THING_CLASSES[thing_type]
+        table = thing_map['class'].table
+        query = f'SELECT * FROM {table}'
+
+        things = self.sql_select(query)
+        for thing_row in things:
+            thing = self.get_cached_instance(thing_type, thing_row)
+            yield thing
+
     def get_things_by_sql(self, thing_type, query, bindings=None):
         '''
         Use an arbitrary SQL query to select things from the database.
@@ -153,11 +166,7 @@ class YCDLDBChannelMixin:
         return self.get_thing_by_id('channel', channel_id)
 
     def get_channels(self):
-        query = 'SELECT * FROM channels'
-        rows = self.sql_select(query)
-        channels = [self.get_cached_instance('channel', row) for row in rows]
-        channels.sort(key=lambda c: c.name.lower())
-        return channels
+        return self.get_things(thing_type='channel')
 
     def get_channels_by_sql(self, query, bindings=None):
         return self.get_things_by_sql('channel', query, bindings)
