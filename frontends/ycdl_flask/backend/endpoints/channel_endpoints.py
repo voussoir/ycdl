@@ -9,6 +9,12 @@ from .. import jsonify
 
 site = common.site
 
+@site.route('/all_channels.json')
+def get_all_channel_names():
+    all_channels = {channel.id: channel.name for channel in common.ycdldb.get_channels()}
+    response = {'channels': all_channels}
+    return jsonify.make_json_response(response)
+
 @site.route('/channels')
 def get_channels():
     channels = common.ycdldb.get_channels()
