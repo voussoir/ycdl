@@ -2,6 +2,8 @@ import flask; from flask import request
 import itertools
 import traceback
 
+from voussoirkit import flasktools
+
 import ycdl
 
 from .. import common
@@ -13,7 +15,7 @@ site = common.site
 def get_all_channel_names():
     all_channels = {channel.id: channel.name for channel in common.ycdldb.get_channels()}
     response = {'channels': all_channels}
-    return jsonify.make_json_response(response)
+    return flasktools.make_json_response(response)
 
 @site.route('/channels')
 def get_channels():
@@ -84,20 +86,20 @@ def post_add_channel():
         try:
             channel_id = common.ycdldb.youtube.get_user_id(username=channel_id)
         except ycdl.ytapi.ChannelNotFound:
-            return jsonify.make_json_response({}, status=404)
+            return flasktools.make_json_response({}, status=404)
 
     channel = common.ycdldb.add_channel(channel_id, get_videos=True)
-    return jsonify.make_json_response(channel.jsonify())
+    return flasktools.make_json_response(channel.jsonify())
 
 @site.route('/channel/<channel_id>/delete', methods=['POST'])
 def post_delete_channel(channel_id):
     try:
         channel = common.ycdldb.get_channel(channel_id)
     except ycdl.exceptions.NoSuchChannel as exc:
-        return jsonify.make_json_response(exc.jsonify(), status=404)
+        return flasktools.make_json_response(exc.jsonify(), status=404)
 
     channel.delete()
-    return jsonify.make_json_response({})
+    return flasktools.make_json_response({})
 
 @site.route('/channel/<channel_id>/refresh', methods=['POST'])
 def post_refresh_channel(channel_id):
@@ -106,17 +108,17 @@ def post_refresh_channel(channel_id):
     try:
         channel = common.ycdldb.get_channel(channel_id)
     except ycdl.exceptions.NoSuchChannel as exc:
-        return jsonify.make_json_response(exc.jsonify(), status=404)
+        return flasktools.make_json_response(exc.jsonify(), status=404)
 
     channel.refresh(force=force)
-    return jsonify.make_json_response(channel.jsonify())
+    return flasktools.make_json_response(channel.jsonify())
 
 @site.route('/refresh_all_channels', methods=['POST'])
 def post_refresh_all_channels():
     force = request.form.get('force', False)
     force = ycdl.helpers.truthystring(force)
     common.ycdldb.refresh_all_channels(force=force, skip_failures=True)
-    return jsonify.make_json_response({})
+    return flasktools.make_json_response({})
 
 @site.route('/channel/<channel_id>/set_automark', methods=['POST'])
 def post_set_automark(channel_id):
@@ -128,7 +130,7 @@ def post_set_automark(channel_id):
     except ycdl.exceptions.InvalidVideoState:
         flask.abort(400)
 
-    return jsonify.make_json_response({})
+    return flasktools.make_json_response({})
 
 @site.route('/channel/<channel_id>/set_queuefile_extension', methods=['POST'])
 def post_set_queuefile_extension(channel_id):
@@ -137,4 +139,4 @@ def post_set_queuefile_extension(channel_id):
 
     channel.set_queuefile_extension(extension)
 
-    return jsonify.make_json_response({})
+    return flasktools.make_json_response({})
