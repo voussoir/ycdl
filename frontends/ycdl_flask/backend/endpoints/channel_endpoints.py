@@ -7,7 +7,6 @@ from voussoirkit import flasktools
 import ycdl
 
 from .. import common
-from .. import jsonify
 
 site = common.site
 
