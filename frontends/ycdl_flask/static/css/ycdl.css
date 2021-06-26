@@ -1,5 +1,7 @@
 :root
 {
+    --color_primary: white;
+
     --color_text_normal: black;
     --color_text_link: blue;
     --color_text_bubble: var(--color_text_normal);
