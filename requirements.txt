@@ -1,3 +1,5 @@
+google-api-python-client
+
 # For parsing RSS
 bs4
 
@@ -9,4 +11,4 @@ gevent
 isodate
 
 # My own variety toolkit
-https://github.com/voussoir/else/raw/master/_voussoirkit/voussoirkit.zip
+voussoirkit
