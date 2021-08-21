@@ -1,7 +1,5 @@
 import json
-import os
 import sqlite3
-import traceback
 
 from . import constants
 from . import exceptions

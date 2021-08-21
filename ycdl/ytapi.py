@@ -4,8 +4,6 @@ import isodate
 from voussoirkit import gentools
 from voussoirkit import vlogging
 
-from . import helpers
-
 def int_none(x):
     if x is None:
         return None
@@ -46,7 +44,8 @@ class Video:
         self.comment_count = int_none(statistics.get('commentCount'))
 
         thumbnails = snippet['thumbnails']
-        best_thumbnail = max(thumbnails, key=lambda x: thumbnails[x]['width'] * thumbnails[x]['height'])
+        ranker = lambda key: thumbnails[key]['width'] * thumbnails[key]['height']
+        best_thumbnail = max(thumbnails, key=ranker)
         self.thumbnail = thumbnails[best_thumbnail]
 
     def __str__(self):

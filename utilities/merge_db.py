@@ -1,5 +1,4 @@
 import argparse
-import os
 import sqlite3
 import sys
 

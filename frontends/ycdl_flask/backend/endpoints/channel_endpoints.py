@@ -1,6 +1,5 @@
 import flask; from flask import request
 import itertools
-import traceback
 
 from voussoirkit import flasktools
 
