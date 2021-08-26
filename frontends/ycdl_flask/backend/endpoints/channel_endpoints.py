@@ -9,6 +9,13 @@ from .. import common
 
 site = common.site
 
+def _get_or_insert_video(video_id):
+    try:
+        video = common.ycdldb.get_video(video_id)
+    except ycdl.exceptions.NoSuchVideo:
+        video = common.ycdldb.insert_video(video_id)['video']
+    return video
+
 @site.route('/all_channels.json')
 def get_all_channel_names():
     all_channels = {channel.id: channel.name for channel in common.ycdldb.get_channels()}
@@ -20,37 +27,14 @@ def get_channels():
     channels = common.ycdldb.get_channels()
     return flask.render_template('channels.html', channels=channels)
 
-@site.route('/videos')
-@site.route('/watch')
-@site.route('/videos/<state>')
-@site.route('/channel/<channel_id>')
-@site.route('/channel/<channel_id>/<state>')
-def get_channel(channel_id=None, state=None):
-    if channel_id is not None:
-        common.ycdldb.add_channel(channel_id)
-        try:
-            channel = common.ycdldb.get_channel(channel_id)
-        except ycdl.exceptions.NoSuchChannel:
-            flask.abort(404)
-    else:
-        channel = None
-
-    orderby = request.args.get('orderby', None)
-
-    video_id = request.args.get('v', '')
-    if video_id:
-        common.ycdldb.insert_video(video_id)
-        videos = [common.ycdldb.get_video(video_id)]
-    else:
-        videos = common.ycdldb.get_videos(
-            channel_id=channel_id,
-            state=state,
-            orderby=orderby,
-        )
-
+def _render_videos_listing(videos, channel, state, orderby):
     search_terms = request.args.get('q', '').lower().strip().replace('+', ' ').split()
     if search_terms:
-        videos = (v for v in videos if all(term in v.title.lower() for term in search_terms))
+        lowered = ((video, video.title.lower()) for video in videos)
+        videos = (
+            video for (video, title) in lowered
+            if all(term in title for term in search_terms)
+        )
 
     limit = request.args.get('limit', None)
     if limit is not None:
@@ -60,7 +44,8 @@ def get_channel(channel_id=None, state=None):
         except ValueError:
             pass
 
-    videos = list(videos)
+    if not isinstance(videos, list):
+        videos = list(videos)
 
     all_states = common.ycdldb.get_all_states()
 
@@ -72,6 +57,48 @@ def get_channel(channel_id=None, state=None):
         orderby=orderby,
         videos=videos,
     )
+
+@site.route('/channel/<channel_id>')
+@site.route('/channel/<channel_id>/<state>')
+def get_channel(channel_id, state=None):
+    try:
+        channel = common.ycdldb.add_channel(channel_id)
+    except ycdl.ytapi.ChannelNotFound:
+        flask.abort(404)
+
+    orderby = request.args.get('orderby', None)
+
+    videos = common.ycdldb.get_videos(
+        channel_id=channel.id,
+        orderby=orderby,
+        state=state,
+    )
+    return _render_videos_listing(videos, channel=channel, state=state, orderby=orderby)
+
+@site.route('/videos')
+@site.route('/videos/<state>')
+def get_videos(state=None):
+    orderby = request.args.get('orderby', None)
+
+    videos = common.ycdldb.get_videos(
+        orderby=orderby,
+        state=state,
+    )
+    return _render_videos_listing(videos, channel=None, state=state, orderby=orderby)
+
+@site.route('/watch')
+def get_watch():
+    video_id = request.args.get('v', '')
+    if not video_id:
+        return flask.redirect('/')
+
+    try:
+        video = _get_or_insert_video(video_id)
+    except ycdl.ytapi.VideoNotFound:
+        flask.abort(404)
+
+    videos = [video]
+    return _render_videos_listing(videos, channel=None, state=None, orderby=None)
 
 @site.route('/add_channel', methods=['POST'])
 def post_add_channel():
