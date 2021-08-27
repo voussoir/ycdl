@@ -4,10 +4,19 @@ from . import constants
 from . import exceptions
 from . import ytrss
 
-def normalize_db_row(db_row, table):
+def normalize_db_row(db_row, table) -> dict:
+    '''
+    Raises KeyError if table is not one of the recognized tables.
+
+    Raises TypeError if db_row is not the right type.
+    '''
+    if isinstance(db_row, dict):
+        return db_row
+
     if isinstance(db_row, (list, tuple)):
-        db_row = dict(zip(constants.SQL_COLUMNS[table], db_row))
-    return db_row
+        return dict(zip(constants.SQL_COLUMNS[table], db_row))
+
+    raise TypeError(f'db_row should be {dict}, {list}, or {tuple}, not {type(db_row)}.')
 
 class Base:
     def __init__(self, ycdldb):
