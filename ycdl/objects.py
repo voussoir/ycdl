@@ -1,4 +1,6 @@
 import datetime
+import typing
+
 
 from . import constants
 from . import exceptions
@@ -34,11 +36,25 @@ class Channel(Base):
         self.name = db_row['name']
         self.uploads_playlist = db_row['uploads_playlist']
         self.download_directory = db_row['download_directory']
-        self.queuefile_extension = db_row['queuefile_extension']
-        self.automark = db_row['automark'] or "pending"
+        self.queuefile_extension = self.normalize_queuefile_extension(db_row['queuefile_extension'])
+        self.automark = db_row['automark'] or 'pending'
 
     def __repr__(self):
         return f'Channel:{self.id}'
+
+    @staticmethod
+    def normalize_queuefile_extension(queuefile_extension) -> typing.Optional[str]:
+        if queuefile_extension is None:
+            return None
+
+        if not isinstance(queuefile_extension, str):
+            raise TypeError(f'queuefile_extension should be {str}, not {type(queuefile_extension)}.')
+
+        queuefile_extension = queuefile_extension.strip()
+        if not queuefile_extension:
+            return None
+
+        return queuefile_extension
 
     def _rss_assisted_videos(self):
         '''
@@ -162,19 +178,16 @@ class Channel(Base):
         if commit:
             self.ycdldb.commit()
 
-    def set_queuefile_extension(self, extension, commit=True):
-        if not extension:
-            extension = None
 
-        if extension is not None:
-            extension = extension.strip()
+    def set_queuefile_extension(self, queuefile_extension, commit=True):
+        queuefile_extension = self.normalize_queuefile_extension(queuefile_extension)
 
         pairs = {
             'id': self.id,
-            'queuefile_extension': extension,
+            'queuefile_extension': queuefile_extension,
         }
         self.ycdldb.sql_update(table='channels', pairs=pairs, where_key='id')
-        self.queuefile_extension = extension
+        self.queuefile_extension = queuefile_extension
 
         if commit:
             self.ycdldb.commit()

@@ -138,6 +138,8 @@ class YCDLDBChannelMixin:
         if download_directory is not None:
             download_directory = pathclass.Path(download_directory).absolute_path
 
+        queuefile_extension = objects.Channel.normalize_queuefile_extension(queuefile_extension)
+
         self.log.info('Adding channel %s %s', channel_id, name)
 
         data = {
