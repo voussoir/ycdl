@@ -603,14 +603,11 @@ function set_automark_form(event)
 
 function set_automark_callback(response)
 {
-    if (response.meta.status == 200)
-    {
-        set_automark_spinner.hide();
-    }
-    else
+    if (response.meta.status != 200)
     {
         alert(JSON.stringify(response));
     }
+    set_automark_spinner.hide();
 }
 
 function set_queuefile_extension_form(event)
@@ -621,14 +618,11 @@ function set_queuefile_extension_form(event)
 
 function set_queuefile_extension_callback(response)
 {
-    if (response.meta.status == 200)
-    {
-        window[set_queuefile_extension_button.dataset.spinnerCloser]();
-    }
-    else
+    if (response.meta.status != 200)
     {
         alert(JSON.stringify(response));
     }
+    window[set_queuefile_extension_button.dataset.spinnerCloser]();
 }
 
 if (CHANNEL_ID)
