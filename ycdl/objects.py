@@ -1,6 +1,7 @@
 import datetime
 import typing
 
+from voussoirkit import pathclass
 
 from . import constants
 from . import exceptions
@@ -35,12 +36,37 @@ class Channel(Base):
         self.id = db_row['id']
         self.name = db_row['name']
         self.uploads_playlist = db_row['uploads_playlist']
-        self.download_directory = db_row['download_directory']
+        self.download_directory = self.normalize_download_directory(
+            db_row['download_directory'],
+            do_assert=False,
+        )
         self.queuefile_extension = self.normalize_queuefile_extension(db_row['queuefile_extension'])
         self.automark = db_row['automark'] or 'pending'
 
     def __repr__(self):
         return f'Channel:{self.id}'
+
+    @staticmethod
+    def normalize_download_directory(
+            download_directory,
+            do_assert=True,
+        ) -> typing.Optional[pathclass.Path]:
+        if download_directory is None:
+            return None
+
+        if not isinstance(download_directory, (str, pathclass.Path)):
+            raise TypeError(f'download_directory should be {str} or {pathclass.Path}, not {type(download_directory)}.')
+
+        if isinstance(download_directory, str):
+            download_directory = download_directory.strip()
+            if not download_directory:
+                return None
+
+        download_directory = pathclass.Path(download_directory)
+        if do_assert:
+            download_directory.assert_is_directory()
+
+        return download_directory
 
     @staticmethod
     def normalize_queuefile_extension(queuefile_extension) -> typing.Optional[str]:
@@ -178,6 +204,18 @@ class Channel(Base):
         if commit:
             self.ycdldb.commit()
 
+    def set_download_directory(self, download_directory, commit=True):
+        download_directory = self.normalize_download_directory(download_directory)
+
+        pairs = {
+            'id': self.id,
+            'download_directory': download_directory.absolute_path if download_directory else None,
+        }
+        self.ycdldb.sql_update(table='channels', pairs=pairs, where_key='id')
+        self.download_directory = download_directory
+
+        if commit:
+            self.ycdldb.commit()
 
     def set_queuefile_extension(self, queuefile_extension, commit=True):
         queuefile_extension = self.normalize_queuefile_extension(queuefile_extension)

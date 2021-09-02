@@ -274,6 +274,11 @@ https://stackoverflow.com/a/35153397
         <button id="set_queuefile_extension_button" class="button_with_spinner" onclick="return set_queuefile_extension_form();">Set extension</button>
     </div>
 
+    <div>
+        <input type="text" id="set_download_directory_input" placeholder="Queuefile directory" value="{{channel.download_directory or ''}}"/>
+        <button id="set_download_directory_button" class="button_with_spinner" onclick="return set_download_directory_form();">Set directory</button>
+    </div>
+
     <div><a href="https://www.youtube.com/feeds/videos.xml?channel_id={{channel.id}}">Channel RSS</a></div>
 
     <button class="red_button button_with_confirm"
@@ -608,6 +613,21 @@ function set_automark_callback(response)
         alert(JSON.stringify(response));
     }
     set_automark_spinner.hide();
+}
+
+function set_download_directory_form(event)
+{
+    const download_directory = set_download_directory_input.value.trim();
+    api.channels.set_download_directory(CHANNEL_ID, download_directory, set_download_directory_callback);
+}
+
+function set_download_directory_callback(response)
+{
+    if (response.meta.status != 200)
+    {
+        alert(JSON.stringify(response));
+    }
+    window[set_download_directory_button.dataset.spinnerCloser]();
 }
 
 function set_queuefile_extension_form(event)

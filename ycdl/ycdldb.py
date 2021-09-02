@@ -135,9 +135,7 @@ class YCDLDBChannelMixin:
         if name is None:
             name = self.youtube.get_user_name(channel_id)
 
-        if download_directory is not None:
-            download_directory = pathclass.Path(download_directory).absolute_path
-
+        download_directory = objects.Channel.normalize_download_directory(download_directory)
         queuefile_extension = objects.Channel.normalize_queuefile_extension(queuefile_extension)
 
         self.log.info('Adding channel %s %s', channel_id, name)
@@ -146,7 +144,7 @@ class YCDLDBChannelMixin:
             'id': channel_id,
             'name': name,
             'uploads_playlist': self.youtube.get_user_uploads_playlist_id(channel_id),
-            'download_directory': download_directory,
+            'download_directory': download_directory.absolute_path if download_directory else None,
             'queuefile_extension': queuefile_extension,
             'automark': "pending",
         }

@@ -2,6 +2,7 @@ import flask; from flask import request
 import itertools
 
 from voussoirkit import flasktools
+from voussoirkit import pathclass
 
 import ycdl
 
@@ -154,6 +155,22 @@ def post_set_automark(channel_id):
         channel.set_automark(state)
     except ycdl.exceptions.InvalidVideoState:
         flask.abort(400)
+
+    return flasktools.make_json_response({})
+
+@site.route('/channel/<channel_id>/set_download_directory', methods=['POST'])
+def post_set_download_directory(channel_id):
+    download_directory = request.form['download_directory']
+    channel = common.ycdldb.get_channel(channel_id)
+
+    try:
+        channel.set_download_directory(download_directory)
+    except pathclass.NotDirectory:
+        exc = {
+            'error_type': 'NOT_DIRECTORY',
+            'error_message': f'"{download_directory}" is not a directory.',
+        }
+        return flasktools.make_json_response(exc, status=400)
 
     return flasktools.make_json_response({})
 

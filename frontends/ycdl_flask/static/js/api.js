@@ -47,6 +47,15 @@ function set_automark(channel_id, state, callback)
     return common.post(url, data, callback);
 }
 
+api.channels.set_download_directory =
+function set_download_directory(channel_id, download_directory, callback)
+{
+    const url = `/channel/${channel_id}/set_download_directory`;
+    const data = new FormData();
+    data.append("download_directory", download_directory);
+    return common.post(url, data, callback);
+}
+
 api.channels.set_queuefile_extension =
 function set_queuefile_extension(channel_id, extension, callback)
 {
