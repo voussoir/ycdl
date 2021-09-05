@@ -17,6 +17,7 @@ import gevent.pywsgi
 import os
 import sys
 
+from voussoirkit import operatornotify
 from voussoirkit import pathclass
 from voussoirkit import vlogging
 
@@ -87,6 +88,7 @@ def ycdl_flask_launch_argparse(args):
         use_https=args.use_https,
     )
 
+@operatornotify.main_decorator(subject='YCDL', notify_every_line=True)
 def main(argv):
     global LOG_LEVEL
     (LOG_LEVEL, argv) = vlogging.get_level_by_argv(argv)
