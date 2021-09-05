@@ -47,6 +47,10 @@ You are responsible for your own `youtube_credentials.py` file on your PYTHONPAT
 6. Click "Create credentials" and choose "API key". In my experience they all start with "AIzaSy".
 7. Return this value from `get_youtube_key` however you deem fit.
 
+## Setting up
+
+First, `pip install -r requirements.txt --upgrade`.
+
 ## Pairs well with...
 
 Here is a javascript bookmarklet that you can click while on youtube.com to be redirected to the same URL on your YCDL server. Mainly for `/channel` and `/watch` URLs.
