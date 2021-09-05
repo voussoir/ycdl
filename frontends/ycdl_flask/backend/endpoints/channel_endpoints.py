@@ -3,6 +3,7 @@ import itertools
 
 from voussoirkit import flasktools
 from voussoirkit import pathclass
+from voussoirkit import stringtools
 
 import ycdl
 
@@ -130,7 +131,7 @@ def post_delete_channel(channel_id):
 @site.route('/channel/<channel_id>/refresh', methods=['POST'])
 def post_refresh_channel(channel_id):
     force = request.form.get('force', False)
-    force = ycdl.helpers.truthystring(force)
+    force = stringtools.truthystring(force, False)
     try:
         channel = common.ycdldb.get_channel(channel_id)
     except ycdl.exceptions.NoSuchChannel as exc:
@@ -142,7 +143,7 @@ def post_refresh_channel(channel_id):
 @site.route('/refresh_all_channels', methods=['POST'])
 def post_refresh_all_channels():
     force = request.form.get('force', False)
-    force = ycdl.helpers.truthystring(force)
+    force = stringtools.truthystring(force, False)
     common.ycdldb.refresh_all_channels(force=force, skip_failures=True)
     return flasktools.make_json_response({})
 
