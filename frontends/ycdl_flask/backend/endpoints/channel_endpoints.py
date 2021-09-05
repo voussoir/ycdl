@@ -159,6 +159,20 @@ def post_set_automark(channel_id):
 
     return flasktools.make_json_response({})
 
+@flasktools.required_fields(['autorefresh'], forbid_whitespace=True)
+@site.route('/channel/<channel_id>/set_autorefresh', methods=['POST'])
+def post_set_autorefresh(channel_id):
+    autorefresh = request.form['autorefresh']
+    channel = common.ycdldb.get_channel(channel_id)
+
+    try:
+        autorefresh = stringtools.truthystring(autorefresh)
+        channel.set_autorefresh(autorefresh)
+    except (ValueError, TypeError):
+        flask.abort(400)
+
+    return flasktools.make_json_response({})
+
 @site.route('/channel/<channel_id>/set_download_directory', methods=['POST'])
 def post_set_download_directory(channel_id):
     download_directory = request.form['download_directory']

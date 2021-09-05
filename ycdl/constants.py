@@ -1,6 +1,6 @@
 from voussoirkit import sqlhelpers
 
-DATABASE_VERSION = 9
+DATABASE_VERSION = 10
 DB_VERSION_PRAGMA = f'''
 PRAGMA user_version = {DATABASE_VERSION};
 '''
@@ -21,7 +21,8 @@ CREATE TABLE IF NOT EXISTS channels(
     uploads_playlist TEXT,
     download_directory TEXT COLLATE NOCASE,
     queuefile_extension TEXT COLLATE NOCASE,
-    automark TEXT
+    automark TEXT,
+    autorefresh INT
 );
 CREATE TABLE IF NOT EXISTS videos(
     id TEXT,

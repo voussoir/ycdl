@@ -2,6 +2,7 @@ import datetime
 import typing
 
 from voussoirkit import pathclass
+from voussoirkit import stringtools
 
 from . import constants
 from . import exceptions
@@ -42,6 +43,7 @@ class Channel(Base):
         )
         self.queuefile_extension = self.normalize_queuefile_extension(db_row['queuefile_extension'])
         self.automark = db_row['automark'] or 'pending'
+        self.autorefresh = stringtools.truthystring(db_row['autorefresh'])
 
     def __repr__(self):
         return f'Channel:{self.id}'
@@ -200,6 +202,25 @@ class Channel(Base):
         }
         self.ycdldb.sql_update(table='channels', pairs=pairs, where_key='id')
         self.automark = state
+
+        if commit:
+            self.ycdldb.commit()
+
+    def set_autorefresh(self, autorefresh, commit=True):
+        if isinstance(autorefresh, int):
+            if autorefresh not in {0, 1}:
+                raise ValueError(f'autorefresh should be a boolean, not {autorefresh}.')
+            autorefresh = bool(autorefresh)
+
+        if not isinstance(autorefresh, bool):
+            raise TypeError(f'autorefresh should be a boolean, not {autorefresh}.')
+
+        pairs = {
+            'id': self.id,
+            'autorefresh': autorefresh,
+        }
+        self.ycdldb.sql_update(table='channels', pairs=pairs, where_key='id')
+        self.autorefresh = autorefresh
 
         if commit:
             self.ycdldb.commit()

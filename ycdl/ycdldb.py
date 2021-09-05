@@ -146,7 +146,8 @@ class YCDLDBChannelMixin:
             'uploads_playlist': self.youtube.get_user_uploads_playlist_id(channel_id),
             'download_directory': download_directory.absolute_path if download_directory else None,
             'queuefile_extension': queuefile_extension,
-            'automark': "pending",
+            'automark': 'pending',
+            'autorefresh': True,
         }
         self.sql_insert(table='channels', data=data)
 
@@ -169,7 +170,7 @@ class YCDLDBChannelMixin:
     def get_channels_by_sql(self, query, bindings=None):
         return self.get_things_by_sql('channel', query, bindings)
 
-    def _rss_assisted_refresh(self, skip_failures=False, commit=True):
+    def _rss_assisted_refresh(self, channels, skip_failures=False, commit=True):
         '''
         Youtube provides RSS feeds for every channel. These feeds do not
         require the API token and seem to have generous ratelimits, or
@@ -216,7 +217,7 @@ class YCDLDBChannelMixin:
                 )
                 traditional(channel)
 
-        new_ids = (id for channel in self.get_channels() for id in assisted(channel))
+        new_ids = (id for channel in channels for id in assisted(channel))
         for video in self.youtube.get_videos(new_ids):
             self.ingest_video(video, commit=False)
 
@@ -235,11 +236,13 @@ class YCDLDBChannelMixin:
         ):
         self.log.info('Refreshing all channels.')
 
+        channels = self.get_channels_by_sql('SELECT * FROM channels WHERE autorefresh == 1')
+
         if rss_assisted and not force:
-            return self._rss_assisted_refresh(skip_failures=skip_failures, commit=commit)
+            return self._rss_assisted_refresh(channels, skip_failures=skip_failures, commit=commit)
 
         excs = []
-        for channel in self.get_channels():
+        for channel in channels:
             try:
                 channel.refresh(force=force, commit=commit)
             except Exception as exc:

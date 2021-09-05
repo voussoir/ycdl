@@ -43,6 +43,14 @@ function set_automark(channel_id, state, callback)
     return common.post(url, data, callback);
 }
 
+api.channels.set_autorefresh =
+function set_autorefresh(channel_id, autorefresh, callback)
+{
+    const url = `/channel/${channel_id}/set_autorefresh`;
+    const data = {"autorefresh": autorefresh};
+    return common.post(url, data, callback);
+}
+
 api.channels.set_download_directory =
 function set_download_directory(channel_id, download_directory, callback)
 {

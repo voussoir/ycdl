@@ -260,6 +260,11 @@ https://stackoverflow.com/a/35153397
 
     <div class="tab" data-tab-title="Settings">
     <div>
+        <label><input type="checkbox" id="set_autorefresh_checkbox" {{"checked" if channel.autorefresh else ""}} onchange="return set_autorefresh_form(event);"/> Automatically refresh this channel regularly.</label>
+        <span id="set_autorefresh_spinner" class="hidden">Working...</span>
+    </div>
+
+    <div>
         New videos are:
         <select onchange="return set_automark_form(event);">
             <option value="pending" {{"selected" if channel.automark == "pending" else ""}}  >pending</option>
@@ -615,6 +620,21 @@ function set_automark_callback(response)
     set_automark_spinner.hide();
 }
 
+function set_autorefresh_form(event)
+{
+    set_autorefresh_spinner.show();
+    api.channels.set_autorefresh(CHANNEL_ID, event.target.checked, set_autorefresh_callback);
+}
+
+function set_autorefresh_callback(response)
+{
+    if (response.meta.status != 200)
+    {
+        alert(JSON.stringify(response));
+    }
+    set_autorefresh_spinner.hide();
+}
+
 function set_download_directory_form(event)
 {
     const download_directory = set_download_directory_input.value.trim();
@@ -653,6 +673,9 @@ if (CHANNEL_ID)
 
     var set_automark_spinner = document.getElementById("set_automark_spinner");
     set_automark_spinner = new spinner.Spinner(set_automark_spinner);
+
+    var set_autorefresh_spinner = document.getElementById("set_autorefresh_spinner");
+    set_autorefresh_spinner = new spinner.Spinner(set_autorefresh_spinner);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

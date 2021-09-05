@@ -63,7 +63,10 @@
     {% endif %}
         <a href="/channel/{{channel.id}}">{{channel.name}}</a> <a href="/channel/{{channel.id}}/pending">(p)</a>
         {% if channel.automark not in [none, "pending"] %}
-        <span>automark: {{channel.automark}}</span>
+        <span>(automark: {{channel.automark}})</span>
+        {% endif %}
+        {% if not channel.autorefresh %}
+        <span>(autorefresh: no)</span>
         {% endif %}
     </div>
     {% endfor %}
