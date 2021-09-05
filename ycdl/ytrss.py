@@ -1,4 +1,7 @@
 import bs4
+# Importing so that if lxml is not installed, you get an ImportError right
+# away instead of when bs4 tries to parse.
+import lxml
 import requests
 
 from voussoirkit import vlogging
