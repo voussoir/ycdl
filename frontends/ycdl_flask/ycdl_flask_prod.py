@@ -11,7 +11,7 @@ import werkzeug.middleware.proxy_fix
 import ycdl
 import youtube_credentials
 
-import backend
+from ycdl_flask import backend
 
 backend.site.wsgi_app = werkzeug.middleware.proxy_fix.ProxyFix(backend.site.wsgi_app)
 
