@@ -8,6 +8,9 @@ import time
 
 from voussoirkit import flasktools
 from voussoirkit import pathclass
+from voussoirkit import vlogging
+
+log = vlogging.getLogger(__name__)
 
 import ycdl
 
@@ -61,7 +64,7 @@ def init_ycdldb(*args, **kwargs):
 def refresher_thread(rate):
     while True:
         time.sleep(rate)
-        print('Starting refresh job.')
+        log.info('Starting refresh job.')
         thread_kwargs = {'force': False, 'skip_failures': True}
         refresh_job = threading.Thread(
             target=ycdldb.refresh_all_channels,
@@ -71,6 +74,6 @@ def refresher_thread(rate):
         refresh_job.start()
 
 def start_refresher_thread(rate):
-    print(f'Starting refresher thread, once per {rate} seconds.')
+    log.info('Starting refresher thread, once per %d seconds.', rate)
     refresher = threading.Thread(target=refresher_thread, args=[rate], daemon=True)
     refresher.start()

@@ -526,7 +526,6 @@ class YCDLDB(
             youtube,
             create=True,
             data_directory=None,
-            log_level=vlogging.NOTSET,
             skip_version_check=False,
         ):
         super().__init__()
@@ -543,8 +542,6 @@ class YCDLDB(
 
         # LOGGING
         self.log = vlogging.getLogger(f'{__name__}:{self.data_directory.absolute_path}')
-        self.log.setLevel(log_level)
-        self.youtube.log.setLevel(log_level)
 
         # DATABASE
         self.database_filepath = self.data_directory.with_child(constants.DEFAULT_DBNAME)

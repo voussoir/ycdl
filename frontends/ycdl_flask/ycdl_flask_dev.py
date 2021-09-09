@@ -6,12 +6,6 @@ python ycdl_flask_dev.py [port]
 '''
 import gevent.monkey; gevent.monkey.patch_all()
 
-import logging
-handler = logging.StreamHandler()
-log_format = '{levelname}:ycdl.{module}.{funcName}: {message}'
-handler.setFormatter(logging.Formatter(log_format, style='{'))
-logging.getLogger().addHandler(handler)
-
 import argparse
 import gevent.pywsgi
 import os
@@ -20,6 +14,8 @@ import sys
 from voussoirkit import operatornotify
 from voussoirkit import pathclass
 from voussoirkit import vlogging
+
+log = vlogging.getLogger(__name__, 'ycdl_flask_dev')
 
 import ycdl
 import youtube_credentials
@@ -33,7 +29,6 @@ site.debug = True
 site = backend.site
 
 HTTPS_DIR = pathclass.Path(__file__).parent.with_child('https')
-LOG_LEVEL = vlogging.NOTSET
 
 def ycdl_flask_launch(
         *,
@@ -63,21 +58,23 @@ def ycdl_flask_launch(
         site.localhost_only = True
 
     youtube_core = ycdl.ytapi.Youtube(youtube_credentials.get_youtube_key())
-    backend.common.init_ycdldb(youtube_core, create=create, log_level=LOG_LEVEL)
-    ycdl.ytrss.log.setLevel(LOG_LEVEL)
-
-    if refresh_rate is not None:
-        backend.common.start_refresher_thread(refresh_rate)
+    backend.common.init_ycdldb(youtube_core, create=create)
 
     message = f'Starting server on port {port}, pid={os.getpid()}.'
     if use_https:
         message += ' (https)'
-    print(message)
+    log.info(message)
+
+    if refresh_rate is None:
+        log.info('No background refresher thread because --refresh-rate was not passed.')
+    else:
+        backend.common.start_refresher_thread(refresh_rate)
 
     try:
         http.serve_forever()
     except KeyboardInterrupt:
-        pass
+        log.info('Goodbye')
+        return 0
 
 def ycdl_flask_launch_argparse(args):
     return ycdl_flask_launch(
@@ -88,11 +85,9 @@ def ycdl_flask_launch_argparse(args):
         use_https=args.use_https,
     )
 
+@vlogging.main_decorator
 @operatornotify.main_decorator(subject='YCDL', notify_every_line=True)
 def main(argv):
-    global LOG_LEVEL
-    (LOG_LEVEL, argv) = vlogging.get_level_by_argv(argv)
-
     parser = argparse.ArgumentParser(description=__doc__)
 
     parser.add_argument('port', nargs='?', type=int, default=5000)
