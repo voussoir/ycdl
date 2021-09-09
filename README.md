@@ -1,7 +1,7 @@
-Youtube Channel Downloader
-==========================
+YCDL - The Youtube Channel Downloader
+=====================================
 
-YoutubeChannelDownloader creates an SQLite3 database of Youtube channels and their videos, and serves it out of a web server.
+YCDL creates an SQLite3 database of Youtube channels and their videos, and serves it out of a web server.
 
 ## YCDL solves three main problems:
 
@@ -37,7 +37,7 @@ The reason for this is that youtube-dl is extremely configurable. Every user mig
 
 ## Your API key
 
-You are responsible for your own `youtube_credentials.py` file on your PYTHONPATH, with a function `get_youtube_key`. YCDL will `import youtube_credentials` and call `youtube_credentials.get_youtube_key()` with no arguments. It should return a Youtube API key. Here is how to get one:
+You are responsible for your own `youtube_credentials.py` file in a folder on your `PYTHONPATH`. This file must have a function `get_youtube_key`. YCDL will `import youtube_credentials` and call `youtube_credentials.get_youtube_key()` with no arguments. It should return a Youtube API key string. Here is how to get one:
 
 1. Go to https://console.developers.google.com/.
 2. Create a project using the menu in the upper left.
@@ -45,11 +45,46 @@ You are responsible for your own `youtube_credentials.py` file on your PYTHONPAT
 4. Search for and choose the latest YouTube Data API.
 5. On the left bar, click "Credentials".
 6. Click "Create credentials" and choose "API key". In my experience they all start with "AIzaSy".
-7. Return this value from `get_youtube_key` however you deem fit.
+7. Return this value from `get_youtube_key`.
 
 ## Setting up
 
-First, `pip install -r requirements.txt --upgrade`.
+YCDL has a core backend package and separate frontends that use it. These frontend applications will use `import ycdl` to access the backend code. Therefore, the `ycdl` package needs to be in the right place for Python to find it for `import`.
+
+1. Run `pip install -r requirements.txt --upgrade`.
+
+2. Make a new folder somewhere on your computer, and add this folder to your `PYTHONPATH` environment variable. For example, I might use `D:\pythonpath` or `~/pythonpath`. Close and re-open your Command Prompt / Terminal so it reloads the environment variables.
+
+3. Place your `youtube_credentials.py` file inside that folder.
+
+4. Run `python -c "import youtube_credentials; print(youtube_credentials)"` to confirm. If you see an ImportError or ModuleNotFoundError, double check your pythonpath.
+
+5. Add a symlink to the ycdl folder into the same folder where you placed `youtube_credentials.py`:
+
+    The repository you are looking at now is `D:\Git\YCDL` or `~/Git/YCDL`. You can see the folder called `ycdl`.
+
+    Windows: `mklink /d fakepath realpath`  
+    For example `mklink /d "D:\pythonpath\ycdl" "D:\Git\YCDL\ycdl"`
+
+    Linux: `ln --symbolic realpath fakepath`  
+    For example `ln --symbolic "~/Git/YCDL" "~/pythonpath/ycdl"`
+
+6. Run `python -c "import ycdl; print(ycdl)"` to confirm.
+
+## Running YCDL Flask locally
+
+1. `cd` to the folder where you'd like to create the YCDL database.
+2. Start the webserver:
+
+    Windows: `python D:\Git\YCDL\frontends\ycdl_flask\ycdl_flask_dev.py`
+
+    Linux: `python ~/Git/YCDL/frontends/ycdl_flask/ycdl_flask_dev.py`
+
+    Add `--help` to learn the arguments.
+
+    It is expected that you create a shortcut file or launch script so you don't have to type the whole filepath every time.
+
+3. YCDL will tell you what port it is running on. The default is 5000. Open your web browser to `localhost:<port>`.
 
 ## Pairs well with...
 
