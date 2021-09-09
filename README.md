@@ -7,7 +7,7 @@ YCDL creates an SQLite3 database of Youtube channels and their videos, and serve
 
 ### Metadata archive
 
-The database acts as a permanent archive of video metadata including title, description, duration, view count, and more. Even if a video or channel is deleted from Youtube, you will still have this information. Perfect for never losing track of unlisted videos, too.
+The database acts as a permanent archive of video metadata including title, description, duration, view count, and more. Even if a video or channel is deleted from Youtube, you will still have this information. Perfect for keeping track of unlisted videos, too.
 
 The thumbnails, however, are not stored in the database, but you can use `utilities\download_thumbnails.py` to download them.
 
