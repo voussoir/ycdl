@@ -100,15 +100,17 @@ Replace 5000 with the port on which you choose to run YCDL.
 
 ## Screenshots
 
-![2020-04-04_15-27-15](https://user-images.githubusercontent.com/7299570/78462830-ca4f9900-768a-11ea-98c9-a4e622d3da62.png)
+![](https://user-images.githubusercontent.com/7299570/133191450-5ecf7ab2-fd22-4bcc-9d6b-eb29e23da7d9.png)
 
-![2020-04-04_15-29-25](https://user-images.githubusercontent.com/7299570/78462831-cb80c600-768a-11ea-9ff0-517c231e0469.png)
+![](https://user-images.githubusercontent.com/7299570/133191359-94500650-ac27-4968-87de-f8b791733ebe.png)
 
-![2020-04-04_15-36-05](https://user-images.githubusercontent.com/7299570/78462832-cb80c600-768a-11ea-9b86-529e1a22616c.png)
+![](https://user-images.githubusercontent.com/7299570/133191446-90d68bc7-26b3-4d0a-a0cf-cc8cea87b399.png)
 
-![2020-04-04_15-36-10](https://user-images.githubusercontent.com/7299570/78462833-cc195c80-768a-11ea-9cac-208b8c79cad9.png)
+![](https://user-images.githubusercontent.com/7299570/78462832-cb80c600-768a-11ea-9b86-529e1a22616c.png)
 
-![2020-04-04_15-40-27](https://user-images.githubusercontent.com/7299570/78462834-cc195c80-768a-11ea-942b-e89a3dabe64d.png)
+![](https://user-images.githubusercontent.com/7299570/133191451-e092bd12-feee-4d1a-b4b7-824f7a02856e.png)
+
+![](https://user-images.githubusercontent.com/7299570/78462834-cc195c80-768a-11ea-942b-e89a3dabe64d.png)
 
 ## To do list
 
