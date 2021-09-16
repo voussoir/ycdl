@@ -65,6 +65,8 @@ class Channel(Base):
                 return None
 
         download_directory = pathclass.Path(download_directory)
+        download_directory.correct_case()
+
         if do_assert:
             download_directory.assert_is_directory()
 
