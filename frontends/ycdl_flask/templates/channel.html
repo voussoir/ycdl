@@ -673,6 +673,10 @@ if (CHANNEL_ID)
     var set_queuefile_extension_button = document.getElementById("set_queuefile_extension_button");
     common.bind_box_to_button(set_queuefile_extension_input, set_queuefile_extension_button);
 
+    var set_download_directory_input = document.getElementById("set_download_directory_input");
+    var set_download_directory_button = document.getElementById("set_download_directory_button");
+    common.bind_box_to_button(set_download_directory_input, set_download_directory_button);
+
     var set_automark_spinner = document.getElementById("set_automark_spinner");
     set_automark_spinner = new spinner.Spinner(set_automark_spinner);
 
