@@ -49,6 +49,16 @@ class Channel(Base):
         return f'Channel:{self.id}'
 
     @staticmethod
+    def normalize_autorefresh(autorefresh):
+        if isinstance(autorefresh, (str, int)):
+            autorefresh = stringtools.truthystring(autorefresh, none_set={})
+
+        if not isinstance(autorefresh, bool):
+            raise TypeError(f'autorefresh should be a boolean, not {autorefresh}.')
+
+        return autorefresh
+
+    @staticmethod
     def normalize_download_directory(
             download_directory,
             do_assert=True,
@@ -209,13 +219,7 @@ class Channel(Base):
             self.ycdldb.commit()
 
     def set_autorefresh(self, autorefresh, commit=True):
-        if isinstance(autorefresh, int):
-            if autorefresh not in {0, 1}:
-                raise ValueError(f'autorefresh should be a boolean, not {autorefresh}.')
-            autorefresh = bool(autorefresh)
-
-        if not isinstance(autorefresh, bool):
-            raise TypeError(f'autorefresh should be a boolean, not {autorefresh}.')
+        autorefresh = self.normalize_autorefresh(autorefresh)
 
         pairs = {
             'id': self.id,
