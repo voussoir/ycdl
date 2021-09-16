@@ -280,7 +280,7 @@ https://stackoverflow.com/a/35153397
     </div>
 
     <div>
-        <input type="text" id="set_download_directory_input" placeholder="Queuefile directory" value="{{channel.download_directory or ''}}"/>
+        <input type="text" id="set_download_directory_input" placeholder="Queuefile directory" value="{{channel.download_directory.absolute_path if channel.download_directory else ''}}"/>
         <button id="set_download_directory_button" class="button_with_spinner" onclick="return set_download_directory_form();">Set directory</button>
     </div>
 
