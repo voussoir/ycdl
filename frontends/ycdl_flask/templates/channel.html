@@ -630,11 +630,12 @@ function set_autorefresh_form(event)
 
 function set_autorefresh_callback(response)
 {
+    set_autorefresh_spinner.hide();
     if (response.meta.status != 200)
     {
         alert(JSON.stringify(response));
+        return;
     }
-    set_autorefresh_spinner.hide();
 }
 
 function set_download_directory_form(event)
@@ -645,11 +646,22 @@ function set_download_directory_form(event)
 
 function set_download_directory_callback(response)
 {
-    if (response.meta.status != 200)
+    window[set_download_directory_button.dataset.spinnerCloser]();
+    if (response.meta.status != 200 || ! response.meta.json_ok)
     {
         alert(JSON.stringify(response));
+        return;
     }
-    window[set_download_directory_button.dataset.spinnerCloser]();
+
+    const download_directory = response.data.download_directory;
+    if (download_directory === null)
+    {
+        set_download_directory_input.value = "";
+    }
+    else
+    {
+        set_download_directory_input.value = download_directory;
+    }
 }
 
 function set_queuefile_extension_form(event)
@@ -660,11 +672,23 @@ function set_queuefile_extension_form(event)
 
 function set_queuefile_extension_callback(response)
 {
-    if (response.meta.status != 200)
+    window[set_queuefile_extension_button.dataset.spinnerCloser]();
+    if (response.meta.status != 200 || ! response.meta.json_ok)
     {
         alert(JSON.stringify(response));
+        return;
     }
-    window[set_queuefile_extension_button.dataset.spinnerCloser]();
+
+    const extension = response.data.queuefile_extension;
+    if (extension === null)
+    {
+        set_queuefile_extension_input.value = "";
+    }
+    else
+    {
+        set_queuefile_extension_input.value = extension;
+    }
+
 }
 
 if (CHANNEL_ID)

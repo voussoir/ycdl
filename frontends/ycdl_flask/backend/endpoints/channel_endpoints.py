@@ -187,7 +187,9 @@ def post_set_download_directory(channel_id):
         }
         return flasktools.make_json_response(exc, status=400)
 
-    return flasktools.make_json_response({})
+    abspath = channel.download_directory.absolute_path if channel.download_directory else None
+    response = {'download_directory': abspath}
+    return flasktools.make_json_response(response)
 
 @site.route('/channel/<channel_id>/set_queuefile_extension', methods=['POST'])
 def post_set_queuefile_extension(channel_id):
@@ -196,4 +198,5 @@ def post_set_queuefile_extension(channel_id):
 
     channel.set_queuefile_extension(extension)
 
-    return flasktools.make_json_response({})
+    response = {'queuefile_extension': channel.queuefile_extension}
+    return flasktools.make_json_response(response)
