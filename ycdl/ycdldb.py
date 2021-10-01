@@ -524,6 +524,7 @@ class YCDLDB(
     def __init__(
             self,
             youtube,
+            *,
             create=True,
             data_directory=None,
             skip_version_check=False,
