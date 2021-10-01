@@ -609,7 +609,7 @@ class YCDLDB(
     def load_config(self):
         (config, needs_rewrite) = configlayers.load_file(
             filepath=self.config_filepath,
-            defaults=constants.DEFAULT_CONFIGURATION,
+            default_config=constants.DEFAULT_CONFIGURATION,
         )
         self.config = config
 
