@@ -22,7 +22,7 @@ def _get_or_insert_video(video_id):
 def get_all_channel_names():
     all_channels = {channel.id: channel.name for channel in common.ycdldb.get_channels()}
     response = {'channels': all_channels}
-    return flasktools.make_json_response(response)
+    return flasktools.json_response(response)
 
 @site.route('/channels')
 def get_channels():
@@ -113,20 +113,20 @@ def post_add_channel():
         try:
             channel_id = common.ycdldb.youtube.get_user_id(username=channel_id)
         except ycdl.ytapi.ChannelNotFound:
-            return flasktools.make_json_response({}, status=404)
+            return flasktools.json_response({}, status=404)
 
     channel = common.ycdldb.add_channel(channel_id, get_videos=True)
-    return flasktools.make_json_response(channel.jsonify())
+    return flasktools.json_response(channel.jsonify())
 
 @site.route('/channel/<channel_id>/delete', methods=['POST'])
 def post_delete_channel(channel_id):
     try:
         channel = common.ycdldb.get_channel(channel_id)
     except ycdl.exceptions.NoSuchChannel as exc:
-        return flasktools.make_json_response(exc.jsonify(), status=404)
+        return flasktools.json_response(exc.jsonify(), status=404)
 
     channel.delete()
-    return flasktools.make_json_response({})
+    return flasktools.json_response({})
 
 @site.route('/channel/<channel_id>/refresh', methods=['POST'])
 def post_refresh_channel(channel_id):
@@ -135,17 +135,17 @@ def post_refresh_channel(channel_id):
     try:
         channel = common.ycdldb.get_channel(channel_id)
     except ycdl.exceptions.NoSuchChannel as exc:
-        return flasktools.make_json_response(exc.jsonify(), status=404)
+        return flasktools.json_response(exc.jsonify(), status=404)
 
     channel.refresh(force=force)
-    return flasktools.make_json_response(channel.jsonify())
+    return flasktools.json_response(channel.jsonify())
 
 @site.route('/refresh_all_channels', methods=['POST'])
 def post_refresh_all_channels():
     force = request.form.get('force', False)
     force = stringtools.truthystring(force, False)
     common.ycdldb.refresh_all_channels(force=force, skip_failures=True)
-    return flasktools.make_json_response({})
+    return flasktools.json_response({})
 
 @site.route('/channel/<channel_id>/set_automark', methods=['POST'])
 def post_set_automark(channel_id):
@@ -157,7 +157,7 @@ def post_set_automark(channel_id):
     except ycdl.exceptions.InvalidVideoState:
         flask.abort(400)
 
-    return flasktools.make_json_response({})
+    return flasktools.json_response({})
 
 @flasktools.required_fields(['autorefresh'], forbid_whitespace=True)
 @site.route('/channel/<channel_id>/set_autorefresh', methods=['POST'])
@@ -171,7 +171,7 @@ def post_set_autorefresh(channel_id):
     except (ValueError, TypeError):
         flask.abort(400)
 
-    return flasktools.make_json_response({})
+    return flasktools.json_response({})
 
 @site.route('/channel/<channel_id>/set_download_directory', methods=['POST'])
 def post_set_download_directory(channel_id):
@@ -185,11 +185,11 @@ def post_set_download_directory(channel_id):
             'error_type': 'NOT_DIRECTORY',
             'error_message': f'"{download_directory}" is not a directory.',
         }
-        return flasktools.make_json_response(exc, status=400)
+        return flasktools.json_response(exc, status=400)
 
     abspath = channel.download_directory.absolute_path if channel.download_directory else None
     response = {'download_directory': abspath}
-    return flasktools.make_json_response(response)
+    return flasktools.json_response(response)
 
 @site.route('/channel/<channel_id>/set_queuefile_extension', methods=['POST'])
 def post_set_queuefile_extension(channel_id):
@@ -199,4 +199,4 @@ def post_set_queuefile_extension(channel_id):
     channel.set_queuefile_extension(extension)
 
     response = {'queuefile_extension': channel.queuefile_extension}
-    return flasktools.make_json_response(response)
+    return flasktools.json_response(response)

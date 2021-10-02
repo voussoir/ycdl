@@ -29,7 +29,7 @@ def post_mark_video_state():
         common.ycdldb.rollback()
         flask.abort(400)
 
-    return flasktools.make_json_response({'video_ids': video_ids, 'state': state})
+    return flasktools.json_response({'video_ids': video_ids, 'state': state})
 
 @site.route('/start_download', methods=['POST'])
 def post_start_download():
@@ -46,4 +46,4 @@ def post_start_download():
         common.ycdldb.rollback()
         flask.abort(404)
 
-    return flasktools.make_json_response({'video_ids': video_ids, 'state': 'downloaded'})
+    return flasktools.json_response({'video_ids': video_ids, 'state': 'downloaded'})
