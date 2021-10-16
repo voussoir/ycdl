@@ -59,7 +59,7 @@ def after_request(response):
 
 def init_ycdldb(*args, **kwargs):
     global ycdldb
-    ycdldb = ycdl.ycdldb.YCDLDB(*args, **kwargs)
+    ycdldb = ycdl.ycdldb.YCDLDB.closest_ycdldb(*args, **kwargs)
 
 def refresher_thread(rate):
     while True:

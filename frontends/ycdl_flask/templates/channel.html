@@ -259,6 +259,8 @@ https://stackoverflow.com/a/35153397
     </div> <!-- tab-videos -->
 
     <div class="tab" data-tab-title="Settings">
+    <div>Channel ID: <code>{{channel.id}}</code></div>
+
     <div>
         <label><input type="checkbox" id="set_autorefresh_checkbox" {{"checked" if channel.autorefresh else ""}} onchange="return set_autorefresh_form(event);"/> Automatically refresh this channel regularly.</label>
         <span id="set_autorefresh_spinner" class="hidden">Working...</span>

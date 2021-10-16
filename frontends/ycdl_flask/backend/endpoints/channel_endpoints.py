@@ -115,7 +115,7 @@ def post_add_channel():
         except ycdl.ytapi.ChannelNotFound:
             return flasktools.json_response({}, status=404)
 
-    channel = common.ycdldb.add_channel(channel_id, get_videos=True)
+    channel = common.ycdldb.add_channel(channel_id, get_videos=True, commit=True)
     return flasktools.json_response(channel.jsonify())
 
 @site.route('/channel/<channel_id>/delete', methods=['POST'])
@@ -125,7 +125,7 @@ def post_delete_channel(channel_id):
     except ycdl.exceptions.NoSuchChannel as exc:
         return flasktools.json_response(exc.jsonify(), status=404)
 
-    channel.delete()
+    channel.delete(commit=True)
     return flasktools.json_response({})
 
 @site.route('/channel/<channel_id>/refresh', methods=['POST'])
@@ -137,14 +137,14 @@ def post_refresh_channel(channel_id):
     except ycdl.exceptions.NoSuchChannel as exc:
         return flasktools.json_response(exc.jsonify(), status=404)
 
-    channel.refresh(force=force)
+    channel.refresh(force=force, commit=True)
     return flasktools.json_response(channel.jsonify())
 
 @site.route('/refresh_all_channels', methods=['POST'])
 def post_refresh_all_channels():
     force = request.form.get('force', False)
     force = stringtools.truthystring(force, False)
-    common.ycdldb.refresh_all_channels(force=force, skip_failures=True)
+    common.ycdldb.refresh_all_channels(force=force, skip_failures=True, commit=True)
     return flasktools.json_response({})
 
 @site.route('/channel/<channel_id>/set_automark', methods=['POST'])
@@ -153,7 +153,7 @@ def post_set_automark(channel_id):
     channel = common.ycdldb.get_channel(channel_id)
 
     try:
-        channel.set_automark(state)
+        channel.set_automark(state, commit=True)
     except ycdl.exceptions.InvalidVideoState:
         flask.abort(400)
 
@@ -167,7 +167,7 @@ def post_set_autorefresh(channel_id):
 
     try:
         autorefresh = stringtools.truthystring(autorefresh)
-        channel.set_autorefresh(autorefresh)
+        channel.set_autorefresh(autorefresh, commit=True)
     except (ValueError, TypeError):
         flask.abort(400)
 
@@ -179,7 +179,7 @@ def post_set_download_directory(channel_id):
     channel = common.ycdldb.get_channel(channel_id)
 
     try:
-        channel.set_download_directory(download_directory)
+        channel.set_download_directory(download_directory, commit=True)
     except pathclass.NotDirectory:
         exc = {
             'error_type': 'NOT_DIRECTORY',
@@ -196,7 +196,7 @@ def post_set_queuefile_extension(channel_id):
     extension = request.form['extension']
     channel = common.ycdldb.get_channel(channel_id)
 
-    channel.set_queuefile_extension(extension)
+    channel.set_queuefile_extension(extension, commit=True)
 
     response = {'queuefile_extension': channel.queuefile_extension}
     return flasktools.json_response(response)

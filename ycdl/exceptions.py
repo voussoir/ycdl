@@ -54,6 +54,11 @@ class NoSuchVideo(YCDLException):
 class NoVideos(YCDLException):
     error_message = 'Channel {} has no videos.'
 
+# CHANNEL ERRORS ###################################################################################
+
+class ChannelRefreshFailed(YCDLException):
+    error_message = 'failed to refresh {channel} ({exc}).'
+
 # VIDEO ERRORS #####################################################################################
 
 class InvalidVideoState(YCDLException):
@@ -63,14 +68,6 @@ class InvalidVideoState(YCDLException):
 
 class RSSAssistFailed(YCDLException):
     error_message = '{}'
-
-# SQL ERRORS #######################################################################################
-
-class BadSQL(YCDLException):
-    pass
-
-class BadTable(BadSQL):
-    error_message = 'Table "{}" does not exist.'
 
 # GENERAL ERRORS ###################################################################################
 
@@ -86,3 +83,10 @@ Please run utilities\\database_upgrader.py "{filepath.absolute_path}"
 '''.strip()
 class DatabaseOutOfDate(YCDLException):
     error_message = OUTOFDATE
+
+class NoClosestYCDLDB(YCDLException):
+    '''
+    For calls to YCDLDB.closest_ycdldb where none exists between cwd and
+    drive root.
+    '''
+    error_message = 'There is no YCDLDB in "{}" or its parents.'

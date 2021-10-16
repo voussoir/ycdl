@@ -40,7 +40,6 @@ from voussoirkit import vlogging
 log = vlogging.getLogger(__name__, 'ycdl_flask_dev')
 
 import ycdl
-import youtube_credentials
 import backend
 
 site = backend.site
@@ -54,7 +53,6 @@ HTTPS_DIR = pathclass.Path(__file__).parent.with_child('https')
 
 def ycdl_flask_launch(
         *,
-        create,
         localhost_only,
         port,
         refresh_rate,
@@ -79,8 +77,12 @@ def ycdl_flask_launch(
     if localhost_only:
         site.localhost_only = True
 
-    youtube_core = ycdl.ytapi.Youtube(youtube_credentials.get_youtube_key())
-    backend.common.init_ycdldb(youtube_core, create=create)
+    try:
+        backend.common.init_ycdldb()
+    except ycdl.exceptions.NoClosestYCDLDB as exc:
+        log.error(exc.error_message)
+        log.error('Try `ycdl_cli.py init` to create the database.')
+        return 1
 
     message = f'Starting server on port {port}, pid={os.getpid()}.'
     if use_https:
@@ -100,7 +102,6 @@ def ycdl_flask_launch(
 
 def ycdl_flask_launch_argparse(args):
     return ycdl_flask_launch(
-        create=args.create,
         localhost_only=args.localhost_only,
         port=args.port,
         refresh_rate=args.refresh_rate,
@@ -113,7 +114,6 @@ def main(argv):
     parser = argparse.ArgumentParser(description=__doc__)
 
     parser.add_argument('port', nargs='?', type=int, default=5000)
-    parser.add_argument('--dont_create', '--dont-create', '--no-create', dest='create', action='store_false', default=True)
     parser.add_argument('--https', dest='use_https', action='store_true', default=None)
     parser.add_argument('--localhost_only', '--localhost-only', dest='localhost_only', action='store_true')
     parser.add_argument('--refresh_rate', '--refresh-rate', dest='refresh_rate', type=int, default=None)

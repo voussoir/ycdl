@@ -50,7 +50,7 @@ COMMIT;
 SQL_COLUMNS = sqlhelpers.extract_table_column_map(DB_INIT)
 SQL_INDEX = sqlhelpers.reverse_table_column_map(SQL_COLUMNS)
 
-DEFAULT_DATADIR = '.'
+DEFAULT_DATADIR = '_ycdl'
 DEFAULT_DBNAME = 'ycdl.db'
 DEFAULT_CONFIGNAME = 'ycdl.json'
 

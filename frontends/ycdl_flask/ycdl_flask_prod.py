@@ -9,7 +9,6 @@ gunicorn ycdl_flask_prod:site --bind "0.0.0.0:PORT" --access-logfile "-"
 import werkzeug.middleware.proxy_fix
 
 import ycdl
-import youtube_credentials
 
 from ycdl_flask import backend
 
@@ -19,6 +18,5 @@ site = backend.site
 site.debug = False
 
 # NOTE: Consider adding a local .json config file.
-youtube_core = ycdl.ytapi.Youtube(youtube_credentials.get_youtube_key())
-backend.common.init_ycdldb(youtube_core, create=False)
+backend.common.init_ycdldb()
 backend.common.start_refresher_thread(86400)

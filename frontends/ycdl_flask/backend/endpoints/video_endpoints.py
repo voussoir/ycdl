@@ -19,7 +19,7 @@ def post_mark_video_state():
         for video_id in video_ids:
             video = common.ycdldb.get_video(video_id)
             video.mark_state(state, commit=False)
-        common.ycdldb.sql.commit()
+        common.ycdldb.commit()
 
     except ycdl.exceptions.NoSuchVideo:
         common.ycdldb.rollback()
@@ -40,7 +40,7 @@ def post_start_download():
         video_ids = video_ids.split(',')
         for video_id in video_ids:
             common.ycdldb.download_video(video_id, commit=False)
-        common.ycdldb.sql.commit()
+        common.ycdldb.commit()
 
     except ycdl.ytapi.VideoNotFound:
         common.ycdldb.rollback()

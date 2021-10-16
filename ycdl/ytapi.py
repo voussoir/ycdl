@@ -1,4 +1,4 @@
-import apiclient.discovery
+import googleapiclient.discovery
 import isodate
 
 from voussoirkit import gentools
@@ -53,7 +53,7 @@ class Video:
 
 class Youtube:
     def __init__(self, key):
-        self.youtube = apiclient.discovery.build(
+        self.youtube = googleapiclient.discovery.build(
             cache_discovery=False,
             developerKey=key,
             serviceName='youtube',
