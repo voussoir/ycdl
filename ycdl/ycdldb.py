@@ -45,8 +45,7 @@ class YCDLDBChannelMixin:
         except exceptions.NoSuchChannel:
             pass
 
-        if automark not in constants.VIDEO_STATES:
-            raise exceptions.InvalidVideoState(automark)
+        self.assert_valid_state(automark)
 
         name = objects.Channel.normalize_name(name)
         if name is None:
@@ -223,6 +222,7 @@ class YCDLDBVideoMixin:
             bindings.append(channel_id)
 
         if state is not None:
+            self.assert_valid_state(state)
             wheres.append('state')
             bindings.append(state)
 
@@ -470,6 +470,11 @@ class YCDLDB(
         )
         log.debug('Found closest YCDLDB at %s.', path)
         return ycdldb
+
+    @staticmethod
+    def assert_valid_state(state):
+        if state not in constants.VIDEO_STATES:
+            raise exceptions.InvalidVideoState(state)
 
     def get_all_states(self):
         '''

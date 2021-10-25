@@ -215,8 +215,7 @@ class Channel(ObjectBase):
 
     @worms.transaction
     def set_automark(self, state):
-        if state not in constants.VIDEO_STATES:
-            raise exceptions.InvalidVideoState(state)
+        self.ycdldb.assert_valid_state(state)
 
         pairs = {
             'id': self.id,
@@ -339,8 +338,7 @@ class Video(ObjectBase):
         Note: Marking as downloaded will not create the queue file, this only
         updates the database. See yclddb.download_video.
         '''
-        if state not in constants.VIDEO_STATES:
-            raise exceptions.InvalidVideoState(state)
+        self.ycdldb.assert_valid_state(state)
 
         log.info('Marking %s as %s.', self, state)
 
