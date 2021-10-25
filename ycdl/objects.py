@@ -193,8 +193,8 @@ class Channel(ObjectBase):
         # 2. Premieres or live events which may now be over but were not
         # included in the requested batch of IDs because they are not the most
         # recent.
-        query = 'SELECT * FROM videos WHERE live_broadcast IS NOT NULL'
-        videos = self.ycdldb.get_videos_by_sql(query)
+        query = 'SELECT * FROM videos WHERE author_id == ? AND live_broadcast IS NOT NULL'
+        videos = self.ycdldb.get_videos_by_sql(query, [self.id])
         refresh_ids.update(v.id for v in videos)
 
         if refresh_ids:
