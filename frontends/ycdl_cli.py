@@ -53,7 +53,7 @@ def channel_list_argparse(args):
 
 def delete_channel_argparse(args):
     ycdldb = closest_db()
-    for channel_id in args.channel_id:
+    for channel_id in pipeable.input_many(args.channel_ids):
         channel = ycdldb.get_channel(channel_id)
         channel.delete()
 
@@ -161,12 +161,14 @@ delete_channel:
     Delete a channel and all its videos from the database.
 
     You can pass multiple channel IDs.
+    Uses pipeable to support !c clipboard, !i stdin.
 
-    > ycdl_cli.py delete_channel channel_id [channel_id channel_id]
+    > ycdl_cli.py delete_channel channel_id [channel_id channel_id...]
 
     Examples:
     > ycdl_cli.py delete_channel UCOYBuFGi8T3NM5fNAptCLCw
-    > ycdl_cli.py delete_channel UCOYBuFGi8T3NM5fNAptCLCw UCmu9PVIZBk-ZCi-Sk2F2utA UCEKJKJ3FO-9SFv5x5BzyxhQ
+    > ycdl_cli.py delete_channel UCOYBuFGi8T3NM5fNAptCLCw UCmu9PVIZBk-ZCi-Sk2F2utA
+    > ycdl_cli.py channel_list --format {id} | ycdl_cli.py delete_channel !i
 '''.strip(),
 
 init='''
@@ -218,7 +220,7 @@ def main(argv):
     p_channel_list.set_defaults(func=channel_list_argparse)
 
     p_delete_channel = subparsers.add_parser('delete_channel', aliases=['delete-channel'])
-    p_delete_channel.add_argument('channel_id', nargs='+')
+    p_delete_channel.add_argument('channel_ids', nargs='+')
     p_delete_channel.add_argument('--yes', dest='autoyes', action='store_true')
     p_delete_channel.set_defaults(func=delete_channel_argparse)
 
