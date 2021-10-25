@@ -128,6 +128,7 @@ class Youtube:
 
     def get_videos(self, video_ids):
         chunks = gentools.chunk_generator(video_ids, 50)
+        total_snippets = 0
         for chunk in chunks:
             self.log.debug('Requesting batch of %d video ids.', len(chunk))
             self.log.loud(chunk)
@@ -138,6 +139,7 @@ class Youtube:
             ).execute()
             snippets = data['items']
             self.log.debug('Got %d snippets.', len(snippets))
+            total_snippets += len(snippets)
             self.log.loud(snippets)
             for snippet in snippets:
                 try:
@@ -145,3 +147,4 @@ class Youtube:
                     yield video
                 except KeyError as exc:
                     self.log.warning(f'KEYERROR: {exc} not in {snippet}')
+        self.log.debug('Finished getting a total of %d snippets.', total_snippets)
