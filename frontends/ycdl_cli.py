@@ -1,4 +1,5 @@
 import argparse
+import itertools
 import sys
 import traceback
 
@@ -94,6 +95,29 @@ def refresh_channels_argparse(args):
 
     return status
 
+def video_list_argparse(args):
+    ycdldb = closest_db()
+    videos = ycdldb.get_videos(channel_id=args.channel_id, state=args.state, orderby=args.orderby)
+
+    if args.limit is not None:
+        videos = itertools.islice(videos, args.limit)
+
+    for video in videos:
+        line = args.format.format(
+            author_id=video.author_id,
+            duration=video.duration,
+            id=video.id,
+            live_broadcast=video.live_broadcast,
+            published=video.published,
+            published_string=video.published_string,
+            state=video.state,
+            title=video.title,
+            views=video.views,
+        )
+        pipeable.stdout(line)
+
+    return 0
+
 DOCSTRING = '''
 YCDL CLI
 ========
@@ -107,6 +131,8 @@ YCDL CLI
 {init}
 
 {refresh_channels}
+
+{video_list}
 
 TO SEE DETAILS ON EACH COMMAND, RUN
 > ycdl_cli.py <command> --help
@@ -146,13 +172,16 @@ channel_list='''
 channel_list:
     Print all channels in the database.
 
+    Note: If you want to use this in a command pipeline, please specify
+    --format instead of relying on the default.
+
     > ycdl_cli.py channel_list <flags>
 
     flags:
     --format X:
         A string like "{id}: {name}" to format the attributes of the channel.
         The available attributes are id, name, automark, autorefresh,
-        uploads_playlist queuefile_extension.
+        uploads_playlist, queuefile_extension.
 
     > ycdl_cli.py channel_list
 
@@ -173,7 +202,8 @@ delete_channel:
     Examples:
     > ycdl_cli.py delete_channel UCOYBuFGi8T3NM5fNAptCLCw
     > ycdl_cli.py delete_channel UCOYBuFGi8T3NM5fNAptCLCw UCmu9PVIZBk-ZCi-Sk2F2utA
-    > ycdl_cli.py channel_list --format {id} | ycdl_cli.py delete_channel !i
+    > ycdl_cli.py channel_list --format {id} | ycdl_cli.py delete_channel !i --yes
+'''.strip(),
 '''.strip(),
 
 init='''
@@ -200,7 +230,40 @@ refresh_channels:
     Examples:
     > ycdl_cli.py refresh_channels --force
     > ycdl_cli.py refresh_channels --channels UC1_uAIS3r8Vu6JjXWvastJg
-'''
+'''.strip(),
+
+video_list='''
+video_list:
+    Print videos in the database.
+
+    Note: If you want to use this in a command pipeline, please specify
+    --format instead of relying on the default.
+
+    > ycdl_cli.py video_list <flags>
+
+    flags:
+    --channel X:
+        A channel ID to list videos from.
+
+    --format X:
+        A string like "{published_string}:{id} {title}" to format the
+        attributes of the video. The available attributes are author_id,
+        duration, id, live_broadcast, published, published_string, state,
+        title, views.
+
+    --limit X:
+        Only show up to X results.
+
+    --orderby X:
+        Order the results by published, views, duration, or random.
+
+    --state X:
+        Only show videos with this state.
+
+    Examples:
+    > ycdl_cli.py video_list --state pending --limit 100
+    > ycdl_cli.py video_list --channel UCzIiTeduaanyEboRfwJJznA --orderby views
+'''.strip(),
 )
 
 DOCSTRING = betterhelp.add_previews(DOCSTRING, SUB_DOCSTRINGS)
@@ -238,6 +301,14 @@ def main(argv):
     p_refresh_channels.add_argument('--force', action='store_true')
     p_refresh_channels.add_argument('--yes', dest='autoyes', action='store_true')
     p_refresh_channels.set_defaults(func=refresh_channels_argparse)
+
+    p_video_list = subparsers.add_parser('video_list', aliases=['video-list'])
+    p_video_list.add_argument('--channel', dest='channel_id', default=None)
+    p_video_list.add_argument('--format', default='{published_string}:{id}:{title}')
+    p_video_list.add_argument('--limit', type=int, default=None)
+    p_video_list.add_argument('--orderby', default=None)
+    p_video_list.add_argument('--state', default=None)
+    p_video_list.set_defaults(func=video_list_argparse)
 
     try:
         return betterhelp.subparser_main(argv, parser, DOCSTRING, SUB_DOCSTRINGS)
