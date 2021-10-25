@@ -64,7 +64,7 @@ def _render_videos_listing(videos, channel, state, orderby):
 @site.route('/channel/<channel_id>/<state>')
 def get_channel(channel_id, state=None):
     try:
-        channel = common.ycdldb.add_channel(channel_id)
+        channel = common.ycdldb.add_channel(channel_id, commit=True)
     except ycdl.ytapi.ChannelNotFound:
         flask.abort(404)
 
