@@ -148,12 +148,17 @@ channel_list:
 
     > ycdl_cli.py channel_list <flags>
 
+    flags:
     --format X:
         A string like "{id}: {name}" to format the attributes of the channel.
         The available attributes are id, name, automark, autorefresh,
         uploads_playlist queuefile_extension.
 
-    > ycdl_cli.py list_channels
+    > ycdl_cli.py channel_list
+
+    Example:
+    > ycdl_cli.py channel_list
+    > ycdl_cli.py channel_list --format "{id} automark={automark}"
 '''.strip(),
 
 delete_channel='''
@@ -191,6 +196,7 @@ refresh_channels:
     --force:
         If omitted, only new videos are downloaded.
         If included, channels are refreshed completely.
+
     Examples:
     > ycdl_cli.py refresh_channels --force
     > ycdl_cli.py refresh_channels --channels UC1_uAIS3r8Vu6JjXWvastJg
