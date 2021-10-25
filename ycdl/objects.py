@@ -199,11 +199,10 @@ class Channel(ObjectBase):
 
         if refresh_ids:
             log.debug('Refreshing %d ids separately.', len(refresh_ids))
-
-        # We call ingest_video instead of insert_video so that
-        # premieres / livestreams which have finished can be automarked.
-        for video_id in self.ycdldb.youtube.get_videos(refresh_ids):
-            self.ycdldb.ingest_video(video_id)
+            # We call ingest_video instead of insert_video so that
+            # premieres / livestreams which have finished can be automarked.
+            for video_id in self.ycdldb.youtube.get_videos(refresh_ids):
+                self.ycdldb.ingest_video(video_id)
 
     def reset_uploads_playlist_id(self):
         '''
