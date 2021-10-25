@@ -63,6 +63,23 @@ def delete_channel_argparse(args):
 
     return 0
 
+def download_video_argparse(args):
+    ycdldb = closest_db()
+    needs_commit = False
+    for video_id in pipeable.input_many(args.video_ids):
+        video = ycdldb.get_video(video_id)
+        queuefile = ycdldb.download_video(video, force=args.force)
+        if queuefile is not None:
+            needs_commit = True
+
+    if not needs_commit:
+        return 0
+
+    if args.autoyes or interactive.getpermission('Commit?'):
+        ycdldb.commit()
+
+    return 0
+
 def init_argparse(args):
     ycdldb = ycdl.ycdldb.YCDLDB(create=True)
     ycdldb.commit()
@@ -127,6 +144,8 @@ YCDL CLI
 {channel_list}
 
 {delete_channel}
+
+{download_video}
 
 {init}
 
@@ -204,6 +223,29 @@ delete_channel:
     > ycdl_cli.py delete_channel UCOYBuFGi8T3NM5fNAptCLCw UCmu9PVIZBk-ZCi-Sk2F2utA
     > ycdl_cli.py channel_list --format {id} | ycdl_cli.py delete_channel !i --yes
 '''.strip(),
+
+download_video='''
+download_video:
+    Create the queuefiles for one or more videos.
+
+    They will be placed in the channel's download_directory if it has one, or
+    else the download_directory in the ycdl.json config file. The video will
+    have its state set to "downloaded".
+
+    Uses pipeable to support !c clipboard, !i stdin.
+
+    > ycdl_cli.py download_video video_id [video_id video_id...] <flags>
+
+    flags:
+    --force:
+        By default, a video that is already marked as downloaded will not be
+        downloaded again. You can add this to make the queuefiles for those
+        videos anyway.
+
+    Examples:
+    > ycdl_cli.py download_video thOifuHs6eY
+    > ycdl_cli.py download_video yJ-oASr_djo vHuFizITMdA --force
+    > ycdl_cli.py video_list --channel UCvBv3PCvD9v-IKKTkd94XPg | ycdl_cli.py download_video !i --yes
 '''.strip(),
 
 init='''
@@ -292,6 +334,12 @@ def main(argv):
     p_delete_channel.add_argument('channel_ids', nargs='+')
     p_delete_channel.add_argument('--yes', dest='autoyes', action='store_true')
     p_delete_channel.set_defaults(func=delete_channel_argparse)
+
+    p_download_video = subparsers.add_parser('download_video', aliases=['download-video'])
+    p_download_video.add_argument('video_ids', nargs='+')
+    p_download_video.add_argument('--force', action='store_true')
+    p_download_video.add_argument('--yes', dest='autoyes', action='store_true')
+    p_download_video.set_defaults(func=download_video_argparse)
 
     p_init = subparsers.add_parser('init')
     p_init.set_defaults(func=init_argparse)
