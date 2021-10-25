@@ -186,7 +186,7 @@ class YCDLDBVideoMixin:
             raise TypeError(video)
 
         if video.state != 'pending' and not force:
-            log.debug('%s does not need to be downloaded.', video.id)
+            log.debug('%s does not need to be downloaded.', video)
             return
 
         try:
@@ -331,10 +331,10 @@ class YCDLDBVideoMixin:
         }
 
         if existing:
-            log.loud('Updating Video %s.', video.id)
+            log.loud('Updating Video %s.', video)
             self.update(table='videos', pairs=data, where_key='id')
         else:
-            log.loud('Inserting Video %s.', video.id)
+            log.loud('Inserting Video %s.', video)
             self.insert(table='videos', data=data)
 
         # Override the cached copy with the new copy so that the cache contains

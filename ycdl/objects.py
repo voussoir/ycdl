@@ -151,7 +151,7 @@ class Channel(ObjectBase):
 
     @worms.transaction
     def refresh(self, *, force=False, rss_assisted=True):
-        log.info('Refreshing %s.', self.id)
+        log.info('Refreshing %s.', self)
 
         if force or (not self.uploads_playlist):
             self.reset_uploads_playlist_id()
@@ -270,7 +270,7 @@ class Channel(ObjectBase):
 
     @worms.transaction
     def set_uploads_playlist_id(self, playlist_id):
-        log.debug('Setting %s upload playlist to %s.', self.id, playlist_id)
+        log.debug('Setting %s upload playlist to %s.', self, playlist_id)
         if not isinstance(playlist_id, str):
             raise TypeError(f'Playlist id must be a string, not {type(playlist_id)}.')
 
