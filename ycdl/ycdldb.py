@@ -208,6 +208,7 @@ class YCDLDBVideoMixin:
 
         self.on_commit_queue.append({'action': create_queuefile})
         video.mark_state('downloaded')
+        return queuefile
 
     def get_video(self, video_id):
         return self.get_object_by_id(objects.Video, video_id)
