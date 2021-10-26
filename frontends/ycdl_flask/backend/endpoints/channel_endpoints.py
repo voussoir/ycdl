@@ -102,12 +102,10 @@ def get_watch():
     videos = [video]
     return _render_videos_listing(videos, channel=None, state=None, orderby=None)
 
+@flasktools.required_fields(['channel_id'], forbid_whitespace=True)
 @site.route('/add_channel', methods=['POST'])
 def post_add_channel():
-    channel_id = request.form.get('channel_id', '')
-    channel_id = channel_id.strip()
-    if not channel_id:
-        flask.abort(400)
+    channel_id = request.form.['channel_id']
     if not (len(channel_id) == 24 and channel_id.startswith('UC')):
         # It seems they have given us a username instead.
         try:
@@ -156,8 +154,8 @@ def post_set_automark(channel_id):
 
     try:
         channel.set_automark(state, commit=True)
-    except ycdl.exceptions.InvalidVideoState:
-        flask.abort(400)
+    except ycdl.exceptions.InvalidVideoState as exc:
+        return flasktools.json_response(exc.jsonify(), status=400)
 
     response = {'id': channel.id, 'automark': channel.automark}
     return flasktools.json_response(response)

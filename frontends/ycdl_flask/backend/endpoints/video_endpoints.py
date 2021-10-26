@@ -20,13 +20,13 @@ def post_mark_video_state():
             video.mark_state(state, commit=False)
         common.ycdldb.commit()
 
-    except ycdl.exceptions.NoSuchVideo:
+    except ycdl.exceptions.NoSuchVideo as exc:
         common.ycdldb.rollback()
-        flask.abort(404)
+        return flasktools.json_response(exc.jsonify(), status=404)
 
-    except ycdl.exceptions.InvalidVideoState:
+    except ycdl.exceptions.InvalidVideoState as exc:
         common.ycdldb.rollback()
-        flask.abort(400)
+        return flasktools.json_response(exc.jsonify(), status=400)
 
     return flasktools.json_response({'video_ids': video_ids, 'state': state})
 
