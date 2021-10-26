@@ -8,10 +8,9 @@ from .. import common
 
 site = common.site
 
+@flasktools.required_fields(['video_ids', 'state'], forbid_whitespace=True)
 @site.route('/mark_video_state', methods=['POST'])
 def post_mark_video_state():
-    if 'video_ids' not in request.form or 'state' not in request.form:
-        flask.abort(400)
     video_ids = request.form['video_ids']
     state = request.form['state']
     try:
@@ -31,10 +30,9 @@ def post_mark_video_state():
 
     return flasktools.json_response({'video_ids': video_ids, 'state': state})
 
+@flasktools.required_fields(['video_ids'], forbid_whitespace=True)
 @site.route('/start_download', methods=['POST'])
 def post_start_download():
-    if 'video_ids' not in request.form:
-        flask.abort(400)
     video_ids = request.form['video_ids']
     try:
         video_ids = video_ids.split(',')

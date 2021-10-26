@@ -147,6 +147,7 @@ def post_refresh_all_channels():
     common.ycdldb.refresh_all_channels(force=force, skip_failures=True, commit=True)
     return flasktools.json_response({})
 
+@flasktools.required_fields(['state'], forbid_whitespace=True)
 @site.route('/channel/<channel_id>/set_automark', methods=['POST'])
 def post_set_automark(channel_id):
     state = request.form['state']
@@ -173,6 +174,7 @@ def post_set_autorefresh(channel_id):
 
     return flasktools.json_response({})
 
+@flasktools.required_fields(['download_directory'], forbid_whitespace=False)
 @site.route('/channel/<channel_id>/set_download_directory', methods=['POST'])
 def post_set_download_directory(channel_id):
     download_directory = request.form['download_directory']
@@ -202,6 +204,7 @@ def post_set_name(channel_id):
     response = {'name': channel.name}
     return flasktools.json_response(response)
 
+@flasktools.required_fields(['extension'], forbid_whitespace=False)
 @site.route('/channel/<channel_id>/set_queuefile_extension', methods=['POST'])
 def post_set_queuefile_extension(channel_id):
     extension = request.form['extension']
