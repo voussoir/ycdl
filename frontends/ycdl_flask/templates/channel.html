@@ -691,8 +691,8 @@ function set_name_callback(response)
     if (name === null)
     {
         set_name_input.value = "";
-        h1.innerText = CHANNEL_ID;
-        document.title = CHANNEL_ID;
+        h1.innerText = response.data.id;
+        document.title = response.data.id;
     }
     else
     {

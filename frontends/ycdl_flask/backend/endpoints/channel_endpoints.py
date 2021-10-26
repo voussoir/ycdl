@@ -126,7 +126,8 @@ def post_delete_channel(channel_id):
         return flasktools.json_response(exc.jsonify(), status=404)
 
     channel.delete(commit=True)
-    return flasktools.json_response({})
+    response = {'id': channel.id, 'deleted': channel.deleted}
+    return flasktools.json_response(response)
 
 @site.route('/channel/<channel_id>/refresh', methods=['POST'])
 def post_refresh_channel(channel_id):
@@ -158,7 +159,8 @@ def post_set_automark(channel_id):
     except ycdl.exceptions.InvalidVideoState:
         flask.abort(400)
 
-    return flasktools.json_response({})
+    response = {'id': channel.id, 'automark': channel.automark}
+    return flasktools.json_response(response)
 
 @flasktools.required_fields(['autorefresh'], forbid_whitespace=True)
 @site.route('/channel/<channel_id>/set_autorefresh', methods=['POST'])
@@ -172,7 +174,8 @@ def post_set_autorefresh(channel_id):
     except (ValueError, TypeError):
         flask.abort(400)
 
-    return flasktools.json_response({})
+    response = {'id': channel.id, 'autorefresh': channel.autorefresh}
+    return flasktools.json_response(response)
 
 @flasktools.required_fields(['download_directory'], forbid_whitespace=False)
 @site.route('/channel/<channel_id>/set_download_directory', methods=['POST'])
@@ -190,7 +193,7 @@ def post_set_download_directory(channel_id):
         return flasktools.json_response(exc, status=400)
 
     abspath = channel.download_directory.absolute_path if channel.download_directory else None
-    response = {'download_directory': abspath}
+    response = {'id': channel.id, 'download_directory': abspath}
     return flasktools.json_response(response)
 
 @flasktools.required_fields(['name'], forbid_whitespace=False)
@@ -201,7 +204,7 @@ def post_set_name(channel_id):
 
     channel.set_name(name, commit=True)
 
-    response = {'name': channel.name}
+    response = {'id': channel.id, 'name': channel.name}
     return flasktools.json_response(response)
 
 @flasktools.required_fields(['extension'], forbid_whitespace=False)
@@ -212,5 +215,5 @@ def post_set_queuefile_extension(channel_id):
 
     channel.set_queuefile_extension(extension, commit=True)
 
-    response = {'queuefile_extension': channel.queuefile_extension}
+    response = {'id': channel.id, 'queuefile_extension': channel.queuefile_extension}
     return flasktools.json_response(response)
