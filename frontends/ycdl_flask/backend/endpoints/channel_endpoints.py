@@ -191,6 +191,17 @@ def post_set_download_directory(channel_id):
     response = {'download_directory': abspath}
     return flasktools.json_response(response)
 
+@flasktools.required_fields(['name'], forbid_whitespace=False)
+@site.route('/channel/<channel_id>/set_name', methods=['POST'])
+def post_set_name(channel_id):
+    name = request.form['name']
+    channel = common.ycdldb.get_channel(channel_id)
+
+    channel.set_name(name, commit=True)
+
+    response = {'name': channel.name}
+    return flasktools.json_response(response)
+
 @site.route('/channel/<channel_id>/set_queuefile_extension', methods=['POST'])
 def post_set_queuefile_extension(channel_id):
     extension = request.form['extension']

@@ -59,6 +59,14 @@ function set_download_directory(channel_id, download_directory, callback)
     return common.post(url, data, callback);
 }
 
+api.channels.set_name =
+function set_name(channel_id, name, callback)
+{
+    const url = `/channel/${channel_id}/set_name`;
+    const data = {"name": name};
+    return common.post(url, data, callback);
+}
+
 api.channels.set_queuefile_extension =
 function set_queuefile_extension(channel_id, extension, callback)
 {

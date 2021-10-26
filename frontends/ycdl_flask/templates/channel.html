@@ -162,7 +162,7 @@ https://stackoverflow.com/a/35153397
 {{header.make_header()}}
 <div id="content_body">
     {% if channel is not none %}
-    <h2>{{channel.name}}</h2>
+    <h1 id="channel_name">{{channel.name}}</h1>
     {% endif %}
 
     {% if channel is not none %}
@@ -260,6 +260,11 @@ https://stackoverflow.com/a/35153397
 
     <div class="tab" data-tab-title="Settings">
     <div>Channel ID: <code>{{channel.id}}</code></div>
+
+    <div>
+        <input type="text" id="set_name_input" placeholder="Name" value="{{channel.name or ''}}"/>
+        <button id="set_name_button" class="button_with_spinner" onclick="return set_name_form();">Set name</button>
+    </div>
 
     <div>
         <label><input type="checkbox" id="set_autorefresh_checkbox" {{"checked" if channel.autorefresh else ""}} onchange="return set_autorefresh_form(event);"/> Automatically refresh this channel regularly.</label>
@@ -666,6 +671,38 @@ function set_download_directory_callback(response)
     }
 }
 
+function set_name_form(event)
+{
+    const name = set_name_input.value.trim();
+    api.channels.set_name(CHANNEL_ID, name, set_name_callback);
+}
+
+function set_name_callback(response)
+{
+    window[set_name_button.dataset.spinnerCloser]();
+    if (response.meta.status != 200 || ! response.meta.json_ok)
+    {
+        alert(JSON.stringify(response));
+        return;
+    }
+
+    const name = response.data.name;
+    const h1 = document.getElementById("channel_name");
+    if (name === null)
+    {
+        set_name_input.value = "";
+        h1.innerText = CHANNEL_ID;
+        document.title = CHANNEL_ID;
+    }
+    else
+    {
+        set_name_input.value = name;
+        h1.innerText = name;
+        document.title = name;
+    }
+
+}
+
 function set_queuefile_extension_form(event)
 {
     const extension = set_queuefile_extension_input.value.trim();
@@ -695,6 +732,10 @@ function set_queuefile_extension_callback(response)
 
 if (CHANNEL_ID)
 {
+    var set_name_input = document.getElementById("set_name_input");
+    var set_name_button = document.getElementById("set_name_button");
+    common.bind_box_to_button(set_name_input, set_name_button);
+
     var set_queuefile_extension_input = document.getElementById("set_queuefile_extension_input");
     var set_queuefile_extension_button = document.getElementById("set_queuefile_extension_button");
     common.bind_box_to_button(set_queuefile_extension_input, set_queuefile_extension_button);
