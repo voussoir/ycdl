@@ -34,6 +34,7 @@ The reason for this is that youtube-dl is extremely configurable. Every user mig
 - Sort videos by date, duration, views, or random
 - Background thread will refresh channels over time
 - Automark channels as ignore or download
+- Free yourself from Youtube's awful recommendation system
 
 ## Your API key
 
@@ -88,6 +89,8 @@ YCDL has a core backend package and separate frontends that use it. These fronte
 
 ## Pairs well with...
 
+### YCDL bookmarklet
+
 Here is a javascript bookmarklet that you can click while on youtube.com to be redirected to the same URL on your YCDL server. Mainly for `/channel` and `/watch` URLs.
 
 ```Javascript
@@ -97,6 +100,18 @@ false;
 ```
 
 Replace 5000 with the port on which you choose to run YCDL.
+
+### uBlock Origin filters
+
+I use the following filters to prevent annoying elements from appearing inside the embedded youtube player:
+
+```
+! This is the thing that pops up while the video is paused
+youtube.com##.ytp-scroll-min.ytp-pause-overlay
+
+! These are the recommendations that appear after the video is over
+youtube.com##.ytp-suggestion-set
+```
 
 ## Screenshots
 
