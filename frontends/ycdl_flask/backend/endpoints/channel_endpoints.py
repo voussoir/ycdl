@@ -105,7 +105,7 @@ def get_watch():
 @flasktools.required_fields(['channel_id'], forbid_whitespace=True)
 @site.route('/add_channel', methods=['POST'])
 def post_add_channel():
-    channel_id = request.form.['channel_id']
+    channel_id = request.form['channel_id']
     if not (len(channel_id) == 24 and channel_id.startswith('UC')):
         # It seems they have given us a username instead.
         try:
