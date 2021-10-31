@@ -118,6 +118,8 @@ class Channel(ObjectBase):
         except exceptions.NoVideos as exc:
             raise exceptions.RSSAssistFailed(f'Channel has no videos to reference.') from exc
         new_ids = ytrss.get_user_videos_since(self.id, most_recent_video)
+        if not new_ids:
+            return []
         videos = self.ycdldb.youtube.get_videos(new_ids)
         return videos
 
