@@ -611,6 +611,10 @@ function refresh_channel_callback(response)
     else
     {
         alert(JSON.stringify(response));
+        for (let button of document.getElementsByClassName("refresh_button"))
+        {
+            window[button.dataset.spinnerCloser]();
+        }
     }
 }
 
