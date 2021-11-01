@@ -18,11 +18,14 @@ from . import jinja_filters
 
 # Flask init #######################################################################################
 
+# __file__ = .../ycdl_flask/backend/common.py
+# root_dir = .../ycdl_flask
 root_dir = pathclass.Path(__file__).parent.parent
 
 TEMPLATE_DIR = root_dir.with_child('templates')
 STATIC_DIR = root_dir.with_child('static')
 FAVICON_PATH = STATIC_DIR.with_child('favicon.png')
+BROWSER_CACHE_DURATION = 180
 
 site = flask.Flask(
     __name__,
@@ -30,7 +33,7 @@ site = flask.Flask(
     static_folder=STATIC_DIR.absolute_path,
 )
 site.config.update(
-    SEND_FILE_MAX_AGE_DEFAULT=180,
+    SEND_FILE_MAX_AGE_DEFAULT=BROWSER_CACHE_DURATION,
     TEMPLATES_AUTO_RELOAD=True,
 )
 site.jinja_env.add_extension('jinja2.ext.do')
