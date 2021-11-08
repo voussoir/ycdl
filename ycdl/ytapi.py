@@ -1,5 +1,6 @@
 import googleapiclient.discovery
 import isodate
+import typing
 
 from voussoirkit import gentools
 from voussoirkit import vlogging
@@ -77,13 +78,13 @@ class Youtube:
             if page_token is None:
                 break
 
-    def get_playlist_videos(self, playlist_id):
+    def get_playlist_videos(self, playlist_id) -> typing.Iterable[Video]:
         paginator = self._playlist_paginator(playlist_id)
         video_ids = (item['contentDetails']['videoId'] for item in paginator)
         videos = self.get_videos(video_ids)
         return videos
 
-    def get_related_videos(self, video_id, count=50):
+    def get_related_videos(self, video_id, count=50) -> typing.Iterable[Video]:
         if isinstance(video_id, Video):
             video_id = video_id.id
 
@@ -98,35 +99,35 @@ class Youtube:
         videos = self.get_videos(related)
         return videos
 
-    def get_user_id(self, username):
+    def get_user_id(self, username) -> str:
         user = self.youtube.channels().list(part='snippet', forUsername=username).execute()
         if not user.get('items'):
             raise ChannelNotFound(f'username: {username}')
         return user['items'][0]['id']
 
-    def get_user_name(self, uid):
+    def get_user_name(self, uid) -> str:
         user = self.youtube.channels().list(part='snippet', id=uid).execute()
         if not user.get('items'):
             raise ChannelNotFound(f'uid: {uid}')
         return user['items'][0]['snippet']['title']
 
-    def get_user_uploads_playlist_id(self, uid):
+    def get_user_uploads_playlist_id(self, uid) -> str:
         user = self.youtube.channels().list(part='contentDetails', id=uid).execute()
         if not user.get('items'):
             raise ChannelNotFound(f'uid: {uid}')
         return user['items'][0]['contentDetails']['relatedPlaylists']['uploads']
 
-    def get_user_videos(self, uid):
+    def get_user_videos(self, uid) -> typing.Iterable[Video]:
         yield from self.get_playlist_videos(self.get_user_uploads_playlist_id(uid))
 
-    def get_video(self, video_id):
+    def get_video(self, video_id) -> Video:
         try:
             video = next(self.get_videos([video_id]))
             return video
         except StopIteration:
             raise VideoNotFound(video_id) from None
 
-    def get_videos(self, video_ids):
+    def get_videos(self, video_ids) -> typing.Iterable[Video]:
         chunks = gentools.chunk_generator(video_ids, 50)
         total_snippets = 0
         for chunk in chunks:
