@@ -30,6 +30,7 @@ The reason for this is that youtube-dl is extremely configurable. Every user mig
 ## Features
 
 - Web interface with video embeds
+- Commandline interface for scripted use
 - "Sub-box" page where newest videos from all channels are listed in order
 - Sort videos by date, duration, views, or random
 - Background thread will refresh channels over time
@@ -72,20 +73,63 @@ YCDL has a core backend package and separate frontends that use it. These fronte
 
 6. Run `python -c "import ycdl; print(ycdl)"` to confirm.
 
-## Running YCDL Flask locally
+## Running YCDL
+
+In order to prevent the accidental creation of databases, you must first use `ycdl_cli.py init` to create your database.
+
+### Running YCDL CLI
 
 1. `cd` to the folder where you'd like to create the YCDL database.
-2. Start the webserver:
 
-    Windows: `python D:\Git\YCDL\frontends\ycdl_flask\ycdl_flask_dev.py`
+2. Run `python frontends/ycdl_cli.py --help` to learn about the available commands.
 
-    Linux: `python ~/Git/YCDL/frontends/ycdl_flask/ycdl_flask_dev.py`
+3. Run `python frontends/ycdl_cli.py init` to create a database in the current directory.
 
-    Add `--help` to learn the arguments.
+Note: Do not `cd` into the frontends folder. Stay in the folder that contains your `_ycdl` database and specify the full path of the frontend launcher. For example:
 
-    It is expected that you create a shortcut file or launch script so you don't have to type the whole filepath every time.
+    Windows:
+    D:\somewhere> python D:\Git\YCDL\frontends\ycdl_cli.py
 
-3. YCDL will tell you what port it is running on. The default is 5000. Open your web browser to `localhost:<port>`.
+    Linux:
+    /somewhere $ python /Git/YCDL/frontends/ycdl_cli.py
+
+It is expected that you create a shortcut file or launch script so you don't have to type the whole filepath every time.
+
+### Running YCDL Flask locally
+
+1. Use `ycdl_cli init` to create the database in the desired directory.
+
+2. Run `python frontends/ycdl_flask/ycdl_flask_dev.py [port]` to launch the flask server. Port defaults to 5000 if not provided.
+
+3. Open your web browser to `localhost:<port>`.
+
+Note: Do not `cd` into the frontends folder. Stay in the folder that contains your `_ycdl` database and specify the full path of the frontend launcher. For example:
+
+    Windows:
+    D:\somewhere> python D:\Git\YCDL\frontends\ycdl_flask\ycdl_flask_dev.py 5001
+
+    Linux:
+    /somewhere $ python /Git/YCDL/frontends/ycdl_flask/ycdl_flask_dev.py 5001
+
+Add `--help` to learn the arguments.
+
+It is expected that you create a shortcut file or launch script so you don't have to type the whole filepath every time.
+
+### Running YCDL REPL
+
+1. Use `ycdl_cli init` to create the database in the desired directory.
+
+2. Run `python frontends/ycdl_repl.py` to launch the Python interpreter with the YCDLDB pre-loaded into a variable called `Y`. Try things like `Y.get_videos`.
+
+Note: Do not `cd` into the frontends folder. Stay in the folder that contains your `_ycdl` database and specify the full path of the frontend launcher. For example:
+
+    Windows:
+    D:\somewhere> python D:\Git\YCDL\frontends\ycdl_repl.py
+
+    Linux:
+    /somewhere $ python /Git/YCDL/frontends/ycdl_repl.py
+
+It is expected that you create a shortcut file or launch script so you don't have to type the whole filepath every time.
 
 ## Pairs well with...
 
