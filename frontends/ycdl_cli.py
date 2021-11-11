@@ -18,6 +18,40 @@ log = vlogging.getLogger(__name__, 'ycdl_cli')
 def closest_db():
     return ycdl.ycdldb.YCDLDB.closest_ycdldb()
 
+def get_channels_from_args(args):
+    '''
+    This function unifies channel IDs that are part of the command's argparser
+    and channels that come from --channel_list listargs into a single stream
+    of Channel objects.
+    '''
+    ycdldb = closest_db()
+    channels = []
+
+    if args.channel_list_args:
+        channels.extend(_channel_list_argparse(args.channel_list_args))
+
+    if args.channel_ids:
+        channels.extend(ycdldb.get_channels_by_id(pipeable.input_many(args.channel_ids)))
+
+    return channels
+
+def get_videos_from_args(args):
+    '''
+    This function unifies video IDs that are part of the command's argparser
+    and videos that come from --video_list listargs into a single stream
+    of Video objects.
+    '''
+    ycdldb = closest_db()
+    videos = []
+
+    if args.video_list_args:
+        videos.extend(_video_list_argparse(args.video_list_args))
+
+    if args.video_ids:
+        videos.extend(ycdldb.get_videos_by_id(pipeable.input_many(args.video_ids)))
+
+    return videos
+
 # ARGPARSE #########################################################################################
 
 def add_channel_argparse(args):
@@ -36,10 +70,13 @@ def add_channel_argparse(args):
 
     return 0
 
-def channel_list_argparse(args):
+def _channel_list_argparse(args):
     ycdldb = closest_db()
     channels = sorted(ycdldb.get_channels(), key=lambda c: c.name.lower())
-    for channel in channels:
+    yield from channels
+
+def channel_list_argparse(args):
+    for channel in _channel_list_argparse(args):
         line = args.format.format(
             automark=channel.automark,
             autorefresh=channel.autorefresh,
@@ -54,9 +91,11 @@ def channel_list_argparse(args):
 
 def delete_channel_argparse(args):
     ycdldb = closest_db()
-    for channel_id in pipeable.input_many(args.channel_ids):
-        channel = ycdldb.get_channel(channel_id)
+    needs_commit = False
+
+    for channel in get_channels_from_args(args):
         channel.delete()
+        needs_commit = True
 
     if args.autoyes or interactive.getpermission('Commit?'):
         ycdldb.commit()
@@ -66,8 +105,8 @@ def delete_channel_argparse(args):
 def download_video_argparse(args):
     ycdldb = closest_db()
     needs_commit = False
-    for video_id in pipeable.input_many(args.video_ids):
-        video = ycdldb.get_video(video_id)
+
+    for video in get_videos_from_args(args):
         queuefile = ycdldb.download_video(
             video,
             download_directory=args.download_directory,
@@ -117,14 +156,17 @@ def refresh_channels_argparse(args):
 
     return status
 
-def video_list_argparse(args):
+def _video_list_argparse(args):
     ycdldb = closest_db()
     videos = ycdldb.get_videos(channel_id=args.channel_id, state=args.state, orderby=args.orderby)
 
     if args.limit is not None:
         videos = itertools.islice(videos, args.limit)
 
-    for video in videos:
+    yield from videos
+
+def video_list_argparse(args):
+    for video in _video_list_argparse(args):
         line = args.format.format(
             author_id=video.author_id,
             duration=video.duration,
@@ -207,9 +249,12 @@ channel_list:
         The available attributes are id, name, automark, autorefresh,
         uploads_playlist, queuefile_extension.
 
+        If you are using --channel_list as listargs for another command, then
+        this argument is not relevant.
+
     > ycdl_cli.py channel_list
 
-    Example:
+    Examples:
     > ycdl_cli.py channel_list
     > ycdl_cli.py channel_list --format "{id} automark={automark}"
 ''',
@@ -222,11 +267,19 @@ delete_channel:
     Uses pipeable to support !c clipboard, !i stdin.
 
     > ycdl_cli.py delete_channel channel_id [channel_id channel_id...]
+    > ycdl_cli.py delete_channel --channel_list listargs
 
     Examples:
+    # Delete one channel
     > ycdl_cli.py delete_channel UCOYBuFGi8T3NM5fNAptCLCw
+
+    # Delete many channels
     > ycdl_cli.py delete_channel UCOYBuFGi8T3NM5fNAptCLCw UCmu9PVIZBk-ZCi-Sk2F2utA
-    > ycdl_cli.py channel_list --format {id} | ycdl_cli.py delete_channel !i --yes
+
+    # Delete all channels in the database
+    > ycdl_cli.py delete_channel --channel-list
+
+    See ycdl_cli.py channel_list --help for help with listargs.
 ''',
 
 download_video='''
@@ -240,6 +293,7 @@ download_video:
     Uses pipeable to support !c clipboard, !i stdin.
 
     > ycdl_cli.py download_video video_id [video_id video_id...] <flags>
+    > ycdl_cli.py download_video <flags> --video_list listargs
 
     flags:
     --download_directory X:
@@ -258,9 +312,19 @@ download_video:
         config file. You can pass this argument to override both of those.
 
     Examples:
+    # Download one video
     > ycdl_cli.py download_video thOifuHs6eY
+
+    # Force download many videos
     > ycdl_cli.py download_video yJ-oASr_djo vHuFizITMdA --force
-    > ycdl_cli.py video_list --channel UCvBv3PCvD9v-IKKTkd94XPg | ycdl_cli.py download_video !i --yes
+
+    # Download all videos from this channel
+    > ycdl_cli.py download_video --video_list --channel UCvBv3PCvD9v-IKKTkd94XPg
+
+    # Force re-download all videos that have already been downloaded
+    > ycdl_cli.py download_video --force --video_list --state downloaded
+
+    See ycdl_cli.py video_list --help for help with listargs.
 ''',
 
 init='''
@@ -336,6 +400,20 @@ def main(argv):
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers()
 
+    primary_args = []
+    video_list_args = []
+    channel_list_args = []
+    mode = primary_args
+    for arg in argv:
+        if 0:
+            pass
+        elif arg in {'--channel_list', '--channel-list'}:
+            mode = channel_list_args
+        elif arg in {'--video_list', '--video-list'}:
+            mode = video_list_args
+        else:
+            mode.append(arg)
+
     p_add_channel = subparsers.add_parser('add_channel', aliases=['add-channel'])
     p_add_channel.add_argument('channel_id')
     p_add_channel.add_argument('--automark', default='pending')
@@ -351,12 +429,12 @@ def main(argv):
     p_channel_list.set_defaults(func=channel_list_argparse)
 
     p_delete_channel = subparsers.add_parser('delete_channel', aliases=['delete-channel'])
-    p_delete_channel.add_argument('channel_ids', nargs='+')
+    p_delete_channel.add_argument('channel_ids', nargs='*')
     p_delete_channel.add_argument('--yes', dest='autoyes', action='store_true')
     p_delete_channel.set_defaults(func=delete_channel_argparse)
 
     p_download_video = subparsers.add_parser('download_video', aliases=['download-video'])
-    p_download_video.add_argument('video_ids', nargs='+')
+    p_download_video.add_argument('video_ids', nargs='*')
     p_download_video.add_argument('--download_directory', '--download-directory', default=None)
     p_download_video.add_argument('--force', action='store_true')
     p_download_video.add_argument('--queuefile_extension', '--queuefile-extension', default=None)
@@ -380,8 +458,21 @@ def main(argv):
     p_video_list.add_argument('--state', default=None)
     p_video_list.set_defaults(func=video_list_argparse)
 
+    ##
+
+    def postprocessor(args):
+        args.video_list_args = p_video_list.parse_args(video_list_args)
+        args.channel_list_args = p_channel_list.parse_args(channel_list_args)
+        return args
+
     try:
-        return betterhelp.subparser_main(argv, parser, DOCSTRING, SUB_DOCSTRINGS)
+        return betterhelp.subparser_main(
+            primary_args,
+            parser,
+            main_docstring=DOCSTRING,
+            sub_docstrings=SUB_DOCSTRINGS,
+            args_postprocessor=postprocessor,
+        )
     except ycdl.exceptions.NoClosestYCDLDB as exc:
         pipeable.stderr(exc.error_message)
         pipeable.stderr('Try `ycdl_cli.py init` to create the database.')
