@@ -274,15 +274,20 @@ refresh_channels='''
 refresh_channels:
     Refresh some or all channels in the database.
 
+    New videos will have their state marked with the channel's automark value,
+    and queuefiles will be created for channels with automark=downloaded.
+
     > ycdl_cli.py refresh_channels <flags>
 
     flags:
     --channels X Y Z:
         Any number of channel IDs.
+        If omitted, all channels will be refreshed.
 
     --force:
-        If omitted, only new videos are downloaded.
-        If included, channels are refreshed completely.
+        If omitted, only new videos are found.
+        If included, channels are refreshed completely. This may be slow and
+        cost a lot of API calls.
 
     Examples:
     > ycdl_cli.py refresh_channels --force
