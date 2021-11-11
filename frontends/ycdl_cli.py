@@ -200,6 +200,8 @@ YCDL CLI
 
 {video_list}
 
+You can add --yes to avoid the "Commit?" prompt on commands that modify the db.
+
 TO SEE DETAILS ON EACH COMMAND, RUN
 > ycdl_cli.py <command> --help
 '''
