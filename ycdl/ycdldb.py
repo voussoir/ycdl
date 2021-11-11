@@ -81,6 +81,9 @@ class YCDLDBChannelMixin:
     def get_channels(self):
         return self.get_objects(objects.Channel)
 
+    def get_channels_by_id(self, channel_ids):
+        return self.get_objects_by_id(objects.Channel, channel_ids, raise_for_missing=True)
+
     def get_channels_by_sql(self, query, bindings=None):
         return self.get_objects_by_sql(objects.Channel, query, bindings)
 
@@ -247,7 +250,7 @@ class YCDLDBVideoMixin:
         return self.get_object_by_id(objects.Video, video_id)
 
     def get_videos_by_id(self, video_ids):
-        return self.get_objects_by_id(objects.Video, video_ids)
+        return self.get_objects_by_id(objects.Video, video_ids, raise_for_missing=True)
 
     def get_videos(self, channel_id=None, *, state=None, orderby=None):
         wheres = []
