@@ -171,10 +171,32 @@ class YCDLDBVideoMixin:
         super().__init__()
 
     @worms.transaction
-    def download_video(self, video, force=False):
+    def download_video(
+            self,
+            video,
+            *,
+            download_directory=None,
+            force=False,
+            queuefile_extension=None,
+        ):
         '''
         Create the queuefile within the channel's associated directory, or
         the default directory from the config file.
+
+        download_directory:
+            By default, the queuefile will be placed in the channel's
+            download_directory if it has one, or the download_directory in the
+            ycdl.json config file. You can pass this argument to override both
+            of those.
+
+        force:
+            By default, a video that is already marked as downloaded will not be
+            downloaded again. You can add this to make the queuefiles for those
+            videos anyway.
+
+        queuefile_extension:
+            By default, the queuefile extension is taken from the channel or the
+            config file. You can pass this argument to override both of those.
         '''
         if isinstance(video, objects.Video):
             pass
@@ -191,14 +213,25 @@ class YCDLDBVideoMixin:
 
         try:
             channel = self.get_channel(video.author_id)
-            download_directory = channel.download_directory or self.config['download_directory']
-            extension = channel.queuefile_extension or self.config['queuefile_extension']
         except exceptions.NoSuchChannel:
+            channel = None
+
+        if download_directory is not None:
+            download_directory = pathclass.Path(download_directory)
+        elif channel is not None:
+            download_directory = channel.download_directory or self.config['download_directory']
+        else:
             download_directory = self.config['download_directory']
-            extension = self.config['queuefile_extension']
+
+        if queuefile_extension is not None:
+            pass
+        elif channel is not None:
+            queuefile_extension = channel.queuefile_extension or self.config['queuefile_extension']
+        else:
+            queuefile_extension = self.config['queuefile_extension']
 
         download_directory = pathclass.Path(download_directory)
-        queuefile = download_directory.with_child(video.id).replace_extension(extension)
+        queuefile = download_directory.with_child(video.id).replace_extension(queuefile_extension)
 
         def create_queuefile():
             log.info('Creating %s.', queuefile.absolute_path)

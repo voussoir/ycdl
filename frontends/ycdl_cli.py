@@ -68,7 +68,12 @@ def download_video_argparse(args):
     needs_commit = False
     for video_id in pipeable.input_many(args.video_ids):
         video = ycdldb.get_video(video_id)
-        queuefile = ycdldb.download_video(video, force=args.force)
+        queuefile = ycdldb.download_video(
+            video,
+            download_directory=args.download_directory,
+            force=args.force,
+            queuefile_extension=args.queuefile_extension,
+        )
         if queuefile is not None:
             needs_commit = True
 
@@ -237,10 +242,20 @@ download_video:
     > ycdl_cli.py download_video video_id [video_id video_id...] <flags>
 
     flags:
+    --download_directory X:
+        By default, the queuefile will be placed in the channel's
+        download_directory if it has one, or the download_directory in the
+        ycdl.json config file. You can pass this argument to override both
+        of those.
+
     --force:
         By default, a video that is already marked as downloaded will not be
         downloaded again. You can add this to make the queuefiles for those
         videos anyway.
+
+    --queuefile_extension X:
+        By default, the queuefile extension is taken from the channel or the
+        config file. You can pass this argument to override both of those.
 
     Examples:
     > ycdl_cli.py download_video thOifuHs6eY
@@ -337,7 +352,9 @@ def main(argv):
 
     p_download_video = subparsers.add_parser('download_video', aliases=['download-video'])
     p_download_video.add_argument('video_ids', nargs='+')
+    p_download_video.add_argument('--download_directory', '--download-directory', default=None)
     p_download_video.add_argument('--force', action='store_true')
+    p_download_video.add_argument('--queuefile_extension', '--queuefile-extension', default=None)
     p_download_video.add_argument('--yes', dest='autoyes', action='store_true')
     p_download_video.set_defaults(func=download_video_argparse)
 
