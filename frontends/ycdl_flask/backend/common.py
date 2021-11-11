@@ -43,6 +43,15 @@ jinja_filters.register_all(site)
 site.debug = True
 site.localhost_only = False
 
+# This timestamp indicates the last time that all channels got a refresh.
+# If the user clicks the "refresh all channels" button, we can update this
+# timestamp so that the background refresher thread knows that it can wait
+# a little longer.
+# I chose the initial value as time.time() instead of 0 because when I'm
+# testing the server and restarting it often, I don't want it making a bunch of
+# network requests and/or burning API calls every time.
+last_refresh = time.time()
+
 # Request decorators ###############################################################################
 
 @site.before_request
@@ -65,8 +74,13 @@ def init_ycdldb(*args, **kwargs):
     ycdldb = ycdl.ycdldb.YCDLDB.closest_ycdldb(*args, **kwargs)
 
 def refresher_thread(rate):
+    global last_refresh
     while True:
-        time.sleep(rate)
+        next_refresh = last_refresh + rate
+        wait = next_refresh - time.time()
+        if wait > 0:
+            time.sleep(wait)
+            continue
         log.info('Starting refresh job.')
         thread_kwargs = {'force': False, 'skip_failures': True}
         refresh_job = threading.Thread(
@@ -75,6 +89,7 @@ def refresher_thread(rate):
             daemon=True,
         )
         refresh_job.start()
+        last_refresh = time.time()
 
 def start_refresher_thread(rate):
     log.info('Starting refresher thread, once per %d seconds.', rate)

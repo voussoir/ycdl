@@ -1,5 +1,6 @@
 import flask; from flask import request
 import itertools
+import time
 
 from voussoirkit import flasktools
 from voussoirkit import pathclass
@@ -144,6 +145,7 @@ def post_refresh_all_channels():
     force = request.form.get('force', False)
     force = stringtools.truthystring(force, False)
     common.ycdldb.refresh_all_channels(force=force, skip_failures=True, commit=True)
+    common.last_refresh = time.time()
     return flasktools.json_response({})
 
 @flasktools.required_fields(['state'], forbid_whitespace=True)
