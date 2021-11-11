@@ -190,7 +190,7 @@ add_channel:
 
     Examples:
     > ycdl_cli.py add_channel UCFhXFikryT4aFcLkLw2LBLA
-'''.strip(),
+''',
 
 channel_list='''
 channel_list:
@@ -212,7 +212,7 @@ channel_list:
     Example:
     > ycdl_cli.py channel_list
     > ycdl_cli.py channel_list --format "{id} automark={automark}"
-'''.strip(),
+''',
 
 delete_channel='''
 delete_channel:
@@ -227,7 +227,7 @@ delete_channel:
     > ycdl_cli.py delete_channel UCOYBuFGi8T3NM5fNAptCLCw
     > ycdl_cli.py delete_channel UCOYBuFGi8T3NM5fNAptCLCw UCmu9PVIZBk-ZCi-Sk2F2utA
     > ycdl_cli.py channel_list --format {id} | ycdl_cli.py delete_channel !i --yes
-'''.strip(),
+''',
 
 download_video='''
 download_video:
@@ -261,14 +261,14 @@ download_video:
     > ycdl_cli.py download_video thOifuHs6eY
     > ycdl_cli.py download_video yJ-oASr_djo vHuFizITMdA --force
     > ycdl_cli.py video_list --channel UCvBv3PCvD9v-IKKTkd94XPg | ycdl_cli.py download_video !i --yes
-'''.strip(),
+''',
 
 init='''
 init:
     Create a new YCDL database in the current directory.
 
     > ycdl_cli.py init
-'''.strip(),
+''',
 
 refresh_channels='''
 refresh_channels:
@@ -292,7 +292,7 @@ refresh_channels:
     Examples:
     > ycdl_cli.py refresh_channels --force
     > ycdl_cli.py refresh_channels --channels UC1_uAIS3r8Vu6JjXWvastJg
-'''.strip(),
+''',
 
 video_list='''
 video_list:
@@ -325,7 +325,7 @@ video_list:
     Examples:
     > ycdl_cli.py video_list --state pending --limit 100
     > ycdl_cli.py video_list --channel UCzIiTeduaanyEboRfwJJznA --orderby views
-'''.strip(),
+''',
 )
 
 DOCSTRING = betterhelp.add_previews(DOCSTRING, SUB_DOCSTRINGS)
