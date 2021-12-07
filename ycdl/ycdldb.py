@@ -462,7 +462,7 @@ class YCDLDB(
             raise FileNotFoundError(msg)
 
         self.data_directory.makedirs(exist_ok=True)
-        self.sql = sqlite3.connect(self.database_filepath.absolute_path)
+        self.sql = sqlite3.connect(self.database_filepath)
 
         if existing_database:
             if not skip_version_check:
