@@ -139,7 +139,7 @@ class Youtube:
                 id=chunk,
             ).execute()
             snippets = data['items']
-            self.log.debug('Got %d snippets.', len(snippets))
+            self.log.debug('Got batch of %d snippets.', len(snippets))
             total_snippets += len(snippets)
             self.log.loud(snippets)
             for snippet in snippets:

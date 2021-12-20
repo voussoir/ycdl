@@ -221,16 +221,17 @@ class Channel(ObjectBase):
         # 2. Premieres or live events which may now be over but were not
         # included in the requested batch of IDs because they are not the most
         # recent.
-        query = 'SELECT * FROM videos WHERE author_id == ? AND live_broadcast IS NOT NULL'
-        videos = self.ycdldb.get_videos_by_sql(query, [self.id])
-        refresh_ids.update(v.id for v in videos)
+        query = 'SELECT id FROM videos WHERE author_id == ? AND live_broadcast IS NOT NULL'
+        bindings = [self.id]
+        premiere_ids = self.ycdldb.select_column(query, bindings)
+        refresh_ids.update(premiere_ids)
 
         if refresh_ids:
             log.debug('Refreshing %d ids separately.', len(refresh_ids))
             # We call ingest_video instead of insert_video so that
             # premieres / livestreams which have finished can be automarked.
-            for video_id in self.ycdldb.youtube.get_videos(refresh_ids):
-                self.ycdldb.ingest_video(video_id)
+            for video in self.ycdldb.youtube.get_videos(refresh_ids):
+                self.ycdldb.ingest_video(video)
 
     def reset_uploads_playlist_id(self):
         '''
