@@ -141,7 +141,13 @@ class Channel(ObjectBase):
         self.ycdldb.delete(table='videos', pairs={'author_id': self.id})
         self.ycdldb.delete(table='channels', pairs={'id': self.id})
 
-    def get_most_recent_video_id(self):
+    def get_most_recent_video_id(self) -> str:
+        '''
+        Return the ID of this channel's most recent video by publication date.
+
+        Used primarily for the RSS assisted refresh where we check for videos
+        newer than the stored videos.
+        '''
         query = 'SELECT id FROM videos WHERE author_id == ? ORDER BY published DESC LIMIT 1'
         bindings = [self.id]
         row = self.ycdldb.select_one(query, bindings)
@@ -149,7 +155,12 @@ class Channel(ObjectBase):
             raise exceptions.NoVideos(self)
         return row[0]
 
-    def has_pending(self):
+    def has_pending(self) -> bool:
+        '''
+        Return True if this channel has any videos in the pending state.
+
+        Used primarily for generating channel listings.
+        '''
         query = 'SELECT 1 FROM videos WHERE author_id == ? AND state == "pending" LIMIT 1'
         bindings = [self.id]
         return self.ycdldb.select_one(query, bindings) is not None
