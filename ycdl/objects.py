@@ -112,12 +112,23 @@ class Channel(ObjectBase):
         Then, these new videos can be queried using the regular API since the
         RSS doesn't contain all the attributes we need. This saves us from
         wasting any metered API calls in the case that the RSS has nothing new.
+
+        Raises exceptions.RSSAssistFailed for any of these reasons:
+        - The channel has no stored videos, so we don't have a reference point
+          for the RSS assist.
+        - The RSS did not contain the latest stored video (it has become deleted
+          or unlisted), so we don't have a reference point.
+        - The RSS fetch request experiences any HTTP error.
+        - ytrss fails for any other reason.
         '''
         try:
             most_recent_video = self.get_most_recent_video_id()
         except exceptions.NoVideos as exc:
             raise exceptions.RSSAssistFailed(f'Channel has no videos to reference.') from exc
+
+        # This might raise RSSAssistFailed.
         new_ids = ytrss.get_user_videos_since(self.id, most_recent_video)
+
         if not new_ids:
             return []
         videos = self.ycdldb.youtube.get_videos(new_ids)
@@ -153,6 +164,21 @@ class Channel(ObjectBase):
 
     @worms.transaction
     def refresh(self, *, force=False, rss_assisted=True):
+        '''
+        Fetch new videos on the channel.
+
+        force:
+            If True, all of the channel's videos will be re-downloaded.
+            If False, we will first look for new videos, then refresh any
+            individual videos that need special attention (unlisted, premieres,
+            livestreams).
+
+        rss_assisted:
+            If True, we will use the RSS feed to look for new videos, so that
+            we can save some API calls.
+            If False, we will only use the tokened Youtube API.
+            Has no effect when force=True.
+        '''
         log.info('Refreshing %s.', self)
 
         if force or (not self.uploads_playlist):
