@@ -76,16 +76,19 @@ def init_ycdldb(*args, **kwargs):
 def refresher_thread(rate):
     global last_refresh
     while True:
-        next_refresh = last_refresh + rate
-        wait = next_refresh - time.time()
-        if wait > 0:
+        # If the user pressed the refresh button, the thread will wake from
+        # sleep and find that it should go back to sleep for a little longer.
+        while True:
+            next_refresh = last_refresh + rate
+            wait = next_refresh - time.time()
+            if wait <= 0:
+                break
             time.sleep(wait)
-            continue
+
         log.info('Starting refresh job.')
-        thread_kwargs = {'force': False, 'skip_failures': True}
         refresh_job = threading.Thread(
             target=ycdldb.refresh_all_channels,
-            kwargs=thread_kwargs,
+            kwargs={'force': False, 'skip_failures': True},
             daemon=True,
         )
         refresh_job.start()
