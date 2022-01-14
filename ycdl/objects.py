@@ -222,7 +222,7 @@ class Channel(ObjectBase):
 
         # 1. Videos which have become unlisted, therefore not returned by the
         # get_playlist_videos call. Take the set of all known ids minus those
-        # refreshed by the earlier  loop, the difference will be unlisted,
+        # refreshed by the earlier loop, the difference will be unlisted,
         # private, or deleted videos. At this time we have no special handling
         # for deleted videos, but they simply won't come back from ytapi.
         if force:
