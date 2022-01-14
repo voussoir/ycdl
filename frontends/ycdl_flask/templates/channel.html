@@ -335,28 +335,34 @@ function filter_video_cards(search_term)
     Apply the search filter textbox by hiding the mismatched cards.
     */
     let count = 0;
-    let video_cards = document.getElementById("video_cards");
-    video_cards.classList.add("hidden");
-    search_term = search_term.toLocaleLowerCase();
-    let state_class = "video_card_" + STATE;
-    Array.from(video_cards.getElementsByClassName("video_card")).forEach(function(video_card)
+    const video_card_list = document.getElementById("video_cards");
+    video_card_list.classList.add("hidden");
+    const search_term_lower = search_term.toLocaleLowerCase();
+    const state_class = "video_card_" + STATE;
+    const video_cards = Array.from(video_card_list.getElementsByClassName("video_card"))
+    video_cards.forEach(function(video_card)
     {
-        let title = video_card.getElementsByClassName("video_title")[0].innerText.toLocaleLowerCase();
         if (STATE && !video_card.classList.contains(state_class))
         {
             video_cards.removeChild(video_card);
+            return;
         }
-        else if (search_term !== "" && title.indexOf(search_term) == -1)
-        {
-            video_card.classList.add("hidden");
-        }
-        else
+        const title_lower = video_card.getElementsByClassName("video_title")[0].innerText.toLocaleLowerCase();
+        const matches = (
+            title_lower.indexOf(search_term_lower) > -1 ||
+            search_term === video_card.dataset.ytid
+        );
+        if (matches)
         {
             video_card.classList.remove("hidden");
             count += 1;
         }
+        else
+        {
+            video_card.classList.add("hidden");
+        }
     });
-    video_cards.classList.remove("hidden");
+    video_card_list.classList.remove("hidden");
     document.getElementById("search_filter_count").innerText = count;
 }
 
