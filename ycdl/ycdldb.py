@@ -508,7 +508,7 @@ class YCDLDB(
             *args,
             **kwargs,
         )
-        log.debug('Found closest YCDLDB at %s.', path)
+        log.debug('Found closest YCDLDB at %s.', path.absolute_path)
         return ycdldb
 
     @staticmethod
