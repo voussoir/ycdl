@@ -339,12 +339,12 @@ function filter_video_cards(search_term)
     video_card_list.classList.add("hidden");
     const search_term_lower = search_term.toLocaleLowerCase();
     const state_class = "video_card_" + STATE;
-    const video_cards = Array.from(video_card_list.getElementsByClassName("video_card"))
+    const video_cards = Array.from(video_card_list.getElementsByClassName("video_card"));
     video_cards.forEach(function(video_card)
     {
         if (STATE && !video_card.classList.contains(state_class))
         {
-            video_cards.removeChild(video_card);
+            video_card_list.removeChild(video_card);
             return;
         }
         const title_lower = video_card.getElementsByClassName("video_title")[0].innerText.toLocaleLowerCase();
