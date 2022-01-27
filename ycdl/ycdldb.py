@@ -3,6 +3,7 @@ import sqlite3
 
 from voussoirkit import cacheclass
 from voussoirkit import configlayers
+from voussoirkit import lazychain
 from voussoirkit import pathclass
 from voussoirkit import vlogging
 from voussoirkit import worms
@@ -136,8 +137,20 @@ class YCDLDBChannelMixin:
                 )
                 traditional(channel)
 
-        new_ids = (id for channel in channels for id in assisted(channel))
-        for video in self.youtube.get_videos(new_ids):
+        video_ids = lazychain.LazyChain()
+
+        for channel in channels:
+            video_ids.extend(assisted(channel))
+
+        # Premieres or live events which may now be over but were not
+        # included in the requested batch of IDs because they are not the
+        # most recent.
+        query = 'SELECT id FROM videos WHERE live_broadcast IS NOT NULL'
+        premiere_ids = set(self.select_column(query))
+        log.debug('Refreshing %d ids separately.', len(premiere_ids))
+        video_ids.extend(premiere_ids)
+
+        for video in self.youtube.get_videos(video_ids):
             self.ingest_video(video)
 
         return excs
