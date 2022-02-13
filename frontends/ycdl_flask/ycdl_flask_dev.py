@@ -1,29 +1,5 @@
 '''
-ycdl_flask_dev
-==============
-
 This file is the gevent launcher for local / development use.
-
-> ycdl_flask_dev port <flags>
-
-port:
-    Port number on which to run the server. Default 5000.
-
---dont-create:
-    If this flag is passed, YCDL will raise an error if there is not an
-    existing ycdl.db in the current directory.
-
---https:
-    If this flag is not passed, HTTPS will automatically be enabled if the port
-    is 443. You can pass this flag to enable HTTPS on other ports.
-    We expect to find ycdl.key and ycdl.crt in frontends/ycdl_flask/https.
-
---localhost-only:
-    If this flag is passed, only localhost will be able to access the server.
-    Other users on the LAN will be blocked.
-
---refresh-rate X:
-    Starts a background thread that refreshes all channels once every X seconds.
 '''
 import gevent.monkey; gevent.monkey.patch_all()
 
@@ -111,15 +87,51 @@ def ycdl_flask_launch_argparse(args):
 @vlogging.main_decorator
 @operatornotify.main_decorator(subject='YCDL', notify_every_line=True)
 def main(argv):
-    parser = argparse.ArgumentParser(description=__doc__)
-
-    parser.add_argument('port', nargs='?', type=int, default=5000)
-    parser.add_argument('--https', dest='use_https', action='store_true', default=None)
-    parser.add_argument('--localhost_only', '--localhost-only', dest='localhost_only', action='store_true')
-    parser.add_argument('--refresh_rate', '--refresh-rate', dest='refresh_rate', type=int, default=None)
+    parser = argparse.ArgumentParser(
+        description='''
+        This file is the gevent launcher for local / development use.
+        ''',
+    )
+    parser.add_argument(
+        'port',
+        nargs='?',
+        type=int,
+        default=5000,
+        help='''
+        Port number on which to run the server.
+        ''',
+    )
+    parser.add_argument(
+        '--https',
+        dest='use_https',
+        action='store_true',
+        help='''
+        If this flag is not passed, HTTPS will automatically be enabled if the port
+        is 443. You can pass this flag to enable HTTPS on other ports.
+        We expect to find ycdl.key and ycdl.crt in frontends/ycdl_flask/https.
+        ''',
+    )
+    parser.add_argument(
+        '--localhost_only',
+        '--localhost-only',
+        action='store_true',
+        help='''
+        If this flag is passed, only localhost will be able to access the server.
+        Other users on the LAN will be blocked.
+        ''',
+    )
+    parser.add_argument(
+        '--refresh_rate',
+        '--refresh-rate',
+        type=int,
+        default=None,
+        help='''
+        Starts a background thread that refreshes all channels once every X seconds.
+        ''',
+    )
     parser.set_defaults(func=ycdl_flask_launch_argparse)
 
-    return betterhelp.single_main(argv, parser, __doc__)
+    return betterhelp.go(parser, argv)
 
 if __name__ == '__main__':
     raise SystemExit(main(sys.argv[1:]))

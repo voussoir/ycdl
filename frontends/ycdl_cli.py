@@ -73,6 +73,10 @@ def add_channel_argparse(args):
 def _channel_list_argparse(args):
     ycdldb = closest_db()
     channels = sorted(ycdldb.get_channels(), key=lambda c: c.name.lower())
+
+    if args.automark:
+        channels = [channel for channel in channels if channel.automark == args.automark]
+
     yield from channels
 
 def channel_list_argparse(args):
@@ -182,299 +186,366 @@ def video_list_argparse(args):
 
     return 0
 
-DOCSTRING = '''
-YCDL CLI
-========
+@operatornotify.main_decorator(subject='ycdl_cli')
+@vlogging.main_decorator
+def main(argv):
+    parser = argparse.ArgumentParser(
+        description='''
+        This is the command-line interface for YCDL, so that you can automate your
+        database and integrate it into other scripts.
+        ''',
+    )
+    subparsers = parser.add_subparsers()
 
-{add_channel}
+    ################################################################################################
 
-{channel_list}
-
-{delete_channel}
-
-{download_video}
-
-{init}
-
-{refresh_channels}
-
-{video_list}
-
-You can add --yes to avoid the "Commit?" prompt on commands that modify the db.
-
-TO SEE DETAILS ON EACH COMMAND, RUN
-> ycdl_cli.py <command> --help
-'''
-
-SUB_DOCSTRINGS = dict(
-add_channel='''
-add_channel:
-    Add a channel to the database.
-
-    > ycdl_cli.py add_channel channel_id <flags>
-
-    flags:
-    --automark X:
+    p_add_channel = subparsers.add_parser(
+        'add_channel',
+        aliases=['add-channel'],
+        description='''
+        Add a channel to the database.
+        ''',
+    )
+    p_add_channel.examples = [
+        'UCFhXFikryT4aFcLkLw2LBLA',
+        'UCFhXFikryT4aFcLkLw2LBLA --automark downloaded',
+        'UCLx053rWZxCiYWsBETgdKrQ --name LGR',
+    ]
+    p_add_channel.add_argument(
+        'channel_id',
+    )
+    p_add_channel.add_argument(
+        '--automark',
+        default='pending',
+        help='''
         Set the channel's automark to this value, which should be 'pending',
         'downloaded', or 'ignored'.
-
-    --download_directory X:
+        ''',
+    )
+    p_add_channel.add_argument(
+        '--download_directory',
+        '--download-directory',
+        default=None,
+        help='''
         Set the channel's download directory to this path, which must
         be a directory.
-
-    --name X:
+        ''',
+    )
+    p_add_channel.add_argument(
+        '--name',
+        default=None,
+        help='''
         Override the channel's own name with a name of your choosing.
+        ''',
+    )
+    p_add_channel.add_argument(
+        '--no_videos',
+        '--no-videos',
+        dest='get_videos',
+        action='store_false',
+        help='''
+        By default, the channel's videos will be fetched right away. Add this
+        argument if you don't want to do that yet.
 
-    --no_videos:
-        By default, the channel's videos will be fetched right away.
-        Add this argument if you don't want to do that yet.
-
-    --queuefile_extension X:
+        You should run refresh_channels later.
+        ''',
+    )
+    p_add_channel.add_argument(
+        '--queuefile_extension',
+        '--queuefile-extension',
+        type=str,
+        default=None,
+        help='''
         Set the queuefile extension for all videos downloaded from this channel.
+        ''',
+    )
+    p_add_channel.add_argument(
+        '--yes',
+        dest='autoyes',
+        action='store_true',
+        help='''
+        Commit the database without prompting.
+        ''',
+    )
+    p_add_channel.set_defaults(func=add_channel_argparse)
 
-    Examples:
-    > ycdl_cli.py add_channel UCFhXFikryT4aFcLkLw2LBLA
-''',
+    ################################################################################################
 
-channel_list='''
-channel_list:
-    Print all channels in the database.
+    p_channel_list = subparsers.add_parser(
+        'channel_list',
+        aliases=['channel-list'],
+        description='''
+        Print all channels in the database.
 
-    Note: If you want to use this in a command pipeline, please specify
-    --format instead of relying on the default.
-
-    > ycdl_cli.py channel_list <flags>
-
-    flags:
-    --format X:
+        Note: If you want to use this in a command pipeline, please specify
+        --format instead of relying on the default.
+        ''',
+    )
+    p_channel_list.examples = [
+        '',
+        ['--format', '{id} automark={automark}'],
+        '--automark downloaded',
+    ]
+    p_channel_list.add_argument(
+        '--format',
+        default='{id}:{name}',
+        help='''
         A string like "{id}: {name}" to format the attributes of the channel.
         The available attributes are id, name, automark, autorefresh,
         uploads_playlist, queuefile_extension.
 
         If you are using --channel_list as listargs for another command, then
         this argument is not relevant.
+        ''',
+    )
+    p_channel_list.add_argument(
+        '--automark',
+        help='''
+        Only show channels with this automark, pending, downloaded, or ignored.
+        ''',
+    )
+    p_channel_list.set_defaults(func=channel_list_argparse)
 
-    > ycdl_cli.py channel_list
+    ################################################################################################
 
-    Examples:
-    > ycdl_cli.py channel_list
-    > ycdl_cli.py channel_list --format "{id} automark={automark}"
-''',
+    p_delete_channel = subparsers.add_parser(
+        'delete_channel',
+        aliases=['delete-channel'],
+        description='''
+        Delete a channel and all its videos from the database.
+        ''',
+    )
+    p_delete_channel.examples = [
+        {'args': 'UCOYBuFGi8T3NM5fNAptCLCw', 'comment': 'Delete one channel'},
+        {'args': 'UCOYBuFGi8T3NM5fNAptCLCw UCmu9PVIZBk-ZCi-Sk2F2utA', 'comment': 'Delete many channels'},
+        {'args': '--channel-list --automark ignored', 'comment': 'Delete all channels that use the ignored automark'},
+    ]
+    p_delete_channel.add_argument(
+        'channel_ids',
+        nargs='*',
+        help='''
+        One or more channel IDs to delete.
 
-delete_channel='''
-delete_channel:
-    Delete a channel and all its videos from the database.
+        Uses pipeable to support !c clipboard, !i stdin lines of IDs.
+        ''',
+    )
+    p_delete_channel.add_argument(
+        '--yes',
+        dest='autoyes',
+        action='store_true',
+        help='''
+        Commit the database without prompting.
+        ''',
+    )
+    p_delete_channel.add_argument(
+        '--channel_list',
+        '--channel-list',
+        dest='channel_list_args',
+        nargs='...',
+        help='''
+        All remaining arguments will go to the channel_list command to generate
+        the list of channels to delete. Do not worry about --format.
+        See channel_list --help for help.
+        ''',
+    )
+    p_delete_channel.set_defaults(func=delete_channel_argparse)
 
-    You can pass multiple channel IDs.
-    Uses pipeable to support !c clipboard, !i stdin.
+    ################################################################################################
 
-    > ycdl_cli.py delete_channel channel_id [channel_id channel_id...]
-    > ycdl_cli.py delete_channel --channel_list listargs
+    p_download_video = subparsers.add_parser(
+        'download_video',
+        aliases=['download-video'],
+        description='''
+        Create the queuefiles for one or more videos.
 
-    Examples:
-    # Delete one channel
-    > ycdl_cli.py delete_channel UCOYBuFGi8T3NM5fNAptCLCw
-
-    # Delete many channels
-    > ycdl_cli.py delete_channel UCOYBuFGi8T3NM5fNAptCLCw UCmu9PVIZBk-ZCi-Sk2F2utA
-
-    # Delete all channels in the database
-    > ycdl_cli.py delete_channel --channel-list
-
-    See ycdl_cli.py channel_list --help for help with listargs.
-''',
-
-download_video='''
-download_video:
-    Create the queuefiles for one or more videos.
-
-    They will be placed in the channel's download_directory if it has one, or
-    else the download_directory in the ycdl.json config file. The video will
-    have its state set to "downloaded".
-
-    Uses pipeable to support !c clipboard, !i stdin.
-
-    > ycdl_cli.py download_video video_id [video_id video_id...] <flags>
-    > ycdl_cli.py download_video <flags> --video_list listargs
-
-    flags:
-    --download_directory X:
+        The video will have its state set to "downloaded".
+        ''',
+    )
+    p_download_video.examples = [
+         {'args': 'thOifuHs6eY', 'comment': 'Download one video'},
+         {'args': 'yJ-oASr_djo vHuFizITMdA --force', 'comment': 'Force download many videos'},
+         {'args': '--video_list --channel UCvBv3PCvD9v-IKKTkd94XPg', 'comment': 'Download all videos from this channel'},
+         {'args': '--force --video_list --state downloaded', 'comment': 'Force re-download all videos that have already been downloaded'},
+    ]
+    p_download_video.add_argument(
+        'video_ids',
+        nargs='*',
+        help='''
+        Uses pipeable to support !c clipboard, !i stdin lines of IDs.
+        ''',
+    )
+    p_download_video.add_argument(
+        '--download_directory',
+        '--download-directory',
+        default=None,
+        help='''
         By default, the queuefile will be placed in the channel's
         download_directory if it has one, or the download_directory in the
         ycdl.json config file. You can pass this argument to override both
-        of those.
-
-    --force:
+        of those and use a specific directory.
+        ''',
+    )
+    p_download_video.add_argument(
+        '--force',
+        action='store_true',
+        help='''
         By default, a video that is already marked as downloaded will not be
         downloaded again. You can add this to make the queuefiles for those
         videos anyway.
-
-    --queuefile_extension X:
+        ''',
+    )
+    p_download_video.add_argument(
+        '--queuefile_extension',
+        '--queuefile-extension',
+        default=None,
+        help='''
         By default, the queuefile extension is taken from the channel or the
         config file. You can pass this argument to override both of those.
+        ''',
+    )
+    p_download_video.add_argument(
+        '--yes',
+        dest='autoyes',
+        action='store_true',
+        help='''
+        Commit the database without prompting.
+        ''',
+    )
+    p_download_video.add_argument(
+        '--video_list',
+        '--video-list',
+        dest='video_list_args',
+        nargs='...',
+        help='''
+        All remaining arguments will go to the video_list command to generate the
+        list of channels to delete. Do not worry about --format.
+        See video_list --help for help.
+        ''',
+    )
+    p_download_video.set_defaults(func=download_video_argparse)
 
-    Examples:
-    # Download one video
-    > ycdl_cli.py download_video thOifuHs6eY
+    ################################################################################################
 
-    # Force download many videos
-    > ycdl_cli.py download_video yJ-oASr_djo vHuFizITMdA --force
+    p_init = subparsers.add_parser(
+        'init',
+        description='''
+        Create a new YCDL database in the current directory.
+        ''',
+    )
+    p_init.set_defaults(func=init_argparse)
 
-    # Download all videos from this channel
-    > ycdl_cli.py download_video --video_list --channel UCvBv3PCvD9v-IKKTkd94XPg
+    ################################################################################################
 
-    # Force re-download all videos that have already been downloaded
-    > ycdl_cli.py download_video --force --video_list --state downloaded
+    p_refresh_channels = subparsers.add_parser(
+        'refresh_channels',
+        aliases=['refresh-channels'],
+        description='''
+        Refresh some or all channels in the database.
 
-    See ycdl_cli.py video_list --help for help with listargs.
-''',
-
-init='''
-init:
-    Create a new YCDL database in the current directory.
-
-    > ycdl_cli.py init
-''',
-
-refresh_channels='''
-refresh_channels:
-    Refresh some or all channels in the database.
-
-    New videos will have their state marked with the channel's automark value,
-    and queuefiles will be created for channels with automark=downloaded.
-
-    > ycdl_cli.py refresh_channels <flags>
-
-    flags:
-    --channels X Y Z:
+        New videos will have their state marked with the channel's automark value,
+        and queuefiles will be created for channels with automark=downloaded.
+        ''',
+    )
+    p_refresh_channels.examples = [
+        '--force',
+        '--channels UC1_uAIS3r8Vu6JjXWvastJg',
+    ]
+    p_refresh_channels.add_argument(
+        '--channels',
+        nargs='*',
+        help='''
         Any number of channel IDs.
         If omitted, all channels will be refreshed.
-
-    --force:
+        ''',
+    )
+    p_refresh_channels.add_argument(
+        '--force',
+        action='store_true',
+        help='''
         If omitted, only new videos are found.
         If included, channels are refreshed completely. This may be slow and
         cost a lot of API calls.
+        ''',
+    )
+    p_refresh_channels.add_argument(
+        '--yes',
+        dest='autoyes',
+        action='store_true',
+        help='''
+        Commit the database without prompting.
+        ''',
+    )
+    p_refresh_channels.set_defaults(func=refresh_channels_argparse)
 
-    Examples:
-    > ycdl_cli.py refresh_channels --force
-    > ycdl_cli.py refresh_channels --channels UC1_uAIS3r8Vu6JjXWvastJg
-''',
+    ################################################################################################
 
-video_list='''
-video_list:
-    Print videos in the database.
+    p_video_list = subparsers.add_parser(
+        'video_list',
+        aliases=['video-list'],
+        description='''
+        Print videos in the database.
 
-    Note: If you want to use this in a command pipeline, please specify
-    --format instead of relying on the default.
-
-    > ycdl_cli.py video_list <flags>
-
-    flags:
-    --channel X:
+        Note: If you want to use this in a command pipeline, please specify
+        --format instead of relying on the default.
+        ''',
+    )
+    p_video_list.examples = [
+        '--state pending --limit 100',
+        '--channel UCzIiTeduaanyEboRfwJJznA --orderby views',
+    ]
+    p_video_list.add_argument(
+        '--channel',
+        dest='channel_id',
+        default=None,
+        help='''
         A channel ID to list videos from.
-
-    --format X:
+        ''',
+    )
+    p_video_list.add_argument(
+        '--format',
+        default='{published_string}:{id}:{title}',
+        help='''
         A string like "{published_string}:{id} {title}" to format the
         attributes of the video. The available attributes are author_id,
         duration, id, live_broadcast, published, published_string, state,
         title, views.
-
-    --limit X:
-        Only show up to X results.
-
-    --orderby X:
+        ''',
+    )
+    p_video_list.add_argument(
+        '--limit',
+        type=int,
+        default=None,
+        help='''
+        Only show up to this many results.
+        ''',
+    )
+    p_video_list.add_argument(
+        '--orderby',
+        default=None,
+        help='''
         Order the results by published, views, duration, or random.
-
-    --state X:
-        Only show videos with this state.
-
-    Examples:
-    > ycdl_cli.py video_list --state pending --limit 100
-    > ycdl_cli.py video_list --channel UCzIiTeduaanyEboRfwJJznA --orderby views
-''',
-)
-
-DOCSTRING = betterhelp.add_previews(DOCSTRING, SUB_DOCSTRINGS)
-
-@operatornotify.main_decorator(subject='ycdl_cli')
-@vlogging.main_decorator
-def main(argv):
-    parser = argparse.ArgumentParser(description=__doc__)
-    subparsers = parser.add_subparsers()
-
-    primary_args = []
-    video_list_args = []
-    channel_list_args = []
-    mode = primary_args
-    for arg in argv:
-        if 0:
-            pass
-        elif arg in {'--channel_list', '--channel-list'}:
-            mode = channel_list_args
-        elif arg in {'--video_list', '--video-list'}:
-            mode = video_list_args
-        else:
-            mode.append(arg)
-
-    p_add_channel = subparsers.add_parser('add_channel', aliases=['add-channel'])
-    p_add_channel.add_argument('channel_id')
-    p_add_channel.add_argument('--automark', default='pending')
-    p_add_channel.add_argument('--download_directory', '--download-directory', default=None)
-    p_add_channel.add_argument('--name', default=None)
-    p_add_channel.add_argument('--no_videos', '--no-videos', dest='get_videos', action='store_false')
-    p_add_channel.add_argument('--queuefile_extension', '--queuefile-extension', default=None)
-    p_add_channel.add_argument('--yes', dest='autoyes', action='store_true')
-    p_add_channel.set_defaults(func=add_channel_argparse)
-
-    p_channel_list = subparsers.add_parser('channel_list', aliases=['channel-list'])
-    p_channel_list.add_argument('--format', default='{id}:{name}')
-    p_channel_list.set_defaults(func=channel_list_argparse)
-
-    p_delete_channel = subparsers.add_parser('delete_channel', aliases=['delete-channel'])
-    p_delete_channel.add_argument('channel_ids', nargs='*')
-    p_delete_channel.add_argument('--yes', dest='autoyes', action='store_true')
-    p_delete_channel.set_defaults(func=delete_channel_argparse)
-
-    p_download_video = subparsers.add_parser('download_video', aliases=['download-video'])
-    p_download_video.add_argument('video_ids', nargs='*')
-    p_download_video.add_argument('--download_directory', '--download-directory', default=None)
-    p_download_video.add_argument('--force', action='store_true')
-    p_download_video.add_argument('--queuefile_extension', '--queuefile-extension', default=None)
-    p_download_video.add_argument('--yes', dest='autoyes', action='store_true')
-    p_download_video.set_defaults(func=download_video_argparse)
-
-    p_init = subparsers.add_parser('init')
-    p_init.set_defaults(func=init_argparse)
-
-    p_refresh_channels = subparsers.add_parser('refresh_channels', aliases=['refresh-channels'])
-    p_refresh_channels.add_argument('--channels', nargs='*')
-    p_refresh_channels.add_argument('--force', action='store_true')
-    p_refresh_channels.add_argument('--yes', dest='autoyes', action='store_true')
-    p_refresh_channels.set_defaults(func=refresh_channels_argparse)
-
-    p_video_list = subparsers.add_parser('video_list', aliases=['video-list'])
-    p_video_list.add_argument('--channel', dest='channel_id', default=None)
-    p_video_list.add_argument('--format', default='{published_string}:{id}:{title}')
-    p_video_list.add_argument('--limit', type=int, default=None)
-    p_video_list.add_argument('--orderby', default=None)
-    p_video_list.add_argument('--state', default=None)
+        ''',
+    )
+    p_video_list.add_argument(
+        '--state',
+        default=None,
+        help='''
+        Only show videos with this state, pending, downloaded, or ignored.
+        ''',
+    )
     p_video_list.set_defaults(func=video_list_argparse)
 
     ##
 
     def postprocessor(args):
-        args.video_list_args = p_video_list.parse_args(video_list_args)
-        args.channel_list_args = p_channel_list.parse_args(channel_list_args)
+        if hasattr(args, 'video_list_args'):
+            args.video_list_args = p_video_list.parse_args(args.video_list_args)
+        if hasattr(args, 'channel_list_args'):
+            args.channel_list_args = p_channel_list.parse_args(args.channel_list_args)
         return args
 
     try:
-        return betterhelp.subparser_main(
-            primary_args,
-            parser,
-            main_docstring=DOCSTRING,
-            sub_docstrings=SUB_DOCSTRINGS,
-            args_postprocessor=postprocessor,
-        )
+        return betterhelp.go(parser, argv, args_postprocessor=postprocessor)
     except ycdl.exceptions.NoClosestYCDLDB as exc:
         pipeable.stderr(exc.error_message)
         pipeable.stderr('Try `ycdl_cli.py init` to create the database.')
