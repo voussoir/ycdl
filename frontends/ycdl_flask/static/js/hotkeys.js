@@ -1,6 +1,7 @@
 const hotkeys = {};
 
 hotkeys.HOTKEYS = {};
+hotkeys.HELPS = [];
 
 hotkeys.hotkey_identifier =
 function hotkey_identifier(key, ctrlKey, shiftKey, altKey)
@@ -14,12 +15,18 @@ function hotkey_human(key, ctrlKey, shiftKey, altKey)
 {
     // Return the string that will be displayed to the user to represent this hotkey.
     let mods = [];
-    if (ctrlKey) { mods.push("Ctrl"); }
-    if (shiftKey) { mods.push("Shift"); }
-    if (altKey) { mods.push("Alt"); }
+    if (ctrlKey) { mods.push("CTRL"); }
+    if (shiftKey) { mods.push("SHIFT"); }
+    if (altKey) { mods.push("ALT"); }
     mods = mods.join("+");
     if (mods) { mods = mods + "+"; }
     return mods + key.toUpperCase();
+}
+
+hotkeys.register_help =
+function register_help(help)
+{
+    hotkeys.HELPS.push(help);
 }
 
 hotkeys.register_hotkey =
@@ -44,6 +51,10 @@ function register_hotkey(hotkey, action, description)
 hotkeys.should_prevent_hotkey =
 function should_prevent_hotkey(event)
 {
+    /*
+    If the user is currently in an input element, then the registered hotkey
+    will be ignored and the browser will use its default behavior.
+    */
     if (event.target.tagName == "INPUT" && event.target.type == "checkbox")
     {
         return false;
@@ -64,6 +75,14 @@ function show_all_hotkeys()
         const line = hotkeys.HOTKEYS[identifier]["human"] + " :  " + hotkeys.HOTKEYS[identifier]["description"];
         lines.push(line);
     }
+    if (hotkeys.HELPS)
+    {
+        lines.push("");
+    }
+    for (const help of hotkeys.HELPS)
+    {
+        lines.push(help);
+    }
     lines = lines.join("\n");
     alert(lines);
 }
@@ -71,12 +90,17 @@ function show_all_hotkeys()
 hotkeys.hotkeys_listener =
 function hotkeys_listener(event)
 {
-    if (hotkeys.should_prevent_hotkey(event)) { return; }
+    // console.log(event.key);
+    if (hotkeys.should_prevent_hotkey(event))
+    {
+        return;
+    }
+
     identifier = hotkeys.hotkey_identifier(event.key, event.ctrlKey, event.shiftKey, event.altKey);
     //console.log(identifier);
     if (identifier in hotkeys.HOTKEYS)
     {
-        hotkeys.HOTKEYS[identifier]["action"]();
+        hotkeys.HOTKEYS[identifier]["action"](event);
         event.preventDefault();
     }
 }
