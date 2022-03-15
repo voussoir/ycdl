@@ -51,6 +51,7 @@ def ycdl_flask_launch(
         )
 
     if localhost_only:
+        log.info('Setting localhost_only=True')
         site.localhost_only = True
 
     try:
