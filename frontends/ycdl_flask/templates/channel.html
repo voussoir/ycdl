@@ -5,8 +5,8 @@
     <title>{{channel.name}}</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <link rel="stylesheet" href="/static/css/common.css">
-    <link rel="stylesheet" href="/static/css/ycdl.css">
+    <link rel="stylesheet" href="/static/css/common.css"/>
+    <link rel="stylesheet" href="/static/css/ycdl.css"/>
     <script src="/static/js/common.js"></script>
     <script src="/static/js/api.js"></script>
     <script src="/static/js/hotkeys.js"></script>
@@ -264,12 +264,13 @@ https://stackoverflow.com/a/35153397
     <div>Channel ID: <code>{{channel.id}}</code></div>
 
     <div>
-        <input type="text" id="set_name_input" placeholder="Name" value="{{channel.name or ''}}"/>
-        <button id="set_name_button" class="button_with_spinner" onclick="return set_name_form();">Set name</button>
+        <input type="text" id="set_name_input" placeholder="Name" size=32 value="{{channel.name or ''}}"/>
+        <button id="set_name_button" class="button_with_spinner" onclick="return set_name_form(event);">Set name</button>
     </div>
 
     <div>
-        <label><input type="checkbox" id="set_autorefresh_checkbox" {{"checked" if channel.autorefresh else ""}} onchange="return set_autorefresh_form(event);"/> Automatically refresh this channel regularly.</label>
+        {% set checked = 'checked' if channel.autorefresh else '' %}
+        <label><input type="checkbox" id="set_autorefresh_checkbox" {{checked}} onchange="return set_autorefresh_form(event);"/> Automatically refresh this channel regularly.</label>
         <span id="set_autorefresh_spinner" class="hidden">Working...</span>
     </div>
 
@@ -285,12 +286,15 @@ https://stackoverflow.com/a/35153397
 
     <div>
         <input type="text" id="set_queuefile_extension_input" placeholder="Queuefile extension" value="{{channel.queuefile_extension or ''}}"/>
-        <button id="set_queuefile_extension_button" class="button_with_spinner" onclick="return set_queuefile_extension_form();">Set extension</button>
+        <button id="set_queuefile_extension_button" class="button_with_spinner" onclick="return set_queuefile_extension_form(event);">Set extension</button>
     </div>
 
     <div>
         <input type="text" id="set_download_directory_input" placeholder="Queuefile directory" value="{{channel.download_directory.absolute_path if channel.download_directory else ''}}"/>
-        <button id="set_download_directory_button" class="button_with_spinner" onclick="return set_download_directory_form();">Set directory</button>
+        <button id="set_download_directory_button" class="button_with_spinner" onclick="return set_download_directory_form(event);">Set directory</button>
+        {% if request.is_localhost %}
+        <button id="show_directory_button" onclick="return show_download_directory_form(event);">Open directory</button>
+        {% endif %}
     </div>
 
     <div><a href="https://www.youtube.com/channel/{{channel.id}}/videos">Channel page</a></div>
@@ -299,8 +303,9 @@ https://stackoverflow.com/a/35153397
 
     <button class="red_button button_with_confirm"
     data-prompt="Delete channel and all videos?"
-    data-onclick="return delete_channel_form();"
+    data-onclick="return delete_channel_form(event);"
     >Delete Channel</button>
+
     </div> <!-- tab-settings -->
 
     </div> <!-- tabbed_container -->
@@ -377,12 +382,8 @@ var video_card_first_selected = null;
 function select_all()
 {
     video_card_first_selected = null;
-    for (const video_card of document.getElementsByClassName("video_card"))
+    for (const video_card of document.querySelectorAll(".video_card:not(.hidden)"))
     {
-        if (video_card.classList.contains("hidden"))
-        {
-            continue;
-        }
         video_card.classList.add("video_card_selected");
     }
 }
@@ -437,8 +438,7 @@ function select_one(event)
 
 function select_shift(event)
 {
-    let video_cards = Array.from(document.getElementsByClassName("video_card"));
-    video_cards = video_cards.filter(card => ! card.classList.contains("hidden"))
+    const video_cards = Array.from(document.querySelectorAll(".video_card:not(.hidden)"));
 
     let start_index = video_cards.indexOf(video_card_first_selected);
     let end_index = video_cards.indexOf(event.target);
@@ -739,7 +739,19 @@ function set_queuefile_extension_callback(response)
     {
         set_queuefile_extension_input.value = extension;
     }
+}
 
+function show_download_directory_form()
+{
+    function callback(response)
+    {
+        if (response.meta.status !== 200)
+        {
+            alert(JSON.stringify(response));
+            return;
+        }
+    }
+    api.channels.show_download_directory(CHANNEL_ID, callback);
 }
 
 if (CHANNEL_ID)

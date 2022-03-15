@@ -1,5 +1,7 @@
 import flask; from flask import request
 import itertools
+import os
+import subprocess
 import time
 
 from voussoirkit import flasktools
@@ -217,3 +219,28 @@ def post_set_queuefile_extension(channel_id):
 
     response = {'id': channel.id, 'queuefile_extension': channel.queuefile_extension}
     return flasktools.json_response(response)
+
+@site.route('/channel/<channel_id>/show_download_directory', methods=['POST'])
+def post_show_download_directory(channel_id):
+    if not request.is_localhost:
+        flask.abort(403)
+
+    channel = common.ycdldb.get_channel(channel_id)
+    if channel.download_directory:
+        abspath = channel.download_directory.absolute_path
+    else:
+        abspath = common.ycdldb.config['download_directory']
+
+    if not os.path.exists(abspath):
+        return flask.abort(400)
+
+    if os.name == 'nt':
+        command = f'explorer.exe "{abspath}"'
+        subprocess.Popen(command, shell=True)
+        return flasktools.json_response({})
+    else:
+        command = ['xdg-open', abspath]
+        subprocess.Popen(command, shell=True)
+        return flasktools.json_response({})
+
+    flask.abort(501)

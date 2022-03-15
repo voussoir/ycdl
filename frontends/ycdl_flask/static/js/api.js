@@ -75,6 +75,13 @@ function set_queuefile_extension(channel_id, extension, callback)
     return common.post(url, data, callback);
 }
 
+api.channels.show_download_directory =
+function show_download_directory(channel_id, callback)
+{
+    const url = `/channel/${channel_id}/show_download_directory`;
+    return common.post(url, null, callback);
+}
+
 api.channels.callback_go_to_channels =
 function callback_go_to_channels(response)
 {
