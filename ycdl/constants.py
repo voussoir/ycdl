@@ -6,7 +6,6 @@ PRAGMA user_version = {DATABASE_VERSION};
 '''
 
 DB_PRAGMAS = f'''
-PRAGMA count_changes = OFF;
 PRAGMA cache_size = 10000;
 '''
 
