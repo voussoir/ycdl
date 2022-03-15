@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="/static/css/ycdl.css">
     <script src="/static/js/common.js"></script>
     <script src="/static/js/api.js"></script>
-    <script src="/static/js/spinner.js"></script>
+    <script src="/static/js/spinners.js"></script>
 
 <style>
 #new_channel_textbox,
@@ -85,7 +85,7 @@ function add_channel_form()
 {
     if (box.value === "")
     {
-        return spinner.BAIL;
+        return spinners.BAIL;
     }
     api.channels.add_channel(box.value, add_channel_callback);
 }

@@ -10,7 +10,7 @@
     <script src="/static/js/common.js"></script>
     <script src="/static/js/api.js"></script>
     <script src="/static/js/hotkeys.js"></script>
-    <script src="/static/js/spinner.js"></script>
+    <script src="/static/js/spinners.js"></script>
 
 <style>
 .tabbed_container .tab
@@ -757,10 +757,10 @@ if (CHANNEL_ID)
     common.bind_box_to_button(set_download_directory_input, set_download_directory_button);
 
     var set_automark_spinner = document.getElementById("set_automark_spinner");
-    set_automark_spinner = new spinner.Spinner(set_automark_spinner);
+    set_automark_spinner = new spinners.Spinner(set_automark_spinner);
 
     var set_autorefresh_spinner = document.getElementById("set_autorefresh_spinner");
-    set_autorefresh_spinner = new spinner.Spinner(set_autorefresh_spinner);
+    set_autorefresh_spinner = new spinners.Spinner(set_autorefresh_spinner);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
