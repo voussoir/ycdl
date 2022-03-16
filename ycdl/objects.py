@@ -24,7 +24,6 @@ class Channel(ObjectBase):
 
     def __init__(self, ycdldb, db_row):
         super().__init__(ycdldb)
-        db_row = self.ycdldb.normalize_db_row(db_row, self.table)
 
         self.id = db_row['id']
         self.name = db_row['name'] or self.id
@@ -326,7 +325,6 @@ class Video(ObjectBase):
 
     def __init__(self, ycdldb, db_row):
         super().__init__(ycdldb)
-        db_row = self.ycdldb.normalize_db_row(db_row, self.table)
 
         self.id = db_row['id']
         self.published = db_row['published']

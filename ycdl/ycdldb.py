@@ -476,6 +476,7 @@ class YCDLDB(
 
         self.data_directory.makedirs(exist_ok=True)
         self.sql = sqlite3.connect(self.database_filepath)
+        self.sql.row_factory = sqlite3.Row
 
         if existing_database:
             if not skip_version_check:
