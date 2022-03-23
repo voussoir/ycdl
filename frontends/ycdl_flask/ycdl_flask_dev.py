@@ -2,6 +2,7 @@
 This file is the gevent launcher for local / development use.
 '''
 import gevent.monkey; gevent.monkey.patch_all()
+import werkzeug.middleware.proxy_fix
 
 import argparse
 import gevent.pywsgi
@@ -19,6 +20,7 @@ import ycdl
 import backend
 
 site = backend.site
+site.wsgi_app = werkzeug.middleware.proxy_fix.ProxyFix(site.wsgi_app)
 site.debug = True
 
 ####################################################################################################
