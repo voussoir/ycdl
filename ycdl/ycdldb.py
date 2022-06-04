@@ -539,8 +539,7 @@ class YCDLDB(
         # arbitrarily many states for user-defined purposes, but I kind of went
         # back on that so I'm not sure if it will be useful.
         query = 'SELECT DISTINCT state FROM videos'
-        states = self.select(query)
-        states = [row[0] for row in states]
+        states = self.select_column(query)
         return sorted(states)
 
     def load_config(self):
