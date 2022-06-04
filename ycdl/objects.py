@@ -149,10 +149,10 @@ class Channel(ObjectBase):
         '''
         query = 'SELECT id FROM videos WHERE author_id == ? ORDER BY published DESC LIMIT 1'
         bindings = [self.id]
-        row = self.ycdldb.select_one(query, bindings)
-        if row is None:
+        video_id = self.ycdldb.select_one_value(query, bindings)
+        if video_id is None:
             raise exceptions.NoVideos(self)
-        return row[0]
+        return video_id
 
     def has_pending(self) -> bool:
         '''
@@ -162,7 +162,7 @@ class Channel(ObjectBase):
         '''
         query = 'SELECT 1 FROM videos WHERE author_id == ? AND state == "pending" LIMIT 1'
         bindings = [self.id]
-        return self.ycdldb.select_one(query, bindings) is not None
+        return self.ycdldb.select_one_value(query, bindings) is not None
 
     def jsonify(self):
         j = {
