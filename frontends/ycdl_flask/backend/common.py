@@ -88,7 +88,7 @@ def refresher_thread(rate):
         log.info('Starting refresh job.')
         refresh_job = threading.Thread(
             target=ycdldb.refresh_all_channels,
-            kwargs={'force': False, 'skip_failures': True},
+            kwargs={'force': False, 'skip_failures': True, 'commit': True},
             daemon=True,
         )
         refresh_job.start()
