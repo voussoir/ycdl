@@ -56,17 +56,18 @@ def get_videos_from_args(args):
 
 def add_channel_argparse(args):
     ycdldb = closest_db()
-    ycdldb.add_channel(
-        channel_id=args.channel_id,
-        automark=args.automark,
-        download_directory=args.download_directory,
-        get_videos=args.get_videos,
-        name=args.name,
-        queuefile_extension=args.queuefile_extension,
-    )
+    with ycdldb.transaction:
+        ycdldb.add_channel(
+            channel_id=args.channel_id,
+            automark=args.automark,
+            download_directory=args.download_directory,
+            get_videos=args.get_videos,
+            name=args.name,
+            queuefile_extension=args.queuefile_extension,
+        )
 
-    if args.autoyes or interactive.getpermission('Commit?'):
-        ycdldb.commit()
+        if not (args.autoyes or interactive.getpermission('Commit?')):
+            ycdldb.rollback()
 
     return 0
 
@@ -97,12 +98,16 @@ def delete_channel_argparse(args):
     ycdldb = closest_db()
     needs_commit = False
 
-    for channel in get_channels_from_args(args):
-        channel.delete()
-        needs_commit = True
+    with ycdldb.transaction:
+        for channel in get_channels_from_args(args):
+            channel.delete()
+            needs_commit = True
 
-    if args.autoyes or interactive.getpermission('Commit?'):
-        ycdldb.commit()
+        if not needs_commit:
+            return 0
+
+        if not (args.autoyes or interactive.getpermission('Commit?')):
+            ycdldb.rollback()
 
     return 0
 
@@ -110,27 +115,27 @@ def download_video_argparse(args):
     ycdldb = closest_db()
     needs_commit = False
 
-    for video in get_videos_from_args(args):
-        queuefile = ycdldb.download_video(
-            video,
-            download_directory=args.download_directory,
-            force=args.force,
-            queuefile_extension=args.queuefile_extension,
-        )
-        if queuefile is not None:
-            needs_commit = True
+    with ycdldb.transaction:
+        for video in get_videos_from_args(args):
+            queuefile = ycdldb.download_video(
+                video,
+                download_directory=args.download_directory,
+                force=args.force,
+                queuefile_extension=args.queuefile_extension,
+            )
+            if queuefile is not None:
+                needs_commit = True
 
-    if not needs_commit:
-        return 0
+        if not needs_commit:
+            return 0
 
-    if args.autoyes or interactive.getpermission('Commit?'):
-        ycdldb.commit()
+        if not (args.autoyes or interactive.getpermission('Commit?')):
+            ycdldb.rollback()
 
     return 0
 
 def init_argparse(args):
     ycdldb = ycdl.ycdldb.YCDLDB(create=True)
-    ycdldb.commit()
     pipeable.stdout(ycdldb.data_directory.absolute_path)
     return 0
 
@@ -139,24 +144,25 @@ def refresh_channels_argparse(args):
     status = 0
 
     ycdldb = closest_db()
-    if args.channels:
-        channels = [ycdldb.get_channel(c) for c in args.channels]
-        for channel in channels:
-            try:
-                channel.refresh(force=args.force)
-                needs_commit = True
-            except Exception as exc:
-                log.warning(traceback.format_exc())
-                status = 1
-    else:
-        excs = ycdldb.refresh_all_channels(force=args.force, skip_failures=True)
-        needs_commit = True
+    with ycdldb.transaction:
+        if args.channels:
+            channels = [ycdldb.get_channel(c) for c in args.channels]
+            for channel in channels:
+                try:
+                    channel.refresh(force=args.force)
+                    needs_commit = True
+                except Exception as exc:
+                    log.warning(traceback.format_exc())
+                    status = 1
+        else:
+            excs = ycdldb.refresh_all_channels(force=args.force, skip_failures=True)
+            needs_commit = True
 
-    if not needs_commit:
-        return status
+        if not needs_commit:
+            return status
 
-    if args.autoyes or interactive.getpermission('Commit?'):
-        ycdldb.commit()
+        if not (args.autoyes or interactive.getpermission('Commit?')):
+            ycdldb.rollback()
 
     return status
 

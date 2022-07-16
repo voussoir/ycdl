@@ -44,7 +44,7 @@ class Migrator:
         # be pointing to the version of B which has not been reconstructed yet,
         # which is about to get renamed to B_old and then A's reference will be
         # broken.
-        self.ycdldb.sql_execute('PRAGMA foreign_keys = OFF')
+        self.ycdldb.pragma_write('foreign_keys', 'OFF')
         self.ycdldb.sql_execute('BEGIN')
         for (name, table) in self.tables.items():
             if name not in self.existing_tables:
@@ -323,8 +323,7 @@ def upgrade_all(data_directory):
 
     cur = ycdldb.sql.cursor()
 
-    cur.execute('PRAGMA user_version')
-    current_version = cur.fetchone()[0]
+    current_version = ycdldb.pragma_read('user_version')
     needed_version = ycdl.constants.DATABASE_VERSION
 
     if current_version == needed_version:
@@ -336,15 +335,10 @@ def upgrade_all(data_directory):
         upgrade_function = 'upgrade_%d_to_%d' % (current_version, version_number)
         upgrade_function = eval(upgrade_function)
 
-        try:
-            ycdldb.sql.execute('PRAGMA foreign_keys = ON')
+        with ycdldb.transaction:
+            ycdldb.pragma_write('foreign_keys', 'ON')
             upgrade_function(ycdldb)
-        except Exception as exc:
-            ycdldb.rollback()
-            raise
-        else:
-            ycdldb.sql.cursor().execute('PRAGMA user_version = %d' % version_number)
-            ycdldb.commit()
+            ycdldb.pragma_write('user_version', version_number)
 
         current_version = version_number
     print('Upgrades finished.')

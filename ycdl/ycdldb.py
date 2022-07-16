@@ -22,7 +22,7 @@ class YCDLDBChannelMixin:
     def __init__(self):
         super().__init__()
 
-    @worms.transaction
+    @worms.atomic
     def add_channel(
             self,
             channel_id,
@@ -88,7 +88,7 @@ class YCDLDBChannelMixin:
     def get_channels_by_sql(self, query, bindings=None):
         return self.get_objects_by_sql(objects.Channel, query, bindings)
 
-    @worms.transaction
+    @worms.atomic
     def _rss_assisted_refresh(self, channels, skip_failures=False):
         '''
         Youtube provides RSS feeds for every channel. These feeds do not
@@ -155,7 +155,7 @@ class YCDLDBChannelMixin:
 
         return excs
 
-    @worms.transaction
+    @worms.atomic
     def refresh_all_channels(
             self,
             *,
@@ -186,7 +186,7 @@ class YCDLDBVideoMixin:
     def __init__(self):
         super().__init__()
 
-    @worms.transaction
+    @worms.atomic
     def download_video(
             self,
             video,
@@ -300,9 +300,9 @@ class YCDLDBVideoMixin:
 
         query = 'SELECT * FROM videos' + wheres + orderbys
 
-        log.debug('%s %s', query, bindings)
-        explain = self.execute('EXPLAIN QUERY PLAN ' + query, bindings)
-        log.debug('\n'.join(str(x) for x in explain.fetchall()))
+        # log.debug('%s %s', query, bindings)
+        # explain = self.execute('EXPLAIN QUERY PLAN ' + query, bindings)
+        # log.debug('\n'.join(str(x) for x in explain.fetchall()))
 
         rows = self.select(query, bindings)
         for row in rows:
@@ -311,14 +311,14 @@ class YCDLDBVideoMixin:
     def get_videos_by_sql(self, query, bindings=None):
         return self.get_objects_by_sql(objects.Video, query, bindings)
 
-    @worms.transaction
+    @worms.atomic
     def insert_playlist(self, playlist_id):
         video_generator = self.youtube.get_playlist_videos(playlist_id)
         results = [self.insert_video(video) for video in video_generator]
 
         return results
 
-    @worms.transaction
+    @worms.atomic
     def ingest_video(self, video):
         '''
         Call `insert_video`, and additionally use the channel's automark to
@@ -353,7 +353,7 @@ class YCDLDBVideoMixin:
 
         return status
 
-    @worms.transaction
+    @worms.atomic
     def insert_video(self, video, *, add_channel=True):
         if not isinstance(video, ytapi.Video):
             video = self.youtube.get_video(video)
@@ -443,13 +443,14 @@ class YCDLDB(
         # WORMS
         self._init_column_index()
         self._init_caches()
+        self.id_type = str
 
     def _check_version(self):
         '''
         Compare database's user_version against constants.DATABASE_VERSION,
         raising exceptions.DatabaseOutOfDate if not correct.
         '''
-        existing = self.execute('PRAGMA user_version').fetchone()[0]
+        existing = self.pragma_read('user_version')
         if existing != constants.DATABASE_VERSION:
             raise exceptions.DatabaseOutOfDate(
                 existing=existing,
@@ -475,25 +476,27 @@ class YCDLDB(
             raise FileNotFoundError(msg)
 
         self.data_directory.makedirs(exist_ok=True)
-        self.sql = sqlite3.connect(self.database_filepath)
-        self.sql.row_factory = sqlite3.Row
+        self.sql_read = self._make_sqlite_read_connection(self.database_filepath)
+        self.sql_write = self._make_sqlite_write_connection(self.database_filepath)
 
         if existing_database:
             if not skip_version_check:
                 self._check_version()
-            self._load_pragmas()
+            with self.transaction:
+                self._load_pragmas()
         else:
             self._first_time_setup()
 
     def _first_time_setup(self):
         log.info('Running first-time database setup.')
-        self.executescript(constants.DB_INIT)
-        self.commit()
+        with self.transaction:
+            self._load_pragmas()
+            self.pragma_write('user_version', constants.DATABASE_VERSION)
+            self.executescript(constants.DB_INIT)
 
     def _load_pragmas(self):
         log.debug('Reloading pragmas.')
-        self.executescript(constants.DB_PRAGMAS)
-        self.commit()
+        self.pragma_write('cache_size', 10000)
 
     @classmethod
     def closest_ycdldb(cls, youtube=None, path='.', *args, **kwargs):

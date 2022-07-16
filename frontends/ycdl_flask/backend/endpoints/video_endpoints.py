@@ -22,9 +22,9 @@ def post_mark_video_state():
         return flasktools.json_response(exc.jsonify(), status=404)
 
     try:
-        for video in videos:
-            video.mark_state(state, commit=False)
-        common.ycdldb.commit()
+        with common.ycdldb.transaction:
+            for video in videos:
+                video.mark_state(state)
     except ycdl.exceptions.InvalidVideoState as exc:
         common.ycdldb.rollback()
         return flasktools.json_response(exc.jsonify(), status=400)
@@ -42,8 +42,8 @@ def post_start_download():
     except ycdl.exceptions.NoSuchVideo as exc:
         return flasktools.json_response(exc.jsonify(), status=404)
 
-    for video in videos:
-        common.ycdldb.download_video(video, commit=False)
-    common.ycdldb.commit()
+    with common.ycdldb.transaction:
+        for video in videos:
+            common.ycdldb.download_video(video)
 
     return flasktools.json_response({'video_ids': video_ids, 'state': 'downloaded'})

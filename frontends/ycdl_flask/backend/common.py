@@ -73,6 +73,10 @@ def init_ycdldb(*args, **kwargs):
     global ycdldb
     ycdldb = ycdl.ycdldb.YCDLDB.closest_ycdldb(*args, **kwargs)
 
+def refresh_all_channels():
+    with ycdldb.transaction:
+        ycdldb.refresh_all_channels(force=False, skip_failures=True)
+
 def refresher_thread(rate):
     global last_refresh
     while True:
@@ -87,8 +91,7 @@ def refresher_thread(rate):
 
         log.info('Starting refresh job.')
         refresh_job = threading.Thread(
-            target=ycdldb.refresh_all_channels,
-            kwargs={'force': False, 'skip_failures': True, 'commit': True},
+            target=refresh_all_channels,
             daemon=True,
         )
         refresh_job.start()

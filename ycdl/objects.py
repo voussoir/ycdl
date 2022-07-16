@@ -133,12 +133,13 @@ class Channel(ObjectBase):
         videos = self.ycdldb.youtube.get_videos(new_ids)
         return videos
 
-    @worms.transaction
+    @worms.atomic
     def delete(self):
         log.info('Deleting %s.', self)
 
         self.ycdldb.delete(table='videos', pairs={'author_id': self.id})
         self.ycdldb.delete(table='channels', pairs={'id': self.id})
+        self.deleted = True
 
     def get_most_recent_video_id(self) -> str:
         '''
@@ -172,7 +173,7 @@ class Channel(ObjectBase):
         }
         return j
 
-    @worms.transaction
+    @worms.atomic
     def refresh(self, *, force=False, rss_assisted=True):
         '''
         Fetch new videos on the channel.
@@ -251,7 +252,7 @@ class Channel(ObjectBase):
         self.set_uploads_playlist_id(self.uploads_playlist)
         return self.uploads_playlist
 
-    @worms.transaction
+    @worms.atomic
     def set_automark(self, state):
         self.ycdldb.assert_valid_state(state)
 
@@ -262,7 +263,7 @@ class Channel(ObjectBase):
         self.ycdldb.update(table='channels', pairs=pairs, where_key='id')
         self.automark = state
 
-    @worms.transaction
+    @worms.atomic
     def set_autorefresh(self, autorefresh):
         autorefresh = self.normalize_autorefresh(autorefresh)
 
@@ -273,7 +274,7 @@ class Channel(ObjectBase):
         self.ycdldb.update(table='channels', pairs=pairs, where_key='id')
         self.autorefresh = autorefresh
 
-    @worms.transaction
+    @worms.atomic
     def set_download_directory(self, download_directory):
         download_directory = self.normalize_download_directory(download_directory)
 
@@ -284,7 +285,7 @@ class Channel(ObjectBase):
         self.ycdldb.update(table='channels', pairs=pairs, where_key='id')
         self.download_directory = download_directory
 
-    @worms.transaction
+    @worms.atomic
     def set_name(self, name):
         name = self.normalize_name(name)
 
@@ -295,7 +296,7 @@ class Channel(ObjectBase):
         self.ycdldb.update(table='channels', pairs=pairs, where_key='id')
         self.name = name
 
-    @worms.transaction
+    @worms.atomic
     def set_queuefile_extension(self, queuefile_extension):
         queuefile_extension = self.normalize_queuefile_extension(queuefile_extension)
 
@@ -306,7 +307,7 @@ class Channel(ObjectBase):
         self.ycdldb.update(table='channels', pairs=pairs, where_key='id')
         self.queuefile_extension = queuefile_extension
 
-    @worms.transaction
+    @worms.atomic
     def set_uploads_playlist_id(self, playlist_id):
         log.debug('Setting %s upload playlist to %s.', self, playlist_id)
         if not isinstance(playlist_id, str):
@@ -347,11 +348,12 @@ class Video(ObjectBase):
         except exceptions.NoSuchChannel:
             return None
 
-    @worms.transaction
+    @worms.atomic
     def delete(self):
         log.info('Deleting %s.', self)
 
         self.ycdldb.delete(table='videos', pairs={'id': self.id})
+        self.deleted = True
 
     def jsonify(self):
         j = {
@@ -367,7 +369,7 @@ class Video(ObjectBase):
         }
         return j
 
-    @worms.transaction
+    @worms.atomic
     def mark_state(self, state):
         '''
         Mark the video as ignored, pending, or downloaded.
