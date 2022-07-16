@@ -114,6 +114,8 @@ class YCDLDBChannelMixin:
         '''
         excs = []
 
+        need_traditional = []
+
         def traditional(channel):
             try:
                 channel.refresh(rss_assisted=False)
@@ -131,11 +133,11 @@ class YCDLDBChannelMixin:
                 yield from new_ids
             except (exceptions.NoVideos, exceptions.RSSAssistFailed) as exc:
                 log.debug(
-                    'RSS assist for %s failed "%s", using traditional refresh.',
+                    'RSS assist for %s failed "%s", adding to traditional queue.',
                     channel.id,
                     exc.error_message
                 )
-                traditional(channel)
+                need_traditional.append(channel)
 
         video_ids = lazychain.LazyChain()
 
@@ -152,6 +154,10 @@ class YCDLDBChannelMixin:
 
         for video in self.youtube.get_videos(video_ids):
             self.ingest_video(video)
+
+        for channel in need_traditional:
+            log.debug('Using traditional refresh for %s.', channel.id)
+            traditional(channel)
 
         return excs
 
