@@ -67,7 +67,7 @@ class YCDLDBChannelMixin:
             'automark': automark,
             'autorefresh': True,
         }
-        self.insert(table='channels', data=data)
+        self.insert(table='channels', pairs=data)
 
         channel = objects.Channel(self, data)
 
@@ -394,7 +394,7 @@ class YCDLDBVideoMixin:
             self.update(table='videos', pairs=data, where_key='id')
         else:
             log.loud('Inserting Video %s.', video)
-            self.insert(table='videos', data=data)
+            self.insert(table='videos', pairs=data)
 
         # Override the cached copy with the new copy so that the cache contains
         # updated information (view counts etc.).
