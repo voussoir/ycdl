@@ -185,6 +185,7 @@ def video_list_argparse(args):
             published=video.published,
             published_string=video.published_string,
             state=video.state,
+            thumbnail=video.thumbnail,
             title=video.title,
             views=video.views,
         )
@@ -498,6 +499,7 @@ def main(argv):
     p_video_list.examples = [
         '--state pending --limit 100',
         '--channel UCzIiTeduaanyEboRfwJJznA --orderby views',
+        '--channel UC6nSFpj9HTCZ5t-N3Rm3-HA --format "{thumbnail} {id}.jpg" | threaded_dl !i {basename}'
     ]
     p_video_list.add_argument(
         '--channel',
@@ -514,7 +516,7 @@ def main(argv):
         A string like "{published_string}:{id} {title}" to format the
         attributes of the video. The available attributes are author_id,
         duration, id, live_broadcast, published, published_string, state,
-        title, views.
+        title, views, thumbnail.
         ''',
     )
     p_video_list.add_argument(
