@@ -24,7 +24,7 @@ def _get_user_videos(channel_id):
     log.loud('RSS got %s.', video_ids)
     return video_ids
 
-def get_user_videos(channel_id):
+def get_user_videos(channel_id) -> list[str]:
     '''
     Return the list of video ids from the channel.
     Expect a maximum of 15 results.
@@ -35,7 +35,7 @@ def get_user_videos(channel_id):
         log.warning(traceback.format_exc())
         raise exceptions.RSSAssistFailed(f'Failed to fetch RSS videos ({exc}).') from exc
 
-def get_user_videos_since(channel_id, video_id):
+def get_user_videos_since(channel_id, video_id) -> list[str]:
     '''
     Return the list of video ids that are more recently released than the
     reference id.
