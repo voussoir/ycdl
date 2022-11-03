@@ -27,7 +27,7 @@ class Migrator:
         query = 'SELECT name, sql FROM sqlite_master WHERE type == "table"'
         self.tables = {
             name: {'create': sql, 'transfer': f'INSERT INTO {name} SELECT * FROM {name}_old'}
-            for (name, sql) in self.ycdldb.sql_select(query)
+            for (name, sql) in self.ycdldb.select(query)
         }
 
         # The user may be adding entirely new tables derived from the data of
@@ -36,7 +36,7 @@ class Migrator:
         self.existing_tables = set(self.tables)
 
         query = 'SELECT name, sql FROM sqlite_master WHERE type == "index" AND name NOT LIKE "sqlite_%"'
-        self.indices = list(self.ycdldb.sql_select(query))
+        self.indices = list(self.ycdldb.select(query))
 
     def go(self):
         # This loop is split in many parts, because otherwise if table A
@@ -45,25 +45,25 @@ class Migrator:
         # which is about to get renamed to B_old and then A's reference will be
         # broken.
         self.ycdldb.pragma_write('foreign_keys', 'OFF')
-        self.ycdldb.sql_execute('BEGIN')
         for (name, table) in self.tables.items():
             if name not in self.existing_tables:
                 continue
-            self.ycdldb.sql_execute(f'ALTER TABLE {name} RENAME TO {name}_old')
+            self.ycdldb.execute(f'ALTER TABLE {name} RENAME TO {name}_old')
 
         for (name, table) in self.tables.items():
-            self.ycdldb.sql_execute(table['create'])
+            self.ycdldb.execute(table['create'])
 
         for (name, table) in self.tables.items():
-            self.ycdldb.sql_execute(table['transfer'])
+            self.ycdldb.execute(table['transfer'])
 
         for (name, query) in self.tables.items():
             if name not in self.existing_tables:
                 continue
-            self.ycdldb.sql_execute(f'DROP TABLE {name}_old')
+            self.ycdldb.execute(f'DROP TABLE {name}_old')
 
         for (name, query) in self.indices:
-            self.ycdldb.sql_execute(query)
+            self.ycdldb.execute(query)
+        self.ycdldb.pragma_write('foreign_keys', 'ON')
 
 def upgrade_1_to_2(ycdldb):
     '''
@@ -320,8 +320,6 @@ def upgrade_all(data_directory):
     needed upgrade_x_to_y functions in order.
     '''
     ycdldb = ycdl.ycdldb.YCDLDB(data_directory, skip_version_check=True)
-
-    cur = ycdldb.sql.cursor()
 
     current_version = ycdldb.pragma_read('user_version')
     needed_version = ycdl.constants.DATABASE_VERSION
