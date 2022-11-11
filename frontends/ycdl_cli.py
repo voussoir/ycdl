@@ -499,7 +499,7 @@ def main(argv):
     p_video_list.examples = [
         '--state pending --limit 100',
         '--channel UCzIiTeduaanyEboRfwJJznA --orderby views',
-        '--channel UC6nSFpj9HTCZ5t-N3Rm3-HA --format "{thumbnail} {id}.jpg" | threaded_dl !i {basename}'
+        '--channel UC6nSFpj9HTCZ5t-N3Rm3-HA --format "{thumbnail} {id}.jpg" | threaded_dl !i 1 {basename}'
     ]
     p_video_list.add_argument(
         '--channel',
