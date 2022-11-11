@@ -1,6 +1,6 @@
 from voussoirkit import sqlhelpers
 
-DATABASE_VERSION = 10
+DATABASE_VERSION = 11
 
 DB_INIT = f'''
 CREATE TABLE IF NOT EXISTS channels(
@@ -10,7 +10,8 @@ CREATE TABLE IF NOT EXISTS channels(
     download_directory TEXT COLLATE NOCASE,
     queuefile_extension TEXT COLLATE NOCASE,
     automark TEXT,
-    autorefresh INT
+    autorefresh INT,
+    last_refresh INT
 );
 CREATE INDEX IF NOT EXISTS index_channel_id on channels(id);
 ----------------------------------------------------------------------------------------------------

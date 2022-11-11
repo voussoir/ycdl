@@ -5,6 +5,7 @@ from voussoirkit import cacheclass
 from voussoirkit import configlayers
 from voussoirkit import lazychain
 from voussoirkit import pathclass
+from voussoirkit import timetools
 from voussoirkit import vlogging
 from voussoirkit import worms
 
@@ -130,6 +131,11 @@ class YCDLDBChannelMixin:
             try:
                 most_recent_video = channel.get_most_recent_video_id()
                 new_ids = ytrss.get_user_videos_since(channel.id, most_recent_video)
+                pairs = {
+                    'id': channel.id,
+                    'last_refresh': timetools.now().timestamp(),
+                }
+                self.update(table='channels', pairs=pairs, where_key='id')
                 yield from new_ids
             except (exceptions.NoVideos, exceptions.RSSAssistFailed) as exc:
                 log.debug(

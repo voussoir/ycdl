@@ -4,6 +4,7 @@ import typing
 
 from voussoirkit import pathclass
 from voussoirkit import stringtools
+from voussoirkit import timetools
 from voussoirkit import vlogging
 from voussoirkit import worms
 
@@ -243,6 +244,12 @@ class Channel(ObjectBase):
             # premieres / livestreams which have finished can be automarked.
             for video in self.ycdldb.youtube.get_videos(refresh_ids):
                 self.ycdldb.ingest_video(video)
+
+        pairs = {
+            'id': self.id,
+            'last_refresh': timetools.now().timestamp(),
+        }
+        self.ycdldb.update(table='channels', pairs=pairs, where_key='id')
 
     def reset_uploads_playlist_id(self):
         '''

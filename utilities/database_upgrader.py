@@ -314,6 +314,39 @@ def upgrade_9_to_10(ycdldb):
 
     m.go()
 
+def upgrade_10_to_11(ycdldb):
+    '''
+    In this version, the `last_refresh` column was added to the channels table.
+    '''
+    m = Migrator(ycdldb)
+
+    m.tables['channels']['create'] = '''
+    CREATE TABLE IF NOT EXISTS channels(
+        id TEXT,
+        name TEXT,
+        uploads_playlist TEXT,
+        download_directory TEXT COLLATE NOCASE,
+        queuefile_extension TEXT COLLATE NOCASE,
+        automark TEXT,
+        autorefresh INT,
+        last_refresh INT
+    );
+    '''
+    m.tables['channels']['transfer'] = '''
+    INSERT INTO channels SELECT
+        id,
+        name,
+        uploads_playlist,
+        download_directory,
+        queuefile_extension,
+        automark,
+        autorefresh,
+        NULL
+    FROM channels_old;
+    '''
+
+    m.go()
+
 def upgrade_all(data_directory):
     '''
     Given the directory containing a ycdl database, apply all of the
