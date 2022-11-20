@@ -20,6 +20,11 @@ belong in common.css because they are specifically for this project.
     --color_highlight: rgba(255, 255, 255, 0.5);
 }
 
+.navigation_link:hover
+{
+    background-color: var(--color_secondary);
+}
+
 #content_body
 {
     justify-self: center;
