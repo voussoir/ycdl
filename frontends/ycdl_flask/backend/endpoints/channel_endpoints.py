@@ -31,7 +31,7 @@ def get_all_channel_names():
 @site.route('/channels')
 def get_channels():
     channels = common.ycdldb.get_channels()
-    return flask.render_template('channels.html', channels=channels)
+    return common.render_template(request, 'channels.html', channels=channels)
 
 def _render_videos_listing(videos, channel, state, orderby):
     search_terms = request.args.get('q', '').lower().strip().replace('+', ' ').split()
@@ -55,7 +55,8 @@ def _render_videos_listing(videos, channel, state, orderby):
 
     all_states = common.ycdldb.get_all_states()
 
-    return flask.render_template(
+    return common.render_template(
+        request,
         'channel.html',
         all_states=all_states,
         channel=channel,

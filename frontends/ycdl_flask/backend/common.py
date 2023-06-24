@@ -3,6 +3,7 @@ Do not execute this file directly.
 Use ycdl_flask_dev.py or ycdl_flask_prod.py.
 '''
 import flask; from flask import request
+import functools
 import threading
 import time
 
@@ -63,6 +64,29 @@ def before_request():
 @site.after_request
 def after_request(response):
     response = flasktools.gzip_response(request, response)
+    return response
+
+site.route = flasktools.decorate_and_route(
+    flask_app=site,
+    decorators=[
+        flasktools.ensure_response_type,
+        functools.partial(
+            flasktools.give_theme_cookie,
+            cookie_name='ycdl_theme',
+            default_theme='slate',
+        ),
+    ],
+)
+
+def render_template(request, template_name, **kwargs):
+    theme = request.cookies.get('ycdl_theme', None)
+
+    response = flask.render_template(
+        template_name,
+        request=request,
+        theme=theme,
+        **kwargs,
+    )
     return response
 
 ####################################################################################################

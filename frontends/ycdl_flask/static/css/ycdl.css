@@ -2,22 +2,9 @@
 This file contains styles that apply to all pages within YCDL, but don't
 belong in common.css because they are specifically for this project.
 */
-
-:root
+html
 {
-    --color_primary: white;
-
-    --color_text_normal: black;
-    --color_text_link: blue;
-    --color_text_bubble: var(--color_text_normal);
-
-    --color_textfields: white;
-    --color_text_placeholder: gray;
-
-    --color_transparency: rgba(0, 0, 0, 0.1);
-    --color_dropshadow: rgba(0, 0, 0, 0.25);
-    --color_shadow: rgba(0, 0, 0, 0.5);
-    --color_highlight: rgba(255, 255, 255, 0.5);
+    font-family: sans-serif;
 }
 
 .navigation_link:hover

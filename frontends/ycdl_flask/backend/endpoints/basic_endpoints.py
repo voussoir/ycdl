@@ -6,7 +6,7 @@ site = common.site
 
 @site.route('/')
 def root():
-    return flask.render_template('root.html')
+    return common.render_template(request, 'root.html')
 
 @site.route('/favicon.ico')
 @site.route('/favicon.png')

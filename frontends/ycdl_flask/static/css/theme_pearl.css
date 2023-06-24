@@ -1,0 +1,62 @@
+:root
+{
+    --color_primary: #f6ffff;
+    --color_secondary: #aad7ff;
+
+    --color_text_normal: black;
+    --color_text_link: #00f;
+    --color_text_bubble: black;
+
+    --color_textfields: white;
+    --color_text_placeholder: gray;
+
+    --color_transparency: rgba(0, 0, 0, 0.1);
+    --color_dropshadow: rgba(0, 0, 0, 0.25);
+    --color_shadow: rgba(0, 0, 0, 0.5);
+    --color_highlight: rgba(255, 255, 255, 0.5);
+
+    --color_tag_card_bg: #fff;
+    --color_tag_card_fg: black;
+}
+
+.channel_card
+{
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid black;
+}
+
+.channel_card_pending
+{
+    background-color: #ffffaa;
+}
+
+.channel_card_no_pending
+{
+    background-color: #aaffaa;
+}
+
+.video_card
+{
+    border: 1px solid #000;
+}
+.video_card:hover
+{
+    box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.25);
+}
+.video_card_pending
+{
+    background-color: #ffffaa;
+}
+.video_card_ignored
+{
+    background-color: #ffc886;
+}
+.video_card_selected
+{
+    background-color: #13f4ff !important;
+}
+.video_card_downloaded
+{
+    background-color: #aaffaa;
+}
