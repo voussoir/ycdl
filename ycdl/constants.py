@@ -1,6 +1,6 @@
 from voussoirkit import sqlhelpers
 
-DATABASE_VERSION = 11
+DATABASE_VERSION = 12
 
 DB_INIT = f'''
 CREATE TABLE IF NOT EXISTS channels(
@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS channels(
     queuefile_extension TEXT COLLATE NOCASE,
     automark TEXT,
     autorefresh INT,
-    last_refresh INT
+    last_refresh INT,
+    ignore_shorts INT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS index_channel_id on channels(id);
 ----------------------------------------------------------------------------------------------------
@@ -25,7 +26,8 @@ CREATE TABLE IF NOT EXISTS videos(
     views INT,
     thumbnail TEXT,
     live_broadcast TEXT,
-    state TEXT
+    state TEXT,
+    is_shorts INT
 );
 CREATE INDEX IF NOT EXISTS index_video_author_published on videos(author_id, published);
 CREATE INDEX IF NOT EXISTS index_video_author_state_published on videos(author_id, state, published);

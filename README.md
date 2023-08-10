@@ -31,10 +31,11 @@ The reason for this is that youtube-dl is extremely configurable. Every user mig
 
 - Web interface with video embeds
 - Commandline interface for scripted use
-- "Sub-box" page where newest videos from all channels are listed in order
+- "New videos" feed page where newest videos from all channels are listed in order (wow, no algorithm!)
 - Sort videos by date, duration, views, or random
 - Background thread will refresh channels over time
-- Automark channels as ignore or download
+- Mark channels as auto-download or auto-ignore
+- Automatically remove shorts from feed
 - Free yourself from Youtube's awful recommendation system
 
 ## Your API key

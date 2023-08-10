@@ -347,6 +347,72 @@ def upgrade_10_to_11(ycdldb):
 
     m.go()
 
+def upgrade_11_to_12(ycdldb):
+    '''
+    In this version, the `ignore_shorts` column was added to the channels table
+    and `is_shorts` was added to the videos table.
+    '''
+    m = Migrator(ycdldb)
+
+    m.tables['channels']['create'] = '''
+    CREATE TABLE IF NOT EXISTS channels(
+        id TEXT,
+        name TEXT,
+        uploads_playlist TEXT,
+        download_directory TEXT COLLATE NOCASE,
+        queuefile_extension TEXT COLLATE NOCASE,
+        automark TEXT,
+        autorefresh INT,
+        last_refresh INT,
+        ignore_shorts INT NOT NULL
+    );
+    '''
+    m.tables['channels']['transfer'] = '''
+    INSERT INTO channels SELECT
+        id,
+        name,
+        uploads_playlist,
+        download_directory,
+        queuefile_extension,
+        automark,
+        autorefresh,
+        last_refresh,
+        1
+    FROM channels_old;
+    '''
+    m.tables['videos']['create'] = '''
+    CREATE TABLE IF NOT EXISTS videos(
+        id TEXT,
+        published INT,
+        author_id TEXT,
+        title TEXT,
+        description TEXT,
+        duration INT,
+        views INT,
+        thumbnail TEXT,
+        live_broadcast TEXT,
+        state TEXT,
+        is_shorts INT
+    );
+    '''
+    m.tables['videos']['transfer'] = '''
+    INSERT INTO videos SELECT
+        id,
+        published,
+        author_id,
+        title,
+        description,
+        duration,
+        views,
+        thumbnail,
+        live_broadcast,
+        state,
+        NULL
+    FROM videos_old;
+    '''
+
+    m.go()
+
 def upgrade_all(data_directory):
     '''
     Given the directory containing a ycdl database, apply all of the

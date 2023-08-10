@@ -30,6 +30,7 @@ class YCDLDBChannelMixin:
             *,
             automark='pending',
             download_directory=None,
+            ignore_shorts=True,
             queuefile_extension=None,
             get_videos=False,
             name=None,
@@ -67,6 +68,7 @@ class YCDLDBChannelMixin:
             'queuefile_extension': queuefile_extension,
             'automark': automark,
             'autorefresh': True,
+            'ignore_shorts': int(bool(ignore_shorts)),
         }
         self.insert(table='channels', pairs=data)
 
@@ -393,14 +395,15 @@ class YCDLDBVideoMixin:
             'thumbnail': video.thumbnail['url'],
             'live_broadcast': video.live_broadcast,
             'state': download_status,
+            'is_shorts': None,
         }
 
         if existing:
             log.loud('Updating Video %s.', video)
-            self.update(table='videos', pairs=data, where_key='id')
+            self.update(objects.Video, pairs=data, where_key='id')
         else:
             log.loud('Inserting Video %s.', video)
-            self.insert(table='videos', pairs=data)
+            self.insert(objects.Video, pairs=data)
 
         # Override the cached copy with the new copy so that the cache contains
         # updated information (view counts etc.).

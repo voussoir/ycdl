@@ -73,6 +73,16 @@ function set_download_directory(channel_id, download_directory, callback)
     });
 }
 
+api.channels.set_ignore_shorts =
+function set_ignore_shorts(channel_id, ignore_shorts, callback)
+{
+    return http.post({
+        url: `/channel/${channel_id}/set_ignore_shorts`,
+        data: {"ignore_shorts": ignore_shorts},
+        callback: callback,
+    });
+}
+
 api.channels.set_name =
 function set_name(channel_id, name, callback)
 {

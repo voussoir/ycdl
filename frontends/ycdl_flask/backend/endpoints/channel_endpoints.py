@@ -211,6 +211,22 @@ def post_set_download_directory(channel_id):
     response = {'id': channel.id, 'download_directory': abspath}
     return flasktools.json_response(response)
 
+@flasktools.required_fields(['ignore_shorts'], forbid_whitespace=True)
+@site.route('/channel/<channel_id>/set_ignore_shorts', methods=['POST'])
+def post_set_ignore_shorts(channel_id):
+    ignore_shorts = request.form['ignore_shorts']
+    channel = common.ycdldb.get_channel(channel_id)
+
+    try:
+        ignore_shorts = stringtools.truthystring(ignore_shorts)
+        with common.ycdldb.transaction:
+            channel.set_ignore_shorts(ignore_shorts)
+    except (ValueError, TypeError):
+        flask.abort(400)
+
+    response = {'id': channel.id, 'ignore_shorts': channel.ignore_shorts}
+    return flasktools.json_response(response)
+
 @flasktools.required_fields(['name'], forbid_whitespace=False)
 @site.route('/channel/<channel_id>/set_name', methods=['POST'])
 def post_set_name(channel_id):

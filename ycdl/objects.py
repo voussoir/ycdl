@@ -36,6 +36,7 @@ class Channel(ObjectBase):
         self.queuefile_extension = self.normalize_queuefile_extension(db_row['queuefile_extension'])
         self.automark = db_row['automark'] or 'pending'
         self.autorefresh = stringtools.truthystring(db_row['autorefresh'])
+        self.ignore_shorts = bool(db_row['ignore_shorts'])
 
     def __repr__(self):
         return f'Channel:{self.id}'
@@ -139,7 +140,7 @@ class Channel(ObjectBase):
         log.info('Deleting %s.', self)
 
         self.ycdldb.delete(table='videos', pairs={'author_id': self.id})
-        self.ycdldb.delete(table='channels', pairs={'id': self.id})
+        self.ycdldb.delete(table=Channel, pairs={'id': self.id})
         self.deleted = True
 
     def get_most_recent_video_id(self) -> str:
@@ -249,7 +250,7 @@ class Channel(ObjectBase):
             'id': self.id,
             'last_refresh': timetools.now().timestamp(),
         }
-        self.ycdldb.update(table='channels', pairs=pairs, where_key='id')
+        self.ycdldb.update(table=Channel, pairs=pairs, where_key='id')
 
     def reset_uploads_playlist_id(self):
         '''
@@ -267,7 +268,7 @@ class Channel(ObjectBase):
             'id': self.id,
             'automark': state,
         }
-        self.ycdldb.update(table='channels', pairs=pairs, where_key='id')
+        self.ycdldb.update(table=Channel, pairs=pairs, where_key='id')
         self.automark = state
 
     @worms.atomic
@@ -278,7 +279,7 @@ class Channel(ObjectBase):
             'id': self.id,
             'autorefresh': autorefresh,
         }
-        self.ycdldb.update(table='channels', pairs=pairs, where_key='id')
+        self.ycdldb.update(table=Channel, pairs=pairs, where_key='id')
         self.autorefresh = autorefresh
 
     @worms.atomic
@@ -289,8 +290,20 @@ class Channel(ObjectBase):
             'id': self.id,
             'download_directory': download_directory.absolute_path if download_directory else None,
         }
-        self.ycdldb.update(table='channels', pairs=pairs, where_key='id')
+        self.ycdldb.update(table=Channel, pairs=pairs, where_key='id')
         self.download_directory = download_directory
+
+    @worms.atomic
+    def set_ignore_shorts(self, ignore_shorts: bool):
+        if not isinstance(ignore_shorts, bool):
+            raise TypeError(ignore_shorts)
+
+        pairs = {
+            'id': self.id,
+            'ignore_shorts': int(ignore_shorts)
+        }
+        self.ycdldb.update(table=Channel, pairs=pairs, where_key='id')
+        self.ignore_shorts = ignore_shorts
 
     @worms.atomic
     def set_name(self, name):
@@ -300,7 +313,7 @@ class Channel(ObjectBase):
             'id': self.id,
             'name': name,
         }
-        self.ycdldb.update(table='channels', pairs=pairs, where_key='id')
+        self.ycdldb.update(table=Channel, pairs=pairs, where_key='id')
         self.name = name
 
     @worms.atomic
@@ -311,7 +324,7 @@ class Channel(ObjectBase):
             'id': self.id,
             'queuefile_extension': queuefile_extension,
         }
-        self.ycdldb.update(table='channels', pairs=pairs, where_key='id')
+        self.ycdldb.update(table=Channel, pairs=pairs, where_key='id')
         self.queuefile_extension = queuefile_extension
 
     @worms.atomic
@@ -324,7 +337,7 @@ class Channel(ObjectBase):
             'id': self.id,
             'uploads_playlist': playlist_id,
         }
-        self.ycdldb.update(table='channels', pairs=pairs, where_key='id')
+        self.ycdldb.update(table=Channel, pairs=pairs, where_key='id')
         self.uploads_playlist = playlist_id
 
 class Video(ObjectBase):

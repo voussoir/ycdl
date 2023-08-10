@@ -6,6 +6,7 @@ import flask; from flask import request
 import functools
 import threading
 import time
+import traceback
 
 from voussoirkit import flasktools
 from voussoirkit import pathclass
@@ -121,7 +122,45 @@ def refresher_thread(rate):
         refresh_job.start()
         last_refresh = time.time()
 
+def ignore_shorts_thread(rate):
+    last_commit_id = None
+    while True:
+        if ycdldb.last_commit_id == last_commit_id:
+            # log.debug('Sleeping again due to no new commits.')
+            time.sleep(5 * rate)
+            continue
+
+        last_commit_id = ycdldb.last_commit_id
+
+        log.info('Starting shorts job.')
+        videos = ycdldb.get_videos_by_sql('''
+        SELECT * FROM videos
+        LEFT JOIN channels ON channels.id = videos.author_id
+        WHERE is_shorts IS NULL AND duration < 62 AND state = "pending" AND channels.ignore_shorts = 1
+        ORDER BY published DESC
+        LIMIT 10
+        ''')
+        videos = list(videos)
+        if len(videos) == 0:
+            time.sleep(rate)
+            continue
+
+        with ycdldb.transaction:
+            for video in videos:
+                try:
+                    is_shorts = ycdl.ytapi.video_is_shorts(video.id)
+                except Exception as exc:
+                    log.warning(traceback.format_exc())
+                pairs = {'id': video.id, 'is_shorts': int(is_shorts)}
+                if is_shorts:
+                    pairs['state'] = 'ignored'
+                ycdldb.update(table=ycdl.objects.Video, pairs=pairs, where_key='id')
+        time.sleep(rate)
+
 def start_refresher_thread(rate):
     log.info('Starting refresher thread, once per %d seconds.', rate)
     refresher = threading.Thread(target=refresher_thread, args=[rate], daemon=True)
     refresher.start()
+
+    shorts_killer = threading.Thread(target=ignore_shorts_thread, args=[60], daemon=True)
+    shorts_killer.start()

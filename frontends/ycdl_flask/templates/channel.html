@@ -267,6 +267,12 @@ https://stackoverflow.com/a/35153397
     </div>
 
     <div>
+        {% set checked = 'checked' if channel.ignore_shorts else '' %}
+        <label><input type="checkbox" id="set_ignore_shorts_checkbox" {{checked}} onchange="return set_ignore_shorts_form(event);"/> Automatically ignore shorts (short vertical videos).</label>
+        <span id="set_ignore_shorts_spinner" class="hidden">Working...</span>
+    </div>
+
+    <div>
         <input type="text" id="set_queuefile_extension_input" placeholder="Queuefile extension" value="{{channel.queuefile_extension or ''}}"/>
         <button id="set_queuefile_extension_button" class="button_with_spinner" onclick="return set_queuefile_extension_form(event);">Set extension</button>
     </div>
@@ -661,6 +667,22 @@ function set_download_directory_callback(response)
     }
 }
 
+function set_ignore_shorts_form(event)
+{
+    set_ignore_shorts_spinner.show();
+    api.channels.set_ignore_shorts(CHANNEL_ID, event.target.checked, set_ignore_shorts_callback);
+}
+
+function set_ignore_shorts_callback(response)
+{
+    set_ignore_shorts_spinner.hide();
+    if (response.meta.status != 200)
+    {
+        alert(JSON.stringify(response));
+        return;
+    }
+}
+
 function set_name_form(event)
 {
     const name = set_name_input.value.trim();
@@ -751,6 +773,9 @@ if (CHANNEL_ID)
 
     var set_autorefresh_spinner = document.getElementById("set_autorefresh_spinner");
     set_autorefresh_spinner = new spinners.Spinner(set_autorefresh_spinner);
+
+    var set_ignore_shorts_spinner = document.getElementById("set_ignore_shorts_spinner");
+    set_ignore_shorts_spinner = new spinners.Spinner(set_ignore_shorts_spinner);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -1,9 +1,15 @@
 import googleapiclient.discovery
 import isodate
+import requests
 import typing
 
 from voussoirkit import gentools
+from voussoirkit import httperrors
 from voussoirkit import vlogging
+
+log = vlogging.getLogger(__name__)
+
+session = requests.Session()
 
 def int_none(x):
     if x is None:
@@ -60,7 +66,6 @@ class Youtube:
             serviceName='youtube',
             version='v3',
         )
-        self.log = vlogging.getLogger(__name__)
 
     def _playlist_paginator(self, playlist_id):
         page_token = None
@@ -131,21 +136,35 @@ class Youtube:
         chunks = gentools.chunk_generator(video_ids, 50)
         total_snippets = 0
         for chunk in chunks:
-            self.log.debug('Requesting batch of %d video ids.', len(chunk))
-            self.log.loud(chunk)
+            log.debug('Requesting batch of %d video ids.', len(chunk))
+            log.loud(chunk)
             chunk = ','.join(chunk)
             data = self.youtube.videos().list(
                 part='id,contentDetails,snippet,statistics',
                 id=chunk,
             ).execute()
             snippets = data['items']
-            self.log.debug('Got batch of %d snippets.', len(snippets))
+            log.debug('Got batch of %d snippets.', len(snippets))
             total_snippets += len(snippets)
-            self.log.loud(snippets)
+            log.loud(snippets)
             for snippet in snippets:
+                log.loud('%s', snippet)
                 try:
                     video = Video(snippet)
                     yield video
                 except KeyError as exc:
-                    self.log.warning(f'KEYERROR: {exc} not in {snippet}')
-        self.log.debug('Finished getting a total of %d snippets.', total_snippets)
+                    log.warning(f'KEYERROR: {exc} not in {snippet}')
+        log.debug('Finished getting a total of %d snippets.', total_snippets)
+
+def video_is_shorts(video_id) -> bool:
+    url = f'https://www.youtube.com/shorts/{video_id}'
+    log.loud('Checking if %s is shorts.', video_id)
+    response = session.head(url)
+    httperrors.raise_for_status(response)
+
+    if response.status_code == 200:
+        return True
+    elif response.status_code == 303:
+        return False
+
+    raise ValueError('Unexpected status code %s', response.status_code)
