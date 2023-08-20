@@ -195,6 +195,7 @@ https://stackoverflow.com/a/35153397
             <a class="video_title" href="https://www.youtube.com/watch?v={{video.id}}">{{video.published_string}} - {{video.title}}</a>
             <span>({{video.duration | seconds_to_hms}})</span>
             <span>({{video.views}})</span>
+            {% if video.is_shorts %}<span>(shorts)</span>{% endif %}
             {% if channel is none %}
             <a href="/channel/{{video.author_id}}">({{video.author.name if video.author else video.author_id}})</a> <a href="/channel/{{video.author_id}}/pending">(p)</a>
             {% endif %}

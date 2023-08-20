@@ -357,6 +357,7 @@ class Video(ObjectBase):
         self.thumbnail = db_row['thumbnail']
         self.live_broadcast = db_row['live_broadcast']
         self.state = db_row['state']
+        self.is_shorts = None if db_row['is_shorts'] is None else bool(db_row['is_shorts'])
 
     def __repr__(self):
         return f'Video:{self.id}'
