@@ -134,6 +134,46 @@ def download_video_argparse(args):
 
     return 0
 
+def ignore_shorts_argparse(args):
+    ycdldb = closest_db()
+
+    videos = ycdldb.get_videos_by_sql('''
+    SELECT * FROM videos
+    LEFT JOIN channels ON channels.id = videos.author_id
+    WHERE is_shorts IS NULL AND duration < 62 AND state = "pending" AND channels.ignore_shorts = 1
+    ORDER BY published DESC
+    ''')
+    videos = list(videos)
+    if len(videos) == 0:
+        log.info('No shorts candidates.')
+        return 0
+
+    while len(videos) > 0:
+        count = 0
+        with ycdldb.transaction:
+            while len(videos) > 0:
+                video = videos.pop()
+                try:
+                    is_shorts = ycdl.ytapi.video_is_shorts(video.id)
+                except Exception as exc:
+                    log.warning(traceback.format_exc())
+                    continue
+
+                pairs = {'id': video.id, 'is_shorts': int(is_shorts)}
+                if is_shorts:
+                    pairs['state'] = 'ignored'
+                    video.state = 'ignored'
+                    log.info('%s is shorts.', video.id)
+                else:
+                    log.info('%s is not shorts.', video.id)
+                ycdldb.update(table=ycdl.objects.Video, pairs=pairs, where_key='id')
+                count += 1
+
+                # break every once in a while so the enclosing transaction
+                # can commit our work so far.
+                if count == 25:
+                    break
+
 def init_argparse(args):
     ycdldb = ycdl.ycdldb.YCDLDB(create=True)
     pipeable.stdout(ycdldb.data_directory.absolute_path)
@@ -430,6 +470,18 @@ def main(argv):
         ''',
     )
     p_download_video.set_defaults(func=download_video_argparse)
+
+    ################################################################################################
+
+    p_ignore_shorts = subparsers.add_parser(
+        'ignore_shorts',
+        aliases=['ignore-shorts'],
+        description='''
+        Queries the Youtube API to figure out which videos are shorts, and marks
+        them as ignored.
+        ''',
+    )
+    p_ignore_shorts.set_defaults(func=ignore_shorts_argparse)
 
     ################################################################################################
 
