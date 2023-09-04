@@ -27,6 +27,8 @@ YCDL does not perform the downloading of videos itself. [youtube-dl](https://git
 
 The reason for this is that youtube-dl is extremely configurable. Every user might prefer a completely different set of arguments and formatting. Rather than attempting to provide an interface for that in YCDL, my goal is to get you the video IDs so you can pass them into your favorite youtube-dl configuration.
 
+I wrote a program called [q.py](https://github.com/voussoir/cmd/blob/master/q.py) to watch my ytqueue folder and call youtube-dl with each of the video IDs in an endless loop.
+
 ## Features
 
 - Web interface with video embeds
