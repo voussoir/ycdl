@@ -181,6 +181,8 @@ youtube.com##.ytp-suggestion-set
 
 ## Mirrors
 
+https://git.voussoir.net/voussoir/ycdl
+
 https://github.com/voussoir/ycdl
 
 https://gitlab.com/voussoir/ycdl
