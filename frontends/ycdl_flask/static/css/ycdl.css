@@ -7,7 +7,7 @@ html
     font-family: sans-serif;
 }
 
-.navigation_link:hover
+.header_element:hover
 {
     background-color: var(--color_secondary);
 }
