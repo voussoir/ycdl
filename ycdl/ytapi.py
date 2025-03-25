@@ -43,8 +43,11 @@ class Video:
             self.live_broadcast = None
         self.tags = snippet.get('tags', [])
 
-        # Something like 'PT10M25S'
-        self.duration = isodate.parse_duration(content_details['duration']).seconds
+        if 'duration' in content_details:
+            # Something like 'PT10M25S'
+            self.duration = isodate.parse_duration(content_details['duration']).seconds
+        else:
+            self.duration = 0
         self.views = int_none(statistics.get('viewCount', None))
         self.likes = int_none(statistics.get('likeCount', 0))
         self.dislikes = int_none(statistics.get('dislikeCount'))
