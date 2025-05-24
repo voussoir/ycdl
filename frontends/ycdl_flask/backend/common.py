@@ -136,7 +136,7 @@ def ignore_shorts_thread(rate):
         videos = ycdldb.get_videos_by_sql('''
         SELECT * FROM videos
         LEFT JOIN channels ON channels.id = videos.author_id
-        WHERE is_shorts IS NULL AND duration < 62 AND state = "pending" AND channels.ignore_shorts = 1
+        WHERE is_shorts IS NULL AND duration < 182 AND state = "pending" AND channels.ignore_shorts = 1
         ORDER BY published DESC
         LIMIT 10
         ''')
@@ -144,6 +144,8 @@ def ignore_shorts_thread(rate):
         if len(videos) == 0:
             time.sleep(rate)
             continue
+
+        log.debug('Checking %d videos for shorts.', len(videos))
 
         with ycdldb.transaction:
             for video in videos:
