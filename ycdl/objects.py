@@ -12,6 +12,7 @@ log = vlogging.getLogger(__name__)
 
 from . import constants
 from . import exceptions
+from . import ytapi
 from . import ytrss
 
 class ObjectBase(worms.Object):
@@ -368,6 +369,14 @@ class Video(ObjectBase):
             return self.ycdldb.get_channel(self.author_id)
         except exceptions.NoSuchChannel:
             return None
+
+    @worms.atomic
+    def check_is_shorts(self):
+        is_shorts = ytapi.video_is_shorts(self.id)
+        self.is_shorts = is_shorts
+        pairs = {'id': self.id, 'is_shorts': int(is_shorts)}
+        self.ycdldb.update(table=Video, pairs=pairs, where_key='id')
+        return is_shorts
 
     @worms.atomic
     def delete(self):

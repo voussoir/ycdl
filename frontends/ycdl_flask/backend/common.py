@@ -150,16 +150,11 @@ def ignore_shorts_thread(rate):
         with ycdldb.transaction:
             for video in videos:
                 try:
-                    is_shorts = ycdl.ytapi.video_is_shorts(video.id)
+                    if video.check_is_shorts():
+                        video.mark_state('ignored')
                 except Exception as exc:
                     log.warning(traceback.format_exc())
                     continue
-                video.is_shorts = is_shorts
-                pairs = {'id': video.id, 'is_shorts': int(is_shorts)}
-                if is_shorts:
-                    pairs['state'] = 'ignored'
-                    video.state = 'ignored'
-                ycdldb.update(table=ycdl.objects.Video, pairs=pairs, where_key='id')
         time.sleep(rate)
 
 def start_refresher_thread(rate):
