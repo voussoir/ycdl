@@ -359,6 +359,12 @@ class YCDLDBVideoMixin:
                     video.id,
                     video.live_broadcast,
                 )
+                # We are not setting the video to ignored, but we'll wait for
+                # the next refresh to see if this livestream has ended and
+                # download it then.
+                return status
+            if author.ignore_shorts and video.check_is_shorts():
+                video.mark_state('ignored')
                 return status
             # download_video contains a call to mark_state.
             self.download_video(video.id)
